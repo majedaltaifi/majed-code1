@@ -1183,13 +1183,18 @@
                 const renderCard = (b) => `
                     <div class="stat-card" style="padding:20px; display:flex; flex-direction:column; gap:10px; border-left:3px solid ${b.iconColor || '#3b82f6'}; position:relative;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-size:1.5rem;">${b.svg === 'alert' ? '🚨' : (b.svg === 'calendarCheck' ? '📅' : (b.svg === 'trophy' ? '🏆' : '📢'))}</span>
+                            <div style="display:flex; align-items:center; gap:10px;">
+                                <span style="font-size:1.5rem;">${b.svg === 'alert' ? '🚨' : (b.svg === 'calendarCheck' ? '📅' : (b.svg === 'trophy' ? '🏆' : '📢'))}</span>
+                                <button class="btn-action" style="background:none; color:${b.pinned ? 'var(--warning)' : 'rgba(255,255,255,0.2)'}; font-size:0.8rem; padding:0;" onclick="togglePin('${b.id}', ${b.pinned || false})">
+                                    <i class="fas fa-thumbtack"></i>
+                                </button>
+                            </div>
                             <div style="display:flex; gap:5px;">
                                 <button class="btn-action" style="background:rgba(59, 130, 246, 0.1); color:var(--accent); font-size:0.6rem; padding:5px 10px;" onclick="promptEditBroadcast('${b.id}')">EDIT</button>
                                 <button class="btn-action" style="background:rgba(239, 68, 68, 0.1); color:#ef4444; font-size:0.6rem; padding:5px 10px;" onclick="deleteBroadcast('${b.id}')">DELETE</button>
                             </div>
                         </div>
-                        <div style="font-size:0.65rem; color:var(--text-muted); font-weight:800; text-transform:uppercase;">${b.labelEn || ''}</div>
+                        <div style="font-size:0.65rem; color:var(--text-muted); font-weight:800; text-transform:uppercase;">${b.labelEn || ''} ${b.pinned ? '<span style="color:var(--warning); margin-left:5px;">[FIXED SIGNAL]</span>' : ''}</div>
                         <div style="font-weight:800; color:var(--accent); font-size:0.9rem;">${b.titleEn || b.titleAr}</div>
                     </div>
                 `;
@@ -1260,6 +1265,10 @@
             if(confirm('Delete this broadcast signal?')) {
                 await db.collection('broadcasts').doc(id).delete();
             }
+        }
+
+        async function togglePin(id, current) {
+            await db.collection('broadcasts').doc(id).update({ pinned: !current });
         }
 
         function updateHRReports() {
