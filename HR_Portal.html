@@ -820,7 +820,7 @@
         }
 
         function updateSiteView() {
-            const filtered = allReports.filter(r => r.location === activeSiteType);
+            const filtered = allReports.filter(r => (r.env === activeSiteType) || (r.location === activeSiteType));
             const grid = document.getElementById('site-stats-grid');
             
             const siteNames = [...new Set(filtered.map(r => r.site || 'Unknown'))];
