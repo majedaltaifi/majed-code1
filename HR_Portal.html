@@ -571,10 +571,11 @@
 
         <!-- PAGE 2: PER-SITE DASHBOARD -->
         <div id="view-per-site" class="tab-content">
-            <div style="display: flex; gap: 15px; margin-bottom: 30px;">
-                <button class="nav-item active" style="padding: 10px 20px" onclick="filterSiteView('SITE', this)">Site Operations</button>
-                <button class="nav-item" style="padding: 10px 20px" onclick="filterSiteView('OFFICE', this)">Office Centers</button>
-                <button class="nav-item" style="padding: 10px 20px" onclick="filterSiteView('ALL', this)">ALL UNITS</button>
+            <div style="display: flex; gap: 15px; margin-bottom: 30px; overflow-x: auto; padding-bottom: 5px;">
+                <button class="nav-item active" style="padding: 10px 20px; white-space: nowrap;" onclick="filterSiteView('SITE', this)">Site Operations</button>
+                <button class="nav-item" style="padding: 10px 20px; white-space: nowrap;" onclick="filterSiteView('OFFICE', this)">Office Centers</button>
+                <button class="nav-item" style="padding: 10px 20px; white-space: nowrap;" onclick="filterSiteView('ACCOMMODATION', this)">Accommodation</button>
+                <button class="nav-item" style="padding: 10px 20px; white-space: nowrap;" onclick="filterSiteView('ALL', this)">ALL UNITS</button>
             </div>
             
             <div class="analytics-grid" id="site-stats-grid">
@@ -845,7 +846,17 @@
                         borderWidth: 0
                     }]
                 },
-                options: { plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } } }
+                options: { 
+                    onHover: (e, el) => e.native.target.style.cursor = el.length ? 'pointer' : 'default',
+                    onClick: (e, elements, chart) => {
+                        if (elements.length > 0) {
+                            const idx = elements[0].index;
+                            const label = chart.data.labels[idx];
+                            openFilteredList(r => (r.category || 'Other') === label, `Signals: ${label}`);
+                        }
+                    },
+                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } } 
+                }
             });
 
             const ctxPri = document.getElementById('priorityChart').getContext('2d');
@@ -860,6 +871,14 @@
                     }]
                 },
                 options: { 
+                    onHover: (e, el) => e.native.target.style.cursor = el.length ? 'pointer' : 'default',
+                    onClick: (e, elements, chart) => {
+                        if (elements.length > 0) {
+                            const idx = elements[0].index;
+                            const label = chart.data.labels[idx];
+                            openFilteredList(r => (r.priority || 'Low') === label, `Signals: ${label} Priority`);
+                        }
+                    },
                     scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }, x: { ticks: { color: '#94a3b8' } } },
                     plugins: { legend: { display: false } }
                 }
@@ -869,14 +888,24 @@
             charts.location = new Chart(ctxLoc, {
                 type: 'bar',
                 data: {
-                    labels: ['Site', 'Office', 'Accommodation'],
+                    labels: [],
                     datasets: [{
-                        data: [0, 0, 0],
+                        data: [],
                         backgroundColor: '#3b82f6'
                     }]
                 },
-                options: { indexAxis: 'y', plugins: { legend: { display: false } }, 
-                           scales: { x: { ticks: { color: '#94a3b8' } }, y: { ticks: { color: '#94a3b8' } } } 
+                options: { 
+                    indexAxis: 'y', 
+                    onHover: (e, el) => e.native.target.style.cursor = el.length ? 'pointer' : 'default',
+                    onClick: (e, elements, chart) => {
+                        if (elements.length > 0) {
+                            const idx = elements[0].index;
+                            const label = chart.data.labels[idx];
+                            openFilteredList(r => r.location === label || r.site === label, `Signals: ${label}`);
+                        }
+                    },
+                    plugins: { legend: { display: false } }, 
+                    scales: { x: { ticks: { color: '#94a3b8', beginAtZero: true, stepSize: 1 } }, y: { ticks: { color: '#94a3b8' } } } 
                 }
             });
 
@@ -911,8 +940,14 @@
             charts.location.update();
         }
 
-        function openFilteredList(status, title) {
-            const filtered = status === 'all' ? allReports : allReports.filter(r => (status === 'DONE' ? (r.status === 'DONE' || r.status === 'CLOSED') : (r.status || 'OPEN').toUpperCase() === status));
+        function openFilteredList(filterCondition, title) {
+            let filtered;
+            if (typeof filterCondition === 'function') {
+                filtered = allReports.filter(filterCondition);
+            } else {
+                const status = filterCondition;
+                filtered = status === 'all' ? allReports : allReports.filter(r => (status === 'DONE' ? (r.status === 'DONE' || r.status === 'CLOSED') : (r.status || 'OPEN').toUpperCase() === status));
+            }
             
             const content = `
                 <h2 style="margin-bottom:20px; font-weight:900; background:linear-gradient(to right, #fff, #3b82f6); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">${title}</h2>
@@ -1039,21 +1074,32 @@
             const filtered = activeSiteType === 'ALL' ? allReports : allReports.filter(r => (r.env === activeSiteType) || (r.location === activeSiteType));
             const grid = document.getElementById('site-stats-grid');
             
-            // Fix site names: use location if site is missing
-            const siteNames = [...new Set(filtered.map(r => r.location || r.site || 'Unknown Site'))];
+            // Group by site and sort by report count
+            const siteCounts = {};
+            filtered.forEach(r => {
+                const name = r.location || r.site || 'Unknown Site';
+                siteCounts[name] = (siteCounts[name] || 0) + 1;
+            });
+            const siteNames = Object.entries(siteCounts).sort((a,b) => b[1] - a[1]).map(x => x[0]);
             
-            grid.innerHTML = siteNames.slice(0, 12).map(name => {
+            grid.innerHTML = siteNames.slice(0, 16).map(name => {
                 const sData = filtered.filter(f => (f.location === name || f.site === name));
                 const open = sData.filter(f => (f.status||'').toUpperCase() !== 'DONE').length;
                 return `
-                    <div class="stat-card" style="border-left: 4px solid var(--accent);">
-                        <span class="stat-label">${activeSiteType === 'ALL' ? 'UNIT' : activeSiteType + ' Unit'}</span>
-                        <div style="font-size: 1.2rem; font-weight: 800;">${name}</div>
-                        <div style="display: flex; justify-content: space-between; margin-top: 10px;">
-                            <span style="font-size: 0.8rem; color: var(--text-muted);">Total: ${sData.length}</span>
-                            <span style="font-size: 0.8rem; color: var(--warning); font-weight: 700;">Open: ${open}</span>
+                    <div class="stat-card" style="border-left: 4px solid var(--accent); transition: transform 0.2s; cursor: default;">
+                        <span class="stat-label">${activeSiteType === 'ALL' ? 'PROJECT UNIT' : activeSiteType + ' CENTER'}</span>
+                        <div style="font-size: 1.1rem; font-weight: 800; color: #fff; margin-top: 5px;">${name}</div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 15px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px;">
+                            <div style="text-align: center; flex: 1; border-right: 1px solid rgba(255,255,255,0.05);">
+                                <div style="font-size: 0.6rem; opacity: 0.5;">TOTAL</div>
+                                <div style="font-size: 1rem; font-weight: 900;">${sData.length}</div>
+                            </div>
+                            <div style="text-align: center; flex: 1;">
+                                <div style="font-size: 0.6rem; color: var(--warning); opacity: 0.8;">OPEN</div>
+                                <div style="font-size: 1rem; font-weight: 900; color: var(--warning);">${open}</div>
+                            </div>
                         </div>
-                        <button class="btn-action" style="margin-top:15px; width:100%; font-size:0.7rem;" onclick="openFilteredList('all', 'Reports: ${name}')">VIEW SITE DETAILS</button>
+                        <button class="btn-action" style="margin-top:15px; width:100%; font-size:0.7rem; background: rgba(59, 130, 246, 0.1);" onclick="openFilteredList(r => r.location === '${name}' || r.site === '${name}', '${name} Details')">VIEW RECORDS</button>
                     </div>
                 `;
             }).join('') || '<div style="grid-column: span 4; text-align:center; padding:40px; opacity:0.5;">No active intelligence for this category.</div>';
