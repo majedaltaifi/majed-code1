@@ -1999,6 +1999,15 @@ function pickLang(l){setLang(l);closeSheet('sheet-lang-picker');toast(T[l].moreL
 /* ══════════════════════════════════════════
    LOGIN / PROFILE
    ══════════════════════════════════════════ */
+function toBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+}
+
 async function lookupEmployee(val){
   clearTimeout(empLookupDebounce);
   empLookupDebounce=setTimeout(async()=>{
@@ -3050,9 +3059,22 @@ async function submitReport(){
   const orig = btn.innerHTML;
   btn.disabled = true; btn.innerHTML = '...';
 
+  // Process Images to Base64
+  const imageDatas = [];
+  try {
+      for(const file of uploadedFiles) {
+          if(file.type.startsWith('image/')) {
+              const b64 = await toBase64(file);
+              // Simple compression by limiting size if needed, but for now just send
+              imageDatas.push(b64);
+          }
+      }
+  } catch(e) { console.error("Image processing failed", e); }
+
   const ref=genRef();
   const nowIso=new Date().toISOString();
   const now = firebase.firestore.Timestamp.now();
+
   const rpt={
     ref,
     type:selectedType,
@@ -3068,6 +3090,7 @@ async function submitReport(){
     dept: (currentUser ? currentUser.dept : '') || '',
     emp_no: (currentUser ? currentUser.empNo : '') || '',
     emp_name: (currentUser && !isAnonymous) ? currentUser.name : (isAnonymous ? 'Anonymous' : 'Guest'),
+    imageDatas: imageDatas,
     date:document.getElementById('f-date').value,
     time:document.getElementById('f-time').value,
     ongoing:isOngoing,

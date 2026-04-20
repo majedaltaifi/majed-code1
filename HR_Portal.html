@@ -574,7 +574,7 @@
             <div style="display: flex; gap: 15px; margin-bottom: 30px;">
                 <button class="nav-item active" style="padding: 10px 20px" onclick="filterSiteView('SITE', this)">Site Operations</button>
                 <button class="nav-item" style="padding: 10px 20px" onclick="filterSiteView('OFFICE', this)">Office Centers</button>
-                <button class="nav-item" style="padding: 10px 20px" onclick="filterSiteView('ACCOMMODATION', this)">Accommodations</button>
+                <button class="nav-item" style="padding: 10px 20px" onclick="filterSiteView('ALL', this)">ALL UNITS</button>
             </div>
             
             <div class="analytics-grid" id="site-stats-grid">
@@ -959,18 +959,23 @@
                     <div class="detail-value" style="font-size:0.85rem;"><i class="far fa-clock"></i> ${dateObj.toLocaleDateString()} at ${dateObj.toLocaleTimeString()}</div>
                 </div>
 
-                ${(r.files && r.files > 0) || r.image ? `
+                ${(r.imageDatas && r.imageDatas.length > 0) || r.image ? `
                     <div class="detail-row">
                         <span class="detail-label">Attached Evidence</span>
-                        <div style="margin-top:12px; border-radius:24px; overflow:hidden; border:1px solid rgba(59, 130, 246, 0.2); background:rgba(0,0,0,0.3); position:relative;">
-                             <div style="padding:60px 20px; text-align:center; opacity:0.7;">
-                                <i class="fas fa-image" style="font-size:2.5rem; margin-bottom:15px; color:var(--accent);"></i>
-                                <div style="font-size:0.75rem; font-weight:700;">ENCRYPTED IMAGE DATA DETECTED</div>
-                                <div style="font-size:0.65rem; margin-top:5px; opacity:0.5;">Secure Cloud Storage Asset</div>
-                             </div>
+                        <div style="margin-top:12px; display:grid; gap:10px;">
+                            ${(r.imageDatas || []).map(img => `<img src="${img}" style="width:100%; border-radius:18px; border:1px solid rgba(255,255,255,0.1);">`).join('')}
+                            ${r.image ? `<img src="${r.image}" style="width:100%; border-radius:18px; border:1px solid rgba(255,255,255,0.1);">` : ''}
                         </div>
                     </div>
-                ` : ''}
+                ` : `
+                    <div class="detail-row">
+                        <span class="detail-label">Attached Evidence</span>
+                        <div style="margin-top:12px; border-radius:24px; text-align:center; padding:30px; background:rgba(255,255,255,0.02); border:1px dashed rgba(255,255,255,0.1);">
+                            <i class="fas fa-image" style="opacity:0.2; font-size:2rem; margin-bottom:10px;"></i>
+                            <div style="font-size:0.7rem; opacity:0.4;">No visual evidence attached to this report.</div>
+                        </div>
+                    </div>
+                `}
 
                 <div style="margin-top:50px; border-top:1px solid rgba(255,255,255,0.08); padding-top:25px; display:grid; gap:12px;">
                     <button class="nav-item active" style="justify-content:center; padding:18px;" onclick="markResolved('${r.id || r.ref}')"><i class="fas fa-check-circle"></i> RESOLVE PERMANENTLY</button>
@@ -1008,18 +1013,18 @@
         }
 
         function updateSiteView() {
-            const filtered = allReports.filter(r => (r.env === activeSiteType) || (r.location === activeSiteType));
+            const filtered = activeSiteType === 'ALL' ? allReports : allReports.filter(r => (r.env === activeSiteType) || (r.location === activeSiteType));
             const grid = document.getElementById('site-stats-grid');
             
             // Fix site names: use location if site is missing
             const siteNames = [...new Set(filtered.map(r => r.location || r.site || 'Unknown Site'))];
             
-            grid.innerHTML = siteNames.slice(0, 4).map(name => {
+            grid.innerHTML = siteNames.slice(0, 12).map(name => {
                 const sData = filtered.filter(f => (f.location === name || f.site === name));
                 const open = sData.filter(f => (f.status||'').toUpperCase() !== 'DONE').length;
                 return `
                     <div class="stat-card" style="border-left: 4px solid var(--accent);">
-                        <span class="stat-label">${activeSiteType} Unit</span>
+                        <span class="stat-label">${activeSiteType === 'ALL' ? 'UNIT' : activeSiteType + ' Unit'}</span>
                         <div style="font-size: 1.2rem; font-weight: 800;">${name}</div>
                         <div style="display: flex; justify-content: space-between; margin-top: 10px;">
                             <span style="font-size: 0.8rem; color: var(--text-muted);">Total: ${sData.length}</span>
@@ -1030,14 +1035,14 @@
                 `;
             }).join('') || '<div style="grid-column: span 4; text-align:center; padding:40px; opacity:0.5;">No active intelligence for this category.</div>';
 
-            const cats = { Safety: 0, Service: 0 };
+            const cats = { Safety: 0, Service: 0, Other: 0 };
             filtered.forEach(r => { 
                 const c = r.category || 'Service';
-                if(cats[c] !== undefined) cats[c]++; 
+                if(cats[c] !== undefined) cats[c]++; else cats.Other++;
             });
-            charts.siteCat.data.labels = ['Safety', 'Service'];
-            charts.siteCat.data.datasets[0].data = [cats.Safety, cats.Service];
-            charts.siteCat.data.datasets[0].backgroundColor = ['#ef4444', '#3b82f6'];
+            charts.siteCat.data.labels = Object.keys(cats).filter(k => cats[k] > 0);
+            charts.siteCat.data.datasets[0].data = Object.keys(cats).filter(k => cats[k] > 0).map(k => cats[k]);
+            charts.siteCat.data.datasets[0].backgroundColor = ['#ef4444', '#3b82f6', '#94a3b8'];
             charts.siteCat.update();
 
             const pris = { Critical:0, High:0, Medium:0, Low:0 };
