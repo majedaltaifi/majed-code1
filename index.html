@@ -717,6 +717,8 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}
 </style>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 </head>
 <body>
 
@@ -1320,6 +1322,10 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 </div>
 
 <script>
+  const firebaseConfig = { apiKey: "AIzaSyCavTcaDYVcW_lfF0YwvmnUCZH_PcuwFck", authDomain: "cloude-code1.firebaseapp.com", projectId: "cloude-code1", storageBucket: "cloude-code1.firebasestorage.app", messagingSenderId: "553630040386", appId: "1:553630040386:web:361da3353836ac709188db" };
+  if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
 /* ══════════════════════════════════════════
    TRANSLATIONS
    ══════════════════════════════════════════ */
@@ -2991,13 +2997,18 @@ function renderPrev(){
 }
 function rmFile(i){uploadedFiles.splice(i,1);renderPrev();if(!uploadedFiles.length)unmarkCompleted('sec-files')}
 
-function submitReport(){
+async function submitReport(){
   const t=T[lang],en=T.en;
   if(!selectedEnv){toast(t.envLabel||en.envLabel);scrollToSec('sec-env');return}
   if(!selectedType){toast(t.errType||en.errType);scrollToSec('sec-type');return}
   const descEl=document.getElementById('f-desc');
   if(descEl.value.trim().length<3){descEl.classList.add('field-error');descEl.focus();toast(t.errDesc||en.errDesc);scrollToSec('sec-desc');return}
   if(!selectedSeverity){toast(t.severityLabel||en.severityLabel);scrollToSec('sec-sev');return}
+  
+  const btn = event.target.closest('button');
+  const orig = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = '...';
+
   const ref=genRef();
   const nowIso=new Date().toISOString();
   const rpt={
@@ -3012,17 +3023,53 @@ function submitReport(){
     phone:isAnonymous?null:document.getElementById('f-phone').value,
     files:uploadedFiles.length,
     at:nowIso,lang,
+    status:'open',
     timeline:[{text:'tlReceived',by:'tlBySystem',color:'#00e676',at:nowIso}]
   };
-  const rpts=loadReports();rpts.push(rpt);saveReports(rpts);
-  document.getElementById('ref-number').textContent=ref;
-  document.getElementById('next-steps').innerHTML=(T[lang].nextSteps||T.en.nextSteps).map(s=>`<li>${s}</li>`).join('');
-  closeSheet('sheet-form');
-  setTimeout(()=>{openSheet('sheet-confirm');confetti();if(navigator.vibrate)navigator.vibrate([50,100,50])},350);
-  // Auto notification
-  addNotif(t.notifReportReceived||en.notifReportReceived,ref,'report');
-  updateStats();
+
+  try {
+    await db.collection('reports').doc(ref).set(rpt);
+    const rpts=loadReports(); rpts.push(rpt); saveReports(rpts);
+    document.getElementById('ref-number').textContent=ref;
+    document.getElementById('next-steps').innerHTML=(T[lang].nextSteps||T.en.nextSteps).map(s=>`<li>${s}</li>`).join('');
+    closeSheet('sheet-form');
+    setTimeout(()=>{openSheet('sheet-confirm');confetti();if(navigator.vibrate)navigator.vibrate([50,100,50])},350);
+    addNotif(t.notifReportReceived||en.notifReportReceived,ref,'report');
+    updateStats();
+  } catch(e) {
+    alert("Error: " + e.message);
+  } finally {
+    btn.disabled = false; btn.innerHTML = orig;
+  }
 }
+
+function syncBroadcasts() {
+  db.collection('broadcasts').onSnapshot(snap => {
+    const row = document.getElementById('broadcasts-row');
+    const wrap = document.getElementById('broadcasts-wrap');
+    const list = snap.docs.map(d => d.data()).filter(b => b.title && b.title.trim() !== '');
+    
+    if(list.length === 0) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'block';
+    
+    row.innerHTML = list.map(b => `
+      <div class="bc-item">
+        <div class="bc-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+        </div>
+        <div class="bc-item-body">
+          <div class="bc-item-label">${lang === 'ar' ? 'تنبيه نظام' : 'SYSTEM ALERT'}</div>
+          <div class="bc-item-title">${b.title}</div>
+          <div style="font-size:0.75rem; color:rgba(255,255,255,0.6); margin-top:2px;">${b.content || ''}</div>
+        </div>
+      </div>
+    `).join('');
+  });
+}
+
 
 function closeConfirm(){
   closeSheet('sheet-confirm');
@@ -3189,7 +3236,7 @@ setTimeout(()=>{
     setLang(saved);
   }else{
     document.getElementById('screen-lang').classList.add('show');
-    initCTA();
+    syncBroadcasts();
   }
 },1400);
 </script>
