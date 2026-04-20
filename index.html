@@ -897,10 +897,24 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
     <div class="tab-pane" id="tab-chats">
       <div class="search-bar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="chats-search" data-t-placeholder="searchChats" oninput="renderChats()">
+        <input type="text" id="chats-search" data-t-placeholder="searchChats" oninput="filterChats()">
       </div>
-      <div id="chats-list"></div>
+      
+      <div id="search-results-area" style="display:none">
+         <div class="section-label">Search Results</div>
+         <div id="employees-list"></div>
+      </div>
+
+      <div id="inbox-area">
+        <button class="action-card" onclick="document.getElementById('chats-search').focus()" style="margin-bottom:12px">
+          <div class="action-icon" style="color:var(--primary);background:rgba(59,130,246,0.1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          <div class="action-info"><div class="action-title" data-t="newChat"></div><div class="action-desc">Start a direct session</div></div>
+          <span class="action-arrow">›</span>
+        </button>
+        <div id="chats-list"></div>
+      </div>
     </div>
+
 
     <!-- MORE TAB -->
     <div class="tab-pane" id="tab-more">
@@ -2774,57 +2788,128 @@ function doTrackByRef(){
    CHATS TAB (FIRESTORE CONNECTED)
    ══════════════════════════════════════════ */
 function renderChats(){
-  let chats = loadChats().sort((a,b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
-  const q = (document.getElementById('chats-search')?.value||'').toLowerCase().trim();
-  if(q) chats = chats.filter(c => (c.last_message||'').toLowerCase().includes(q));
-  
+  let sessions = loadChats().sort((a,b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
   const list = document.getElementById('chats-list');
-  if(!chats.length){
+  if(!list) return;
+
+  if(!sessions.length){
     list.innerHTML=`<div class="empty-state">
       <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
       <div class="empty-title">${T[lang].noChats}</div>
       <div class="empty-sub">${T[lang].noChatsSub}</div>
-      <button class="empty-cta" onclick="startNewChat()">+ ${T[lang].newChat}</button>
-    </div>`;return
-  }
-  
-  list.innerHTML='<button class="action-card" onclick="startNewChat()" style="margin-bottom:12px"><div class="action-icon a-chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div><div class="action-info"><div class="action-title">'+T[lang].newChat+'</div><div class="action-desc">'+T[lang].hubChatDesc+'</div></div><span class="action-arrow">›</span></button>'+
-    '<div class="list">'+chats.map(c=>{
+    </div>`;
+  } else {
+    list.innerHTML = sessions.map(c => {
+      const myID = String(currentUser.empNo);
+      const otherId = c.participants.find(p => String(p) !== myID);
+      const otherName = c.other_name || (otherId === 'admin' ? T[lang].chatName : 'User ' + otherId);
       const preview = c.last_message || T[lang].chatWelcome;
       const timeStr = c.updated_at ? formatRelativeTime(new Date(c.updated_at)) : '';
-      const myID = String(currentUser.empNo);
       const unread = (c.unread_counts && c.unread_counts[myID]) || 0;
       
-      return `<button class="list-item" onclick="openChat('${c.id}')" style="position:relative">
+      return `<button class="list-item" onclick="openChat('${c.id}', '${otherName}')" style="position:relative">
         ${unread > 0 ? `<div style="position:absolute;top:15px;right:15px;width:10px;height:10px;background:var(--danger);border-radius:50%;border:2px solid white"></div>` : ''}
-        <div class="list-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <div class="list-avatar" style="background:rgba(59,130,246,0.1);color:var(--primary)">
+          ${otherId === 'admin' ? 
+            `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>` : 
+            `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`
+          }
+        </div>
         <div class="list-body">
           <div class="list-top">
-            <div class="list-title">${T[lang].chatName}</div>
+            <div class="list-title">${otherName}</div>
             <div class="list-time">${timeStr}</div>
           </div>
           <div class="list-preview">${escapeHtml(preview.slice(0,80))}</div>
         </div>
-      </button>`
-    }).join('')+'</div>';
+      </button>`;
+    }).join('');
+  }
 }
 
-async function startNewChat(){
+async function filterChats() {
+  const v = (document.getElementById('chats-search')?.value||'').trim().toLowerCase();
+  const resArea = document.getElementById('search-results-area');
+  const inboxArea = document.getElementById('inbox-area');
+  const empList = document.getElementById('employees-list');
+  
+  if(!v) {
+    if(resArea) resArea.style.display = 'none';
+    if(inboxArea) inboxArea.style.display = 'block';
+    return;
+  }
+
+  if(resArea) resArea.style.display = 'block';
+  if(inboxArea) inboxArea.style.display = 'none';
+  if(empList) empList.innerHTML = '<div style="padding:20px;text-align:center;font-size:0.85rem;color:var(--muted)">Searching Tactical Database...</div>';
+
+  try {
+    const vPrefix = v.charAt(0).toUpperCase() + v.slice(1);
+    const snapNameEn = await db.collection('employees').orderBy('nameEn').startAt(vPrefix).endAt(vPrefix + '\uf8ff').limit(5).get();
+    const snapEmpNo = await db.collection('employees').where('empNo', '==', v).get();
+    
+    let matchesMap = new Map();
+    snapNameEn.docs.forEach(d => matchesMap.set(d.id, d.data()));
+    snapEmpNo.docs.forEach(d => matchesMap.set(d.id, d.data()));
+    
+    let matches = Array.from(matchesMap.values());
+    
+    if(!empList) return;
+    if(!matches.length) {
+      empList.innerHTML = '<div style="padding:20px;text-align:center;font-size:0.85rem;color:var(--muted)">No operatives found matching: '+v+'</div>';
+    } else {
+      empList.innerHTML = matches.map(e => {
+        const name = e.nameEn || e.nameAr || 'Employee ' + e.empNo;
+        return `<button class="list-item" onclick="openChatWithUser('${e.empNo}', '${name.replace(/'/g, "\\'")}')">
+          <div class="list-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <div class="list-body">
+            <div class="list-title">${name}</div>
+            <div class="list-preview">ID: ${e.empNo} • ${e.deptEn || ''}</div>
+          </div>
+        </button>`;
+      }).join('');
+    }
+  } catch(e) { console.error("Search Error:", e); }
+}
+
+async function openChatWithUser(targetEmpNo, targetName) {
   if(!currentUser || currentUser.guest) return toast(T[lang].moreLoginNow);
-  const roomId = 'direct_' + currentUser.empNo;
+  const myID = String(currentUser.empNo);
+  const tID = String(targetEmpNo);
+  
+  if(myID === tID) return toast("Cannot chat with yourself.");
+  
+  let roomId;
+  if(tID === 'admin' || tID === 'support') {
+    roomId = 'direct_' + myID;
+  } else {
+    roomId = [myID, tID].sort().join('_');
+  }
+  
   try {
     await db.collection('chat_sessions').doc(roomId).set({
-      participants: [String(currentUser.empNo), 'admin'],
+      participants: roomId.includes('direct_') ? [myID, 'admin'] : [myID, tID],
+      other_name: targetName,
       updated_at: new Date().toISOString()
     }, {merge:true});
-    openChat(roomId);
+    
+    // Switch back from search to inbox area for better flow next time
+    const searchInput = document.getElementById('chats-search');
+    if(searchInput) searchInput.value = '';
+    filterChats();
+
+    openChat(roomId, targetName);
   } catch(e) { console.error("Create chat error", e); }
 }
 
-async function openChat(id){
+
+async function openChat(id, optName){
   currentChatId = id;
   activeRoom = id;
   const t = T[lang];
+  
+  if(optName) document.querySelector('#sheet-chat .sheet-title').textContent = optName;
+  else document.querySelector('#sheet-chat .sheet-title').textContent = t.chatName;
   
   // Clear unread count for me
   if(currentUser && !currentUser.guest){
