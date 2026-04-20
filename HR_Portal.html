@@ -898,7 +898,7 @@
                         <td><span class="status-pill p-${priorityClass}">${r.priority || 'Low'}</span></td>
                         <td><span style="font-size: 0.7rem; font-weight: 900; opacity: 0.8">${(r.status || 'OPEN').toUpperCase()}</span></td>
                         <td style="font-size: 0.8rem; color: var(--text-muted);">${displayDate}</td>
-                        <td><button class="btn-action" onclick="openEditModal('${r.id || r.ref}')">EDIT</button></td>
+                        <td><button class="btn-action" onclick="openEditModal('${r.ref || r.id}')">EDIT</button></td>
                     </tr>
                 `;
             }).join('');
