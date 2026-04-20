@@ -354,6 +354,16 @@
             gap: 15px;
         }
 
+        .pulse-dot {
+            animation: pulse-green 2s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
         /* --- Modal --- */
         .modal {
             display: none;
@@ -641,29 +651,48 @@
         <div id="view-chat" class="tab-content">
             <div class="chat-layout">
                 <div class="chat-sidebar">
-                    <div style="font-weight: 800; font-size: 0.9rem; color: var(--accent); margin-bottom: 10px;">ACTIVE CONVERSATIONS</div>
-                    <input type="text" class="search-input" style="max-width: none;" placeholder="Search employees..." id="chat-search" oninput="renderChatUsers()">
+                    <div style="font-weight: 800; font-size: 0.9rem; color: var(--accent); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-satellite-dish"></i> ACTIVE SIGNALS
+                    </div>
+                    <div style="position: relative; margin-bottom: 5px;">
+                        <i class="fas fa-search" style="position: absolute; left: 15px; top: 12px; font-size: 0.8rem; color: var(--text-muted);"></i>
+                        <input type="text" class="search-input" style="max-width: none; border-radius: 14px; padding: 12px 15px 12px 40px; font-size: 0.8rem;" placeholder="Search names or IDs..." id="chat-search" oninput="renderChatUsers()">
+                    </div>
                     <div class="chat-list" id="chat-user-list">
                         <!-- Injected -->
                     </div>
                 </div>
-                <div class="chat-main" id="chat-placeholder" style="display: flex; align-items: center; justify-content: center; opacity: 0.5;">
-                    <div style="text-align: center;">
-                        <i class="fas fa-comments" style="font-size: 3rem; margin-bottom: 20px;"></i>
-                        <h3>Select an employee to start chatting</h3>
+                <div class="chat-main" id="chat-placeholder" style="display: flex; align-items: center; justify-content: center; background-image: radial-gradient(circle at center, rgba(59, 130, 246, 0.05) 0%, transparent 70%);">
+                    <div style="text-align: center; max-width: 300px;">
+                        <div style="width: 80px; height: 80px; background: rgba(59, 130, 246, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; border: 1px solid rgba(59, 130, 246, 0.2);">
+                            <i class="fas fa-comments-alt" style="font-size: 2rem; color: var(--accent);"></i>
+                        </div>
+                        <h3 style="font-weight: 800; margin-bottom: 10px; color: #fff;">Employee Communications</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">Select an active signal from the sidebar to establish a secure link with the field.</p>
                     </div>
                 </div>
                 <div class="chat-main" id="chat-active" style="display: none;">
-                    <div style="padding: 20px 30px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
-                        <h3 id="active-user-name">Employee Name</h3>
-                        <span style="font-size: 11px; font-weight: 800; color: var(--success);" id="active-user-status">STABLE CONNECTION</span>
+                    <div style="padding: 20px 30px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(10px);">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <img id="active-user-avatar" src="" style="width: 40px; height: 40px; border-radius: 12px; border: 2px solid rgba(59, 130, 246, 0.3);">
+                            <div>
+                                <div id="active-user-name" style="font-weight: 800; font-size: 1rem; color: #fff;">Employee Name</div>
+                                <div id="active-user-id" style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">EMP ID: ---</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="width: 8px; height: 8px; background: var(--success); border-radius: 50%;" class="pulse-dot"></div>
+                            <span style="font-size: 10px; font-weight: 800; letter-spacing: 1px;">ENCRYPTED LINK</span>
+                        </div>
                     </div>
-                    <div class="chat-messages" id="chat-messages-container">
+                    <div class="chat-messages" id="chat-messages-container" style="background: rgba(2, 6, 23, 0.3);">
                         <!-- Messages Injected -->
                     </div>
-                    <div class="chat-input-area">
-                        <input type="text" class="search-input" style="flex: 1; max-width: none;" placeholder="Type a message..." id="chat-input" onkeypress="if(event.key==='Enter') sendMessage()">
-                        <button class="nav-item active" style="padding: 10px 20px" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+                    <div class="chat-input-area" style="background: rgba(15, 23, 42, 0.5); padding: 25px;">
+                        <input type="text" class="search-input" style="flex: 1; max-width: none; border-radius: 16px; padding: 15px 25px; border: 1px solid rgba(59, 130, 246, 0.2);" placeholder="Relay message to field official..." id="chat-input" onkeypress="if(event.key==='Enter') sendMessage()">
+                        <button class="nav-item active" style="padding: 15px 25px; border-radius: 16px; background: var(--accent); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);" onclick="sendMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1212,34 +1241,105 @@
             }).join('');
         }
 
-        function renderChatUsers() {
+        async function renderChatUsers() {
             const list = document.getElementById('chat-user-list');
             const search = document.getElementById('chat-search').value.toLowerCase();
+            
+            if (search.length > 2) {
+                // Search Mode: Query employees collection
+                try {
+                    const snap = await db.collection('employees')
+                        .orderBy('name_en')
+                        .startAt(search.toUpperCase())
+                        .endAt(search.toUpperCase() + '\uf8ff')
+                        .limit(8)
+                        .get();
+                    
+                    const matches = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    
+                    if (matches.length > 0) {
+                        list.innerHTML = `<div style="font-size: 0.65rem; color: var(--accent); margin: 10px 5px; font-weight: 800;">SEARCH RESULTS</div>` + 
+                            matches.map(e => {
+                                const displayName = e.name_en || e.name || 'Staff member';
+                                return `
+                                    <div class="chat-user-item ${activeChatSession === 'direct_' + e.emp_no ? 'active' : ''}" onclick="openChat('direct_${e.emp_no}', '${displayName.replace(/'/g, "\\'")}')">
+                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff&bold=true" style="width: 32px; height: 32px; border-radius: 8px;">
+                                            <div>
+                                                <div style="font-weight: 800; font-size: 0.85rem; color: #fff;">${displayName}</div>
+                                                <div style="font-size: 0.65rem; color: var(--text-muted);">EMP ID: ${e.emp_no}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('');
+                        return;
+                    }
+                } catch(e) { console.error("Search error", e); }
+            }
+
+            // Default Mode: Recent active sessions
             const directSessions = allSessions.filter(s => s.id.startsWith('direct_') && s.id.toLowerCase().includes(search));
             
             list.innerHTML = directSessions.map(s => {
                 const empId = s.id.replace('direct_', '');
                 return `
                     <div class="chat-user-item ${activeChatSession === s.id ? 'active' : ''}" onclick="openChat('${s.id}', '${empId}')">
-                        <div style="font-weight: 800; font-size: 0.9rem;">Emp #${empId}</div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            ${s.last_message || 'New conversation'}
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <div style="position: relative;">
+                                <img src="https://ui-avatars.com/api/?name=${empId}&background=1e293b&color=3b82f6&bold=true" style="width: 42px; height: 42px; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.1);">
+                                <div style="position: absolute; bottom: -2px; right: -2px; width: 12px; height: 12px; background: var(--success); border-radius: 50%; border: 2px solid var(--primary);"></div>
+                            </div>
+                            <div style="flex: 1; overflow: hidden;">
+                                <div style="font-weight: 800; font-size: 0.9rem; color: #fff;">Emp #${empId}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.7;">
+                                    ${s.last_message || 'Encrypted signal established'}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 `;
-            }).join('') || '<p style="text-align:center; padding:20px; font-size:0.7rem; opacity:0.5">No active chats found</p>';
+            }).join('') || '<p style="text-align:center; padding:30px; font-size:0.7rem; color: var(--text-muted); font-weight: 700;">NO ACTIVE SIGNALS FOUND</p>';
         }
 
-        function openChat(sid, name) {
+        async function openChat(sid, optName) {
             activeChatSession = sid;
+            const empId = sid.replace('direct_', '');
+            
             document.getElementById('chat-placeholder').style.display = 'none';
             document.getElementById('chat-active').style.display = 'flex';
-            document.getElementById('active-user-name').innerText = "Employee #" + name;
+            
+            let displayName = optName || "Employee #" + empId;
+            document.getElementById('active-user-name').innerText = displayName;
+            document.getElementById('active-user-id').innerText = "EMP ID: " + empId;
+            document.getElementById('active-user-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff&bold=true`;
+            
+            // Ensure session exists in Firestore if created from search
+            await db.collection('chat_sessions').doc(sid).set({
+                participants: [String(empId), 'admin'],
+                updated_at: new Date().toISOString()
+            }, { merge: true });
+
             if(chatsUnsubscribe) chatsUnsubscribe();
+            
             const container = document.getElementById('chat-messages-container');
+            container.innerHTML = '<div style="text-align:center; padding:40px; opacity:0.3; font-size:0.7rem;">TUNING FREQUENCY...</div>';
+            
             chatsUnsubscribe = db.collection('chat_sessions').doc(sid).collection('messages').orderBy('created_at', 'asc').onSnapshot(snap => {
                 const msgs = snap.docs.map(doc => doc.data());
-                container.innerHTML = msgs.map(m => `<div class="msg ${m.sender_id === 'admin' ? 'sent' : 'received'}">${m.text || m.content}</div>`).join('');
+                container.innerHTML = msgs.map(m => {
+                    const isMe = m.sender_id === 'admin';
+                    return `
+                        <div style="display: flex; flex-direction: column; align-items: ${isMe ? 'flex-end' : 'flex-start'}; gap: 5px; margin-bottom: 5px;">
+                            <div class="msg ${isMe ? 'sent' : 'received'}" style="${isMe ? 'background: var(--accent); border-radius: 18px 18px 4px 18px; color: #fff; font-weight: 600;' : 'background: rgba(255,255,255,0.05); border-radius: 18px 18px 18px 4px; color: #f8fafc; font-weight: 500; border: 1px solid rgba(255,255,255,0.05);'}">
+                                ${m.text || m.content}
+                                <div style="font-size: 0.6rem; opacity: 0.5; margin-top: 5px; text-align: ${isMe ? 'right' : 'left'}">
+                                    ${new Date(m.created_at || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
                 container.scrollTop = container.scrollHeight;
             });
             renderChatUsers();
@@ -1250,8 +1350,20 @@
             const text = input.value.trim();
             if(!text || !activeChatSession) return;
             const now = new Date().toISOString();
-            await db.collection('chat_sessions').doc(activeChatSession).collection('messages').add({ sender_id: 'admin', text: text, created_at: now });
-            await db.collection('chat_sessions').doc(activeChatSession).set({ last_message: text, last_sender: 'admin', updated_at: now }, {merge:true});
+            
+            const msgData = { 
+                sender_id: 'admin', 
+                text: text, 
+                created_at: now 
+            };
+
+            await db.collection('chat_sessions').doc(activeChatSession).collection('messages').add(msgData);
+            await db.collection('chat_sessions').doc(activeChatSession).set({ 
+                last_message: text, 
+                last_sender: 'admin', 
+                updated_at: now 
+            }, {merge:true});
+            
             input.value = '';
         }
 

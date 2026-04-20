@@ -1321,7 +1321,11 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <span id="update-msg">جاري التحديث...</span>
 </div>
 
-<script>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <script>
   const firebaseConfig = {
     apiKey: "AIzaSyCWW5fJIYSw0p_LGuDJZA-4bOfQ92tdUPM",
     authDomain: "majed-code1.firebaseapp.com",
@@ -1904,6 +1908,40 @@ function tr(key){const l=I18N[key];if(!l)return key;return l[lang]||l.en||key}
    BROADCASTS (static company announcements — mirror Majed's broadcasts table)
    ══════════════════════════════════════════ */
 let broadcastsDb=[];
+let unsubBroadcasts = null, unsubChats = null, unsubMsgs = null, activeRoom = null;
+
+/* ══════════════════════════════════════════
+   TACTICAL SYNC ENGINE (FIRESTORE)
+   ══════════════════════════════════════════ */
+function syncBroadcasts() {
+  if (unsubBroadcasts) unsubBroadcasts();
+  unsubBroadcasts = db.collection('broadcasts').onSnapshot(snap => {
+    broadcastsDb = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+    renderBroadcasts();
+  }, err => console.error("Broadcast Sync Error:", err));
+}
+
+function syncChats() {
+  if (!currentUser || currentUser.guest) return;
+  if (unsubChats) unsubChats();
+  const myID = String(currentUser.empNo);
+  unsubChats = db.collection('chat_sessions')
+    .where('participants', 'array-contains', myID)
+    .onSnapshot(snap => {
+      const chats = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+      saveChats(chats);
+      renderChats();
+      
+      let totalUnread = 0;
+      chats.forEach(c => {
+        totalUnread += (c.unread_counts && c.unread_counts[myID]) || 0;
+      });
+      const dot = document.getElementById('chats-dot');
+      if(dot) dot.style.display = totalUnread > 0 ? 'block' : 'none';
+    }, err => console.error("Chat Sync Error:", err));
+}
+
+
 
 /* ══════════════════════════════════════════
    STATE
@@ -1984,12 +2022,18 @@ function enterMainApp(){
   seedNotifsIfFirstTime();
   switchTab('home');
   applyPersonalization();
+  
+  // Tactical Cloud Sync Initialization
+  syncBroadcasts();
+  syncChats();
+
   updateStats();renderReports();renderChats();renderStatsDashboard();
   updateCurrentLangLabel();
   updateBellDot();
   renderProfileCard();
   updateLogoutBtn();
 }
+
 function pickLang(l){setLang(l);closeSheet('sheet-lang-picker');toast(T[l].moreLanguage+': '+T[l].name)}
 
 /* ══════════════════════════════════════════
@@ -2726,11 +2770,15 @@ function doTrackByRef(){
 /* ══════════════════════════════════════════
    CHATS TAB
    ══════════════════════════════════════════ */
+/* ══════════════════════════════════════════
+   CHATS TAB (FIRESTORE CONNECTED)
+   ══════════════════════════════════════════ */
 function renderChats(){
-  let chats=loadChats().slice().reverse();
-  const q=(document.getElementById('chats-search')?.value||'').toLowerCase().trim();
-  if(q)chats=chats.filter(c=>(c.preview||'').toLowerCase().includes(q)||(c.messages||[]).some(m=>(m.text||'').toLowerCase().includes(q)));
-  const list=document.getElementById('chats-list');
+  let chats = loadChats().sort((a,b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
+  const q = (document.getElementById('chats-search')?.value||'').toLowerCase().trim();
+  if(q) chats = chats.filter(c => (c.last_message||'').toLowerCase().includes(q));
+  
+  const list = document.getElementById('chats-list');
   if(!chats.length){
     list.innerHTML=`<div class="empty-state">
       <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
@@ -2739,12 +2787,16 @@ function renderChats(){
       <button class="empty-cta" onclick="startNewChat()">+ ${T[lang].newChat}</button>
     </div>`;return
   }
+  
   list.innerHTML='<button class="action-card" onclick="startNewChat()" style="margin-bottom:12px"><div class="action-icon a-chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div><div class="action-info"><div class="action-title">'+T[lang].newChat+'</div><div class="action-desc">'+T[lang].hubChatDesc+'</div></div><span class="action-arrow">›</span></button>'+
     '<div class="list">'+chats.map(c=>{
-      const last=c.messages&&c.messages.length?c.messages[c.messages.length-1]:null;
-      const preview=last?last.text:(c.preview||T[lang].chatWelcome);
-      const timeStr=formatRelativeTime(new Date(c.lastAt||c.createdAt));
-      return `<button class="list-item" onclick="openChat('${c.id}')">
+      const preview = c.last_message || T[lang].chatWelcome;
+      const timeStr = c.updated_at ? formatRelativeTime(new Date(c.updated_at)) : '';
+      const myID = String(currentUser.empNo);
+      const unread = (c.unread_counts && c.unread_counts[myID]) || 0;
+      
+      return `<button class="list-item" onclick="openChat('${c.id}')" style="position:relative">
+        ${unread > 0 ? `<div style="position:absolute;top:15px;right:15px;width:10px;height:10px;background:var(--danger);border-radius:50%;border:2px solid white"></div>` : ''}
         <div class="list-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
         <div class="list-body">
           <div class="list-top">
@@ -2757,93 +2809,107 @@ function renderChats(){
     }).join('')+'</div>';
 }
 
-function startNewChat(){
-  const id='CHAT-'+Date.now().toString(36).toUpperCase()+'-'+Math.random().toString(36).slice(2,6).toUpperCase();
-  const chat={id,createdAt:new Date().toISOString(),lastAt:new Date().toISOString(),messages:[{text:T[lang].chatWelcome,type:'bot',at:new Date().toISOString()}],lang,preview:T[lang].chatWelcome};
-  const chats=loadChats();chats.push(chat);saveChats(chats);
-  openChat(id);
+async function startNewChat(){
+  if(!currentUser || currentUser.guest) return toast(T[lang].moreLoginNow);
+  const roomId = 'direct_' + currentUser.empNo;
+  try {
+    await db.collection('chat_sessions').doc(roomId).set({
+      participants: [String(currentUser.empNo), 'admin'],
+      updated_at: new Date().toISOString()
+    }, {merge:true});
+    openChat(roomId);
+  } catch(e) { console.error("Create chat error", e); }
 }
 
-function openChat(id){
-  currentChatId=id;
-  const chat=loadChats().find(c=>c.id===id);
-  if(!chat)return;
-  renderChatMessages(chat);
+async function openChat(id){
+  currentChatId = id;
+  activeRoom = id;
+  const t = T[lang];
+  
+  // Clear unread count for me
+  if(currentUser && !currentUser.guest){
+    const myID = String(currentUser.empNo);
+    const up = {}; up[`unread_counts.${myID}`] = 0;
+    db.collection('chat_sessions').doc(id).update(up).catch(e=>console.warn("Unread reset skip", e));
+  }
+
+  renderChatMessages({messages:[]}); // Temporary clear
   openSheet('sheet-chat');
-  setTimeout(()=>{const c=document.getElementById('chat-messages');c.scrollTop=c.scrollHeight},150);
+  
+  if(unsubMsgs) unsubMsgs();
+  unsubMsgs = db.collection('chat_sessions').doc(id).collection('messages')
+    .orderBy('created_at', 'asc')
+    .onSnapshot(snap => {
+      const msgs = snap.docs.map(d => ({
+        text: d.data().text,
+        type: String(d.data().sender_id) === String(currentUser.empNo) ? 'user' : 'bot',
+        at: d.data().created_at
+      }));
+      renderChatMessages({messages: msgs});
+    });
 }
 
 function closeChat(){
+  if(unsubMsgs) { unsubMsgs(); unsubMsgs = null; }
   closeSheet('sheet-chat');
   renderChats();updateStats();
 }
 
 function renderChatMessages(chat){
   const box=document.getElementById('chat-messages');
+  if(!box) return;
   box.innerHTML=chat.messages.map(m=>{
-    const d=new Date(m.at);
+    const d=new Date(m.at || Date.now());
     const hh=d.getHours().toString().padStart(2,'0'),mm=d.getMinutes().toString().padStart(2,'0');
     return `<div class="msg ${m.type}">${escapeHtml(m.text)}<div class="msg-time">${hh}:${mm}</div></div>`
   }).join('');
+  box.scrollTop=box.scrollHeight;
+  
   const qr=document.getElementById('quick-replies');
   if(chat.messages.length<=1){
     qr.innerHTML=(T[lang].quickReplies||[]).map(q=>`<button class="quick-reply" onclick="sendQuick(this,${JSON.stringify(q).replace(/"/g,'&quot;')})">${q}</button>`).join('');
   }else{qr.innerHTML=''}
 }
 
-function sendChat(){
+async function sendChat(){
   const inp=document.getElementById('chat-input');
   const txt=inp.value.trim();
   if(!txt||!currentChatId)return;
+  
   inp.value='';
   document.getElementById('chat-send-btn').disabled=true;
-  pushMsg(txt,'user');
-  showTyping();
-  setTimeout(()=>{hideTyping();pushMsg(findBestReply(txt,T[lang]),'bot')},700+Math.random()*900);
+  
+  const now = new Date().toISOString();
+  const sessionRef = db.collection('chat_sessions').doc(currentChatId);
+  
+  try {
+    await sessionRef.collection('messages').add({
+      sender_id: String(currentUser.empNo),
+      text: txt,
+      created_at: now
+    });
+
+    const sess = await sessionRef.get();
+    const data = sess.data();
+    const updates = { last_message: txt, updated_at: now };
+    
+    if(data && data.participants) {
+      data.participants.forEach(p => {
+        if(String(p) !== String(currentUser.empNo)) {
+          updates[`unread_counts.${p}`] = firebase.firestore.FieldValue.increment(1);
+        }
+      });
+    }
+    await sessionRef.update(updates);
+  } catch(e) { console.error("Send error", e); toast("Offline"); }
 }
 
 function sendQuick(btn,txt){
   if(btn)btn.remove();
-  pushMsg(txt,'user');
-  showTyping();
-  setTimeout(()=>{hideTyping();pushMsg(findBestReply(txt,T[lang]),'bot')},700+Math.random()*900);
+  const inp = document.getElementById('chat-input');
+  if(inp) { inp.value = txt; sendChat(); }
 }
 
-function pushMsg(text,type){
-  const chats=loadChats();const idx=chats.findIndex(c=>c.id===currentChatId);
-  if(idx<0)return;
-  const msg={text,type,at:new Date().toISOString()};
-  chats[idx].messages.push(msg);
-  chats[idx].lastAt=msg.at;
-  chats[idx].preview=text;
-  saveChats(chats);
-  const box=document.getElementById('chat-messages');
-  const d=new Date();const hh=d.getHours().toString().padStart(2,'0'),mm=d.getMinutes().toString().padStart(2,'0');
-  const div=document.createElement('div');div.className='msg '+type;
-  div.innerHTML=escapeHtml(text)+`<div class="msg-time">${hh}:${mm}</div>`;
-  box.appendChild(div);box.scrollTop=box.scrollHeight;
-  document.getElementById('quick-replies').innerHTML='';
-}
-
-function showTyping(){
-  const box=document.getElementById('chat-messages');
-  const div=document.createElement('div');div.className='typing-bubble';div.id='typing-b';
-  div.innerHTML='<span></span><span></span><span></span>';
-  box.appendChild(div);box.scrollTop=box.scrollHeight;
-}
-function hideTyping(){const t=document.getElementById('typing-b');if(t)t.remove()}
-
-function findBestReply(txt,t){
-  const auto=t.chatAuto||{};if(auto[txt])return auto[txt];
-  const lower=txt.toLowerCase();
-  for(const[k,v]of Object.entries(auto)){
-    if(lower.includes(k.toLowerCase().split(' ')[0])||k.toLowerCase().includes(lower.split(' ')[0]))return v
-  }
-  const kw=t._chatKeywords||{};
-  for(const[pattern,reply]of Object.entries(kw)){
-    if(pattern.split('|').some(w=>lower.includes(w.toLowerCase())))return reply
-  }
-  return t.chatDefault
 }
 
 /* ══════════════════════════════════════════
@@ -3119,19 +3185,12 @@ async function submitReport(){
   }
 }
 
-function syncBroadcasts() {
-  db.collection('broadcasts').orderBy('at', 'desc').onSnapshot(snap => {
-    broadcastsDb = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    renderBroadcasts();
-  });
-}
-
-
 function closeConfirm(){
   closeSheet('sheet-confirm');
   switchTab('reports');
   renderReports();
 }
+
 
 function scrollToSec(id){
   const el=document.getElementById(id);
