@@ -677,14 +677,26 @@
 
         <!-- PAGE 6: BROADCAST MANAGER -->
         <div id="view-broadcasts" class="tab-content">
-            <div class="panel">
-                <div class="chart-title">Global App Broadcasts (Top Carousel)</div>
-                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 25px;">Modify these cards to update the live announcements in the mobile app.</p>
-                
-                <div id="broadcasts-container" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-                    <!-- Injected -->
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
+                    <div style="background: rgba(255,255,255,0.02); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); height: fit-content;">
+                        <h3 style="margin-bottom: 20px; font-size: 0.9rem; color: var(--accent);">CREATE NEW SIGNAL</h3>
+                        <div style="display: flex; flex-direction: column; gap: 15px;">
+                            <input type="text" class="search-input" id="bc-title" placeholder="Announcement Title (English)" style="max-width: none;">
+                            <textarea class="search-input" id="bc-content" placeholder="Broadcast Message..." style="max-width: none; height: 100px;"></textarea>
+                            <select class="filter-select" id="bc-svg" style="width: 100%;">
+                                <option value="alert">🚨 EMERGENCY ALERT</option>
+                                <option value="info">ℹ️ GENERAL INFO</option>
+                                <option value="broadcast">📢 GLOBAL BROADCAST</option>
+                            </select>
+                            <button class="nav-item active" style="justify-content: center; padding: 15px;" onclick="addBroadcast()"><i class="fas fa-plus"></i> PUBLISH SIGNAL</button>
+                        </div>
+                    </div>
+                    <div>
+                        <div id="broadcasts-container" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+                            <!-- Injected -->
+                        </div>
+                    </div>
                 </div>
-            </div>
         </div>
     </div>
 
@@ -1147,17 +1159,61 @@
         }
 
         // --- Broadcast Manager Logic ---
-        async function fetchBroadcasts() {
-            const container = document.getElementById('broadcasts-container');
-            container.innerHTML = '<p style="padding: 20px; opacity: 0.5;">Loading broadcast signals...</p>';
-            
-            const snap = await db.collection('broadcasts').get();
-            const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a,b) => parseInt(a.id) - parseInt(b.id));
+        function fetchBroadcasts() {
+            db.collection('broadcasts').orderBy('at', 'desc').onSnapshot(snap => {
+                const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const container = document.getElementById('broadcasts-container');
+                if(!container) return;
+                
+                if(list.length === 0) {
+                   container.innerHTML = '<div style="grid-column:span 2; padding:40px; text-align:center; opacity:0.5;">No active broadcast signals detected in cloud.</div>';
+                   return;
+                }
+                
+                container.innerHTML = list.map(b => `
+                    <div class="stat-card" style="padding:20px; display:flex; flex-direction:column; gap:10px; border-left:3px solid ${b.svg === 'alert' ? '#ef4444' : '#3b82f6'}">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:1.5rem;">${b.svg === 'alert' ? '🚨' : (b.svg === 'info' ? 'ℹ️' : '📢')}</span>
+                            <button class="btn-action" style="background:rgba(239, 68, 68, 0.1); color:#ef4444; font-size:0.6rem; padding:5px 10px;" onclick="deleteBroadcast('${b.id}')">DELETE</button>
+                        </div>
+                        <div style="font-weight:800; color:var(--accent); font-size:0.9rem;">${b.titleEn || b.titleAr}</div>
+                        <div style="font-size:0.75rem; opacity:0.7; line-height:1.4;">${b.contentEn || b.contentAr}</div>
+                    </div>
+                `).join('');
+            });
+        }
 
-            container.innerHTML = list.map(b => `
-                <div class="stat-card" style="padding: 25px; gap: 15px;">
-                    <div style="display: flex; gap: 15px; align-items: center;">
-                        <div style="width: 45px; height: 45px; background: rgba(59, 130, 246, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--accent);">
+        async function addBroadcast() {
+            const title = document.getElementById('bc-title');
+            const content = document.getElementById('bc-content');
+            const svg = document.getElementById('bc-svg');
+            
+            if(!title.value || !content.value) return alert('Please fill in all fields');
+            
+            const btn = event.target;
+            btn.disabled = true;
+
+            const id = Date.now().toString();
+            await db.collection('broadcasts').doc(id).set({
+                id: id,
+                titleEn: title.value,
+                titleAr: title.value,
+                contentEn: content.value,
+                contentAr: content.value,
+                svg: svg.value,
+                iconColor: svg.value === 'alert' ? '#ef4444' : '#3b82f6',
+                at: new Date().toISOString()
+            });
+
+            title.value = ''; content.value = '';
+            btn.disabled = false;
+        }
+
+        async function deleteBroadcast(id) {
+            if(confirm('Delete this broadcast signal?')) {
+                await db.collection('broadcasts').doc(id).delete();
+            }
+        }
                             <i class="fas ${b.icon || 'fa-bullhorn'}"></i>
                         </div>
                         <input type="text" class="search-input" style="flex: 1; max-width: none; font-weight: 800;" id="bc-title-${b.id}" value="${b.title || ''}">
