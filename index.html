@@ -3231,12 +3231,13 @@ if('serviceWorker' in navigator){
    ══════════════════════════════════════════ */
 setTimeout(()=>{
   document.getElementById('splash').classList.add('hide');
+  syncBroadcasts(); // Start syncing immediately for all users
   const saved=localStorage.getItem(LS_LANG);
   if(saved&&T[saved]){
     setLang(saved);
   }else{
     document.getElementById('screen-lang').classList.add('show');
-    syncBroadcasts();
+    initCTA();
   }
 },1400);
 </script>
