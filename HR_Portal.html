@@ -684,9 +684,10 @@
                             <input type="text" class="search-input" id="bc-title" placeholder="Announcement Title (English)" style="max-width: none;">
                             <textarea class="search-input" id="bc-content" placeholder="Broadcast Message..." style="max-width: none; height: 100px;"></textarea>
                             <select class="filter-select" id="bc-svg" style="width: 100%;">
+                                <option value="megaphone">📢 GLOBAL BROADCAST (Megaphone)</option>
+                                <option value="calendarCheck">📅 SCHEDULE/ABSENCE (Calendar)</option>
+                                <option value="trophy">🏆 ACHIEVEMENT (Trophy)</option>
                                 <option value="alert">🚨 EMERGENCY ALERT</option>
-                                <option value="info">ℹ️ GENERAL INFO</option>
-                                <option value="broadcast">📢 GLOBAL BROADCAST</option>
                             </select>
                             <button class="nav-item active" style="justify-content: center; padding: 15px;" onclick="addBroadcast()"><i class="fas fa-plus"></i> PUBLISH SIGNAL</button>
                         </div>
@@ -1194,14 +1195,23 @@
             btn.disabled = true;
 
             const id = Date.now().toString();
+            const colors = {
+                megaphone: '#80d1e9',
+                calendarCheck: '#4ade80',
+                trophy: '#fbbf24',
+                alert: '#ef4444'
+            };
+
             await db.collection('broadcasts').doc(id).set({
                 id: id,
                 titleEn: title.value,
                 titleAr: title.value,
+                labelEn: title.value,
+                labelAr: title.value,
                 contentEn: content.value,
                 contentAr: content.value,
                 svg: svg.value,
-                iconColor: svg.value === 'alert' ? '#ef4444' : '#3b82f6',
+                iconColor: colors[svg.value] || '#3b82f6',
                 at: new Date().toISOString()
             });
 

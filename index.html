@@ -1903,11 +1903,7 @@ function tr(key){const l=I18N[key];if(!l)return key;return l[lang]||l.en||key}
 /* ══════════════════════════════════════════
    BROADCASTS (static company announcements — mirror Majed's broadcasts table)
    ══════════════════════════════════════════ */
-const BROADCASTS=[
-  {id:'bc3',svg:'megaphone',labelAr:'تذكير الموارد البشرية',labelEn:'HR Reminder',titleAr:'تذكير الموارد البشرية',titleEn:'HR Reminder',contentAr:'حدّث بياناتك البنكية في البوابة',contentEn:'Update your bank details in the portal',iconColor:'#80d1e9'},
-  {id:'bc2',svg:'calendarCheck',labelAr:'صفر غياب',labelEn:'Zero Absences',titleAr:'صفر غياب',titleEn:'Zero Absences',contentAr:'عبدالله سالم (موقع الرياض)',contentEn:'Abdullah Salem (Site Riyadh)',iconColor:'#4ade80'},
-  {id:'bc1',svg:'trophy',labelAr:'الموقع الأفضل في السلامة',labelEn:'Top Site (Safety)',titleAr:'الموقع الأفضل في السلامة',titleEn:'Top Site (Safety)',contentAr:'برج رندة — آمن 100%',contentEn:'Randa Tower - 100% Secure',iconColor:'#fbbf24'}
-];
+let broadcastsDb=[];
 
 /* ══════════════════════════════════════════
    STATE
@@ -2365,14 +2361,14 @@ function renderBroadcasts(){
   const wrap=document.getElementById('broadcasts-wrap');
   const row=document.getElementById('broadcasts-row');
   if(!wrap||!row)return;
-  if(!BROADCASTS.length){wrap.style.display='none';return}
+  if(!broadcastsDb.length){wrap.style.display='none';return}
   wrap.style.display='block';
-  row.innerHTML=BROADCASTS.map(b=>{
+  row.innerHTML=broadcastsDb.map(b=>{
     const title=(lang==='ar'?b.titleAr:b.titleEn)||b.titleEn;
     const content=(lang==='ar'?b.contentAr:b.contentEn)||b.contentEn;
     const label=(lang==='ar'?(b.labelAr||title):(b.labelEn||b.titleEn));
     return `<div class="bc-item" onclick="openBroadcast('${b.id}')">
-      <div class="bc-item-icon" style="color:${b.iconColor}">${ICO[b.svg]}</div>
+      <div class="bc-item-icon" style="color:${b.iconColor}">${ICO[b.svg]||ICO.broadcast}</div>
       <div class="bc-item-body">
         <div class="bc-item-label">${label}</div>
         <div class="bc-item-title">${content}</div>
@@ -2381,7 +2377,7 @@ function renderBroadcasts(){
   }).join('');
 }
 function openBroadcast(id){
-  const b=BROADCASTS.find(x=>x.id===id);if(!b)return;
+  const b=broadcastsDb.find(x=>x.id===id);if(!b)return;
   const title=(lang==='ar'?b.titleAr:b.titleEn);
   const content=(lang==='ar'?b.contentAr:b.contentEn);
   addNotif(title,content,'broadcast');
@@ -3124,30 +3120,9 @@ async function submitReport(){
 }
 
 function syncBroadcasts() {
-  db.collection('broadcasts').onSnapshot(snap => {
-    const row = document.getElementById('broadcasts-row');
-    const wrap = document.getElementById('broadcasts-wrap');
-    if(!row || !wrap) return;
-    const list = snap.docs.map(d => d.data()).filter(b => b.title && b.title.trim() !== '');
-    
-    if(list.length === 0) { wrap.style.display = 'none'; return; }
-    wrap.style.display = 'block';
-    
-    row.innerHTML = list.map(b => `
-      <div class="bc-item">
-        <div class="bc-item-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:22px; height:22px;">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-          </svg>
-        </div>
-        <div class="bc-item-body">
-          <div class="bc-item-label">${lang === 'ar' ? 'تنبيه نظام' : 'SYSTEM ALERT'}</div>
-          <div class="bc-item-title">${b.title}</div>
-          <div style="font-size:0.75rem; color:rgba(240,242,255,0.45); margin-top:2px; line-height:1.4;">${b.content || ''}</div>
-        </div>
-      </div>
-    `).join('');
+  db.collection('broadcasts').orderBy('at', 'desc').onSnapshot(snap => {
+    broadcastsDb = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderBroadcasts();
   });
 }
 
