@@ -909,8 +909,48 @@
                 }
             });
 
-             charts.siteCat = new Chart(document.getElementById('siteCategoryChart').getContext('2d'), { type: 'pie', data: { labels: [], datasets: [{data:[]}] }, options: { plugins: { legend: { labels: { color: '#94a3b8' } } } } });
-             charts.sitePri = new Chart(document.getElementById('sitePriorityChart').getContext('2d'), { type: 'bar', data: { labels: [], datasets: [{data:[]}] }, options: { plugins: { legend: { display: false } } } });
+             charts.siteCat = new Chart(document.getElementById('siteCategoryChart').getContext('2d'), { 
+                 type: 'pie', 
+                 data: { labels: [], datasets: [{data:[]}] }, 
+                 options: { 
+                     onHover: (e, el) => e.native.target.style.cursor = el.length ? 'pointer' : 'default',
+                     onClick: (e, elements, chart) => {
+                         if (elements.length > 0) {
+                             const idx = elements[0].index;
+                             const label = chart.data.labels[idx];
+                             openFilteredList(r => {
+                                 const matchesSite = activeSiteType === 'ALL' || (r.env === activeSiteType) || (r.location === activeSiteType);
+                                 return matchesSite && (r.category || 'Service') === label;
+                             }, `${activeSiteType} Units: ${label}`);
+                         }
+                     },
+                     plugins: { legend: { labels: { color: '#94a3b8' } } } 
+                 } 
+             });
+
+             charts.sitePri = new Chart(document.getElementById('sitePriorityChart').getContext('2d'), { 
+                 type: 'bar', 
+                 data: { labels: [], datasets: [{data:[]}] }, 
+                 options: { 
+                     onHover: (e, el) => e.native.target.style.cursor = el.length ? 'pointer' : 'default',
+                     onClick: (e, elements, chart) => {
+                         if (elements.length > 0) {
+                             const idx = elements[0].index;
+                             const label = chart.data.labels[idx];
+                             openFilteredList(r => {
+                                 const matchesSite = activeSiteType === 'ALL' || (r.env === activeSiteType) || (r.location === activeSiteType);
+                                 return matchesSite && (r.priority || 'Low') === label;
+                             }, `${activeSiteType} Units: ${label} Priority`);
+                         }
+                     },
+                     plugins: { legend: { display: false } },
+                     scales: { 
+                         y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                         x: { ticks: { color: '#94a3b8' } }
+                     }
+                 } 
+             });
+
              charts.trend = new Chart(document.getElementById('trendChart').getContext('2d'), { type: 'line', data: { labels: [], datasets: [{data:[]}] }, options: { plugins: { legend: { display: false } } } });
         }
 
