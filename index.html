@@ -1929,15 +1929,6 @@ let currentUser=null,employeesDb=null,empLookupDebounce=null;
 function loadUser(){try{return JSON.parse(localStorage.getItem(LS_USER)||'null')}catch(e){return null}}
 function saveUser(u){if(u)localStorage.setItem(LS_USER,JSON.stringify(u));else localStorage.removeItem(LS_USER);currentUser=u}
 
-async function loadEmployeesDb(){
-  if(employeesDb)return employeesDb;
-  try{
-    const res=await fetch('assets/employees.json',{cache:'default'});
-    if(res.ok)employeesDb=await res.json();
-  }catch(e){console.warn('employees.json load failed',e)}
-  return employeesDb||{};
-}
-
 function loadReports(){try{return JSON.parse(localStorage.getItem(LS_REPORTS)||'[]')}catch(e){return[]}}
 function saveReports(r){localStorage.setItem(LS_REPORTS,JSON.stringify(r))}
 function loadChats(){try{return JSON.parse(localStorage.getItem(LS_CHATS)||'[]')}catch(e){return[]}}
@@ -2017,49 +2008,91 @@ async function lookupEmployee(val){
     const setHint=document.getElementById('login-set-hint');
     errBox.classList.remove('show');
     if(!empNo){foundBox.classList.remove('show');setHint.style.display='none';return}
-    const db=await loadEmployeesDb();
-    const rec=db[empNo];
-    if(rec){
-      const nameField=document.getElementById('login-name');
-      const name=lang==='ar'?(rec[0]||rec[1]):(rec[1]||rec[0]);
-      nameField.value=name;
-      const role=rec[3]||'';const dept=rec[2]||'';
-      const t=T[lang],en=T.en;
-      foundBox.innerHTML=`<span>${t.loginFound||en.loginFound} <span class="e-name">${escapeHtml(name)}</span>${dept?' • '+escapeHtml(dept):''}${role?' • '+escapeHtml(role):''}</span>`;
-      foundBox.classList.add('show');
-      // Show hint if creating password for first time
-      setHint.style.display=hasPass(empNo)?'none':'block';
-    }else{
-      foundBox.classList.remove('show');
-      setHint.style.display='none';
+    
+    try {
+      const doc = await db.collection('employees').doc(empNo).get();
+      if(doc.exists){
+        const rec = doc.data();
+        const nameField=document.getElementById('login-name');
+        const name=rec.name || rec['Employee Name - English'] || 'Unknown';
+        nameField.value=name;
+        const role = rec.position || rec.unit || '';
+        const dept = rec.department || rec.project || rec.site || '';
+        const t=T[lang],en=T.en;
+        foundBox.innerHTML=`<span>${t.loginFound||en.loginFound} <span class="e-name">${escapeHtml(name)}</span>${dept?' • '+escapeHtml(dept):''}${role?' • '+escapeHtml(role):''}</span>`;
+        foundBox.classList.add('show');
+        setHint.style.display = rec.password ? 'none' : 'block';
+      } else {
+        foundBox.classList.remove('show');
+        setHint.style.display='none';
+      }
+    } catch(e) {
+      console.error('Firestore lookup failed', e);
     }
   },250);
 }
-function doLogin(){
+
+async function doLogin(){
   const empNo=document.getElementById('login-emp-no').value.trim();
   const name=document.getElementById('login-name').value.trim();
   const pwd=document.getElementById('login-password').value.trim();
   const errBox=document.getElementById('login-error');
   const t=T[lang],en=T.en;
+  
   if(!name){errBox.textContent=t.loginName||en.loginName;errBox.classList.add('show');return}
-  let dept='',role='';
-  if(empNo&&employeesDb){
-    const rec=employeesDb[empNo];
-    if(rec){dept=rec[2]||'';role=rec[3]||''}
-    else{errBox.textContent=t.empNotFound||en.empNotFound;errBox.classList.add('show');return}
-  }
-  // Password logic: if user has an existing password, must match; if not, set it (if provided)
-  if(empNo&&pwd){
-    if(hasPass(empNo)){
-      if(!checkPass(empNo,pwd)){errBox.textContent=t.loginPasswordMismatch||en.loginPasswordMismatch;errBox.classList.add('show');return}
-    }else if(pwd.length>=4){
-      savePass(empNo,pwd);
+  
+  let dept='', role='', project='', site='', email='', phone='';
+  
+  if(empNo){
+    try {
+      const doc = await db.collection('employees').doc(empNo).get();
+      if(doc.exists){
+        const rec = doc.data();
+        dept = rec.department || '';
+        role = rec.position || '';
+        project = rec.project || '';
+        site = rec.site || '';
+        email = rec.email || '';
+        phone = rec.phone || '';
+
+        // Password Check
+        if(rec.password) {
+          if(pwd !== rec.password) {
+            errBox.textContent=t.loginPasswordMismatch||en.loginPasswordMismatch;
+            errBox.classList.add('show');
+            return;
+          }
+        } else if(pwd.length >= 4) {
+          // Set initial password
+          await db.collection('employees').doc(empNo).update({ password: pwd });
+        } else if(pwd.length > 0) {
+           errBox.textContent="كلمة المرور يجب أن تكون 4 أرقام على الأقل";
+           errBox.classList.add('show');
+           return;
+        } else {
+           errBox.textContent=t.loginPassword||en.loginPassword;
+           errBox.classList.add('show');
+           return;
+        }
+      } else {
+        errBox.textContent=t.empNotFound||en.empNotFound;
+        errBox.classList.add('show');
+        return;
+      }
+    } catch(e) {
+      errBox.textContent="خطأ في الاتصال بالسحابة";
+      errBox.classList.add('show');
+      return;
     }
-  }else if(empNo&&hasPass(empNo)){
-    // Has password but user didn't type one — require it
-    errBox.textContent=t.loginPassword||en.loginPassword;errBox.classList.add('show');return;
   }
-  saveUser({empNo:empNo||null,name,dept,role,guest:!empNo,at:new Date().toISOString()});
+  
+  saveUser({
+    empNo: empNo||null,
+    name, dept, role, project, site, email, phone,
+    guest: !empNo,
+    at: new Date().toISOString()
+  });
+  
   enterMainApp();
   toast((t.loginFound||en.loginFound)+' — '+displayName(name));
   if(navigator.vibrate)navigator.vibrate([20,50,20]);
@@ -3029,20 +3062,25 @@ async function submitReport(){
     detail:selectedDetail,
     frequency:selectedFrequency||null,
     desc:descEl.value,
-    location:document.getElementById('f-location').value,
+    location:document.getElementById('f-location').value || (currentUser ? currentUser.site : 'Unknown'),
+    site: (currentUser ? (currentUser.site || currentUser.project) : document.getElementById('f-location').value) || 'Unknown',
+    project: (currentUser ? currentUser.project : '') || '',
+    dept: (currentUser ? currentUser.dept : '') || '',
+    emp_no: (currentUser ? currentUser.empNo : '') || '',
+    emp_name: (currentUser && !isAnonymous) ? currentUser.name : (isAnonymous ? 'Anonymous' : 'Guest'),
     date:document.getElementById('f-date').value,
     time:document.getElementById('f-time').value,
     ongoing:isOngoing,
     severity:selectedSeverity,
-    priority:selectedSeverity.charAt(0).toUpperCase() + selectedSeverity.slice(1), // Match portal priority
+    priority:selectedSeverity.charAt(0).toUpperCase() + selectedSeverity.slice(1), 
     anon:isAnonymous,
-    email:isAnonymous?null:document.getElementById('f-email').value,
-    phone:isAnonymous?null:document.getElementById('f-phone').value,
+    email:isAnonymous?null:(document.getElementById('f-email').value || (currentUser?currentUser.email:'')),
+    phone:isAnonymous?null:(document.getElementById('f-phone').value || (currentUser?currentUser.phone:'')),
     files:uploadedFiles.length,
     at:nowIso,
-    created_at: now, // Match portal expectation
+    created_at: now, 
     lang,
-    status:'OPEN', // Match portal expectation (Uppercase)
+    status:'OPEN', 
     timeline:[{text:'tlReceived',by:'tlBySystem',color:'#00e676',at:nowIso}]
   };
 
