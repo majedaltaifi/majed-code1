@@ -3011,19 +3011,30 @@ async function submitReport(){
 
   const ref=genRef();
   const nowIso=new Date().toISOString();
+  const now = firebase.firestore.Timestamp.now();
   const rpt={
-    ref,type:selectedType,category:selectedType,env:selectedEnv,
-    subIssue:selectedSubIssue,detail:selectedDetail,frequency:selectedFrequency||null,
+    ref,
+    type:selectedType,
+    category:selectedType,
+    env:selectedEnv,
+    subIssue:selectedSubIssue,
+    detail:selectedDetail,
+    frequency:selectedFrequency||null,
     desc:descEl.value,
     location:document.getElementById('f-location').value,
     date:document.getElementById('f-date').value,
     time:document.getElementById('f-time').value,
-    ongoing:isOngoing,severity:selectedSeverity,anon:isAnonymous,
+    ongoing:isOngoing,
+    severity:selectedSeverity,
+    priority:selectedSeverity.charAt(0).toUpperCase() + selectedSeverity.slice(1), // Match portal priority
+    anon:isAnonymous,
     email:isAnonymous?null:document.getElementById('f-email').value,
     phone:isAnonymous?null:document.getElementById('f-phone').value,
     files:uploadedFiles.length,
-    at:nowIso,lang,
-    status:'open',
+    at:nowIso,
+    created_at: now, // Match portal expectation
+    lang,
+    status:'OPEN', // Match portal expectation (Uppercase)
     timeline:[{text:'tlReceived',by:'tlBySystem',color:'#00e676',at:nowIso}]
   };
 

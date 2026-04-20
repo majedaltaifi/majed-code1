@@ -706,8 +706,14 @@
         }
 
         function initRealtimeSync() {
-            db.collection('reports').orderBy('created_at', 'desc').onSnapshot(snap => {
+            db.collection('reports').onSnapshot(snap => {
                 allReports = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                // Sort locally by created_at or at
+                allReports.sort((a,b) => {
+                    const dateA = a.created_at ? (a.created_at.toDate ? a.created_at.toDate() : new Date(a.created_at)) : (a.at ? new Date(a.at) : 0);
+                    const dateB = b.created_at ? (b.created_at.toDate ? b.created_at.toDate() : new Date(b.created_at)) : (b.at ? new Date(b.at) : 0);
+                    return dateB - dateA;
+                });
                 updateDashboards();
                 if(activeView === 'all-reports') applyFilters();
                 if(activeView === 'hr-reports') updateHRReports();
