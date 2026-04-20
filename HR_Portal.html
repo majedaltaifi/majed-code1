@@ -681,8 +681,9 @@
                     <div style="background: rgba(255,255,255,0.02); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); height: fit-content;">
                         <h3 style="margin-bottom: 20px; font-size: 0.9rem; color: var(--accent);">CREATE NEW SIGNAL</h3>
                         <div style="display: flex; flex-direction: column; gap: 15px;">
-                            <input type="text" class="search-input" id="bc-title" placeholder="Announcement Title (English)" style="max-width: none;">
-                            <textarea class="search-input" id="bc-content" placeholder="Broadcast Message..." style="max-width: none; height: 100px;"></textarea>
+                            <input type="text" class="search-input" id="bc-label" placeholder="Header (e.g. HR REMINDER)" style="max-width: none;">
+                            <input type="text" class="search-input" id="bc-title" placeholder="Main Message (e.g. Update bank details)" style="max-width: none;">
+                            <textarea class="search-input" id="bc-content" placeholder="Popup Details (Detailed info)..." style="max-width: none; height: 80px;"></textarea>
                             <select class="filter-select" id="bc-svg" style="width: 100%;">
                                 <option value="megaphone">📢 GLOBAL BROADCAST (Megaphone)</option>
                                 <option value="calendarCheck">📅 SCHEDULE/ABSENCE (Calendar)</option>
@@ -1172,19 +1173,20 @@
                 }
                 
                 container.innerHTML = list.map(b => `
-                    <div class="stat-card" style="padding:20px; display:flex; flex-direction:column; gap:10px; border-left:3px solid ${b.svg === 'alert' ? '#ef4444' : '#3b82f6'}">
+                    <div class="stat-card" style="padding:20px; display:flex; flex-direction:column; gap:10px; border-left:3px solid ${b.iconColor || '#3b82f6'}">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-size:1.5rem;">${b.svg === 'alert' ? '🚨' : (b.svg === 'info' ? 'ℹ️' : '📢')}</span>
+                            <span style="font-size:1.5rem;">${b.svg === 'alert' ? '🚨' : (b.svg === 'calendarCheck' ? '📅' : (b.svg === 'trophy' ? '🏆' : '📢'))}</span>
                             <button class="btn-action" style="background:rgba(239, 68, 68, 0.1); color:#ef4444; font-size:0.6rem; padding:5px 10px;" onclick="deleteBroadcast('${b.id}')">DELETE</button>
                         </div>
+                        <div style="font-size:0.65rem; color:var(--text-muted); font-weight:800; text-transform:uppercase;">${b.labelEn || ''}</div>
                         <div style="font-weight:800; color:var(--accent); font-size:0.9rem;">${b.titleEn || b.titleAr}</div>
-                        <div style="font-size:0.75rem; opacity:0.7; line-height:1.4;">${b.contentEn || b.contentAr}</div>
                     </div>
                 `).join('');
             });
         }
 
         async function addBroadcast() {
+            const label = document.getElementById('bc-label');
             const title = document.getElementById('bc-title');
             const content = document.getElementById('bc-content');
             const svg = document.getElementById('bc-svg');
@@ -1206,8 +1208,8 @@
                 id: id,
                 titleEn: title.value,
                 titleAr: title.value,
-                labelEn: title.value,
-                labelAr: title.value,
+                labelEn: label.value || title.value,
+                labelAr: label.value || title.value,
                 contentEn: content.value,
                 contentAr: content.value,
                 svg: svg.value,
@@ -1215,7 +1217,7 @@
                 at: new Date().toISOString()
             });
 
-            title.value = ''; content.value = '';
+            label.value = ''; title.value = ''; content.value = '';
             btn.disabled = false;
         }
 
