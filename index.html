@@ -593,10 +593,20 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 .env-card.selected .e-icon{background:rgba(128,209,233,.22);transform:scale(1.08)}
 .env-card .e-label{font-size:.78rem;font-weight:600}
 
-.detail-list{display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto}
-.detail-option{padding:11px 14px;background:rgba(255,255,255,.04);border:1.5px solid transparent;border-radius:var(--r);cursor:pointer;transition:all .25s var(--ease);font-size:.85rem;text-align:start;color:var(--text);font-family:inherit;width:100%}
-.detail-option:active{transform:scale(.98)}
-.detail-option.selected{border-color:var(--turquoise);background:rgba(128,209,233,.1);color:var(--turquoise);font-weight:600}
+/* ── CHAT HUB REDESIGN ── */
+.chat-hub-header{padding:10px 2px 20px;text-align:center}
+.chat-hub-title{font-size:1.6rem;font-weight:800;letter-spacing:1px;margin-bottom:18px;color:#fff}
+.chat-hub-content{padding-top:10px}
+.hub-support-wrap{display:flex;justify-content:flex-end;margin-bottom:24px;padding:0 4px}
+.hub-support-btn{display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:none;cursor:pointer;transition:transform .25s;color:var(--text)}
+.hub-support-btn:active{transform:scale(.92)}
+.hub-support-btn:hover .hs-icon{transform:translateY(-3px);background:rgba(255,255,255,.1)}
+.hs-icon{width:64px;height:64px;border-radius:20px;background:var(--glass);border:1px solid var(--glass-border);display:flex;align-items:center;justify-content:center;color:var(--turquoise);box-shadow:0 10px 20px rgba(0,0,0,.2);transition:all .3s}
+.hs-icon svg{width:28px;height:28px;stroke-width:2.2}
+.hs-label{font-size:.7rem;font-weight:900;letter-spacing:.8px;color:var(--text-dim)}
+
+.hub-section{margin-bottom:28px}
+.hub-section-label{font-size:.76rem;font-weight:900;color:var(--text-muted);letter-spacing:1px;margin-bottom:12px;padding:0 4px}
 
 .freq-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .freq-btn{padding:10px 4px;border:1.5px solid transparent;border-radius:var(--r);text-align:center;cursor:pointer;transition:all .25s;font-size:.75rem;font-weight:700;background:rgba(255,255,255,.04);color:var(--text-dim)}
@@ -895,25 +905,39 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 
     <!-- CHATS TAB -->
     <div class="tab-pane" id="tab-chats">
-      <div class="search-bar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="chats-search" data-t-placeholder="searchChats" oninput="filterChats()">
-      </div>
-      
-      <div id="search-results-area" style="display:none">
-         <div class="section-label">Search Results</div>
-         <div id="employees-list"></div>
+      <div class="chat-hub-header">
+        <h2 class="chat-hub-title">CHAT HUB</h2>
+        <div class="search-bar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="chats-search" data-t-placeholder="searchChats" oninput="filterHub()">
+        </div>
       </div>
 
-      <div id="inbox-area">
-        <button class="action-card" onclick="document.getElementById('chats-search').focus()" style="margin-bottom:12px">
-          <div class="action-icon" style="color:var(--primary);background:rgba(59,130,246,0.1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
-          <div class="action-info"><div class="action-title" data-t="newChat"></div><div class="action-desc">Start a direct session</div></div>
-          <span class="action-arrow">›</span>
-        </button>
-        <div id="chats-list"></div>
+      <div class="chat-hub-content">
+        <!-- Support Quick Action -->
+        <div class="hub-support-wrap">
+          <button class="hub-support-btn" onclick="openChat('direct_'+currentUser.empNo, T[lang].chatName)">
+            <div class="hs-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+            <div class="hs-label">SUPPORT</div>
+          </button>
+        </div>
+
+        <div id="hub-default-view">
+          <div class="hub-section">
+            <div class="hub-section-label" data-t="homeRecent">RECENT MESSAGES</div>
+            <div id="chats-list"></div>
+          </div>
+        </div>
+
+        <div id="hub-search-view" style="display:none">
+          <div class="hub-section">
+            <div class="hub-section-label">ALL EMPLOYEES</div>
+            <div id="employees-list"></div>
+          </div>
+        </div>
       </div>
     </div>
+
 
 
     <!-- MORE TAB -->
@@ -2827,10 +2851,10 @@ function renderChats(){
   }
 }
 
-async function filterChats() {
+async function filterHub() {
   const v = (document.getElementById('chats-search')?.value||'').trim().toLowerCase();
-  const resArea = document.getElementById('search-results-area');
-  const inboxArea = document.getElementById('inbox-area');
+  const resArea = document.getElementById('hub-search-view');
+  const inboxArea = document.getElementById('hub-default-view');
   const empList = document.getElementById('employees-list');
   
   if(!v) {
@@ -2841,7 +2865,7 @@ async function filterChats() {
 
   if(resArea) resArea.style.display = 'block';
   if(inboxArea) inboxArea.style.display = 'none';
-  if(empList) empList.innerHTML = '<div style="padding:20px;text-align:center;font-size:0.85rem;color:var(--muted)">Searching Tactical Database...</div>';
+  if(empList) empList.innerHTML = '<div style="padding:40px;text-align:center;font-size:0.85rem;color:var(--text-muted);letter-spacing:1px">...SEARCHING TACTICAL COMMS</div>';
 
   try {
     const vPrefix = v.charAt(0).toUpperCase() + v.slice(1);
@@ -2856,7 +2880,7 @@ async function filterChats() {
     
     if(!empList) return;
     if(!matches.length) {
-      empList.innerHTML = '<div style="padding:20px;text-align:center;font-size:0.85rem;color:var(--muted)">No operatives found matching: '+v+'</div>';
+      empList.innerHTML = '<div style="padding:40px;text-align:center;font-size:0.85rem;color:var(--text-muted)">TARGETS NOT IDENTIFIED</div>';
     } else {
       empList.innerHTML = matches.map(e => {
         const name = e.nameEn || e.nameAr || 'Employee ' + e.empNo;
@@ -2893,10 +2917,9 @@ async function openChatWithUser(targetEmpNo, targetName) {
       updated_at: new Date().toISOString()
     }, {merge:true});
     
-    // Switch back from search to inbox area for better flow next time
     const searchInput = document.getElementById('chats-search');
     if(searchInput) searchInput.value = '';
-    filterChats();
+    filterHub();
 
     openChat(roomId, targetName);
   } catch(e) { console.error("Create chat error", e); }
