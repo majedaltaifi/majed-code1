@@ -860,9 +860,14 @@
             const status = document.getElementById('filter-status').value;
 
             const filtered = allReports.filter(r => {
-                const matchesSearch = (r.emp_no || '').toLowerCase().includes(search) || (r.id || '').toLowerCase().includes(search);
-                const matchesLoc = loc === 'all' || r.location === loc;
-                const matchesStatus = status === 'all' || (status === 'DONE' ? (r.status === 'DONE' || r.status === 'CLOSED') : r.status === status);
+                const reportId = (r.ref || r.id || '').toLowerCase();
+                const empNo = (r.emp_no || r.phone || 'anonymous').toLowerCase();
+                const matchesSearch = reportId.includes(search) || empNo.includes(search);
+                
+                const matchesLoc = loc === 'all' || r.location === loc || (r.env === loc);
+                const matchesStatus = status === 'all' || 
+                                     (status === 'DONE' ? (r.status === 'DONE' || r.status === 'CLOSED') : 
+                                     (r.status || 'OPEN').toUpperCase() === status.toUpperCase());
                 return matchesSearch && matchesLoc && matchesStatus;
             });
 
@@ -871,18 +876,32 @@
 
         function renderReports(data) {
             const tbody = document.getElementById('reports-table-body');
-            tbody.innerHTML = data.map(r => `
-                <tr>
-                    <td style="color: var(--accent); font-weight: 800;">#${(r.id || '').slice(0, 8)}</td>
-                    <td><b>${r.emp_no || 'Anonymous'}</b></td>
-                    <td>${r.category || 'General'}</td>
-                    <td><small>${r.location || 'N/A'}</small><br>${r.site || ''}</td>
-                    <td><span class="status-pill p-${(r.priority || 'low').toLowerCase().slice(0,3)}">${r.priority || 'Low'}</span></td>
-                    <td><span style="font-size: 0.7rem; font-weight: 900; opacity: 0.8">${r.status || 'OPEN'}</span></td>
-                    <td style="font-size: 0.8rem; color: var(--text-muted);">${new Date(r.created_at).toLocaleDateString()}</td>
-                    <td><button class="btn-action" onclick="openEditModal('${r.id}')">EDIT</button></td>
-                </tr>
-            `).join('');
+            if(!tbody) return;
+            
+            if(data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:40px; opacity:0.5">No matching operational records found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map(r => {
+                const displayId = r.ref || r.id || 'N/A';
+                const dateObj = r.created_at ? (r.created_at.toDate ? r.created_at.toDate() : new Date(r.created_at)) : (r.at ? new Date(r.at) : new Date());
+                const displayDate = isNaN(dateObj.getTime()) ? 'Recent' : dateObj.toLocaleDateString();
+                const priorityClass = (r.priority || 'Low').toLowerCase().slice(0,3);
+                
+                return `
+                    <tr>
+                        <td style="color: var(--accent); font-weight: 800; font-size: 0.8rem;">${displayId}</td>
+                        <td><b>${r.emp_no || 'Employee'}</b></td>
+                        <td>${r.category || r.type || 'General'}</td>
+                        <td><small>${r.location || 'Site'}</small><br><span style="font-size:0.7rem; opacity:0.6">${r.site || ''}</span></td>
+                        <td><span class="status-pill p-${priorityClass}">${r.priority || 'Low'}</span></td>
+                        <td><span style="font-size: 0.7rem; font-weight: 900; opacity: 0.8">${(r.status || 'OPEN').toUpperCase()}</span></td>
+                        <td style="font-size: 0.8rem; color: var(--text-muted);">${displayDate}</td>
+                        <td><button class="btn-action" onclick="openEditModal('${r.id || r.ref}')">EDIT</button></td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         function renderChatUsers() {
