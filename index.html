@@ -2865,30 +2865,38 @@ async function filterHub() {
 
   if(resArea) resArea.style.display = 'block';
   if(inboxArea) inboxArea.style.display = 'none';
-  if(empList) empList.innerHTML = '<div style="padding:40px;text-align:center;font-size:0.85rem;color:var(--text-muted);letter-spacing:1px">...SEARCHING TACTICAL COMMS</div>';
+  if(empList) empList.innerHTML = '<div style="padding:40px;text-align:center;font-size:0.85rem;color:var(--text-muted);letter-spacing:1px">SEARCHING TACTICAL DIRECTORY...</div>';
 
   try {
     const vPrefix = v.charAt(0).toUpperCase() + v.slice(1);
-    const snapNameEn = await db.collection('employees').orderBy('nameEn').startAt(vPrefix).endAt(vPrefix + '\uf8ff').limit(5).get();
-    const snapEmpNo = await db.collection('employees').where('empNo', '==', v).get();
     
+    // Multi-criteria search
+    const queries = [
+      db.collection('employees').orderBy('nameEn').startAt(vPrefix).endAt(vPrefix + '\uf8ff').limit(5).get(),
+      db.collection('employees').where('empNo', '==', v).get(),
+      db.collection('employees').where('empNo', '==', parseInt(v)||0).get()
+    ];
+
+    const results = await Promise.all(queries);
     let matchesMap = new Map();
-    snapNameEn.docs.forEach(d => matchesMap.set(d.id, d.data()));
-    snapEmpNo.docs.forEach(d => matchesMap.set(d.id, d.data()));
+    results.forEach(snap => {
+      snap.docs.forEach(d => matchesMap.set(d.id, d.data()));
+    });
     
     let matches = Array.from(matchesMap.values());
     
     if(!empList) return;
     if(!matches.length) {
-      empList.innerHTML = '<div style="padding:40px;text-align:center;font-size:0.85rem;color:var(--text-muted)">TARGETS NOT IDENTIFIED</div>';
+      empList.innerHTML = '<div style="padding:40px;text-align:center;font-size:0.85rem;color:var(--text-muted)">NO OPERATIVES FOUND</div>';
     } else {
       empList.innerHTML = matches.map(e => {
-        const name = e.nameEn || e.nameAr || 'Employee ' + e.empNo;
+        const name = e.nameEn || e.name || 'Employee ' + e.empNo;
+        const dept = e.deptEn || e.department || '';
         return `<button class="list-item" onclick="openChatWithUser('${e.empNo}', '${name.replace(/'/g, "\\'")}')">
-          <div class="list-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <div class="list-avatar" style="background:rgba(59,130,246,0.1);color:var(--primary)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
           <div class="list-body">
             <div class="list-title">${name}</div>
-            <div class="list-preview">ID: ${e.empNo} • ${e.deptEn || ''}</div>
+            <div class="list-preview">ID: ${e.empNo} • ${dept}</div>
           </div>
         </button>`;
       }).join('');
