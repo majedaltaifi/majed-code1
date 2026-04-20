@@ -684,6 +684,9 @@
                             <input type="text" class="search-input" id="bc-label" placeholder="Header (e.g. HR REMINDER)" style="max-width: none;">
                             <input type="text" class="search-input" id="bc-title" placeholder="Main Message (e.g. Update bank details)" style="max-width: none;">
                             <textarea class="search-input" id="bc-content" placeholder="Popup Details (Detailed info)..." style="max-width: none; height: 80px;"></textarea>
+                            <div style="display: flex; align-items: center; gap: 10px; font-size: 0.8rem; opacity: 0.7;">
+                                <input type="checkbox" id="bc-pinned"> <label for="bc-pinned">Pin to Top (Fixed Signal)</label>
+                            </div>
                             <select class="filter-select" id="bc-svg" style="width: 100%;">
                                 <option value="megaphone">📢 GLOBAL BROADCAST (Megaphone)</option>
                                 <option value="calendarCheck">📅 SCHEDULE/ABSENCE (Calendar)</option>
@@ -694,8 +697,14 @@
                         </div>
                     </div>
                     <div>
+                        <div style="font-weight: 800; font-size: 0.8rem; color: var(--warning); margin-bottom: 15px;"><i class="fas fa-thumbtack"></i> PINNED CORE SIGNALS</div>
+                        <div id="pinned-broadcasts-container" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 30px;">
+                            <!-- Pinned Injected -->
+                        </div>
+                        
+                        <div style="font-weight: 800; font-size: 0.8rem; color: var(--accent); margin-bottom: 15px;"><i class="fas fa-history"></i> RECENT ANNOUNCEMENTS</div>
                         <div id="broadcasts-container" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
-                            <!-- Injected -->
+                            <!-- Regular Injected -->
                         </div>
                     </div>
                 </div>
@@ -1165,23 +1174,28 @@
             db.collection('broadcasts').orderBy('at', 'desc').onSnapshot(snap => {
                 const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 const container = document.getElementById('broadcasts-container');
-                if(!container) return;
+                const pinnedContainer = document.getElementById('pinned-broadcasts-container');
+                if(!container || !pinnedContainer) return;
                 
-                if(list.length === 0) {
-                   container.innerHTML = '<div style="grid-column:span 2; padding:40px; text-align:center; opacity:0.5;">No active broadcast signals detected in cloud.</div>';
-                   return;
-                }
-                
-                container.innerHTML = list.map(b => `
-                    <div class="stat-card" style="padding:20px; display:flex; flex-direction:column; gap:10px; border-left:3px solid ${b.iconColor || '#3b82f6'}">
+                const pinned = list.filter(b => b.pinned);
+                const regular = list.filter(b => !b.pinned);
+
+                const renderCard = (b) => `
+                    <div class="stat-card" style="padding:20px; display:flex; flex-direction:column; gap:10px; border-left:3px solid ${b.iconColor || '#3b82f6'}; position:relative;">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <span style="font-size:1.5rem;">${b.svg === 'alert' ? '🚨' : (b.svg === 'calendarCheck' ? '📅' : (b.svg === 'trophy' ? '🏆' : '📢'))}</span>
-                            <button class="btn-action" style="background:rgba(239, 68, 68, 0.1); color:#ef4444; font-size:0.6rem; padding:5px 10px;" onclick="deleteBroadcast('${b.id}')">DELETE</button>
+                            <div style="display:flex; gap:5px;">
+                                <button class="btn-action" style="background:rgba(59, 130, 246, 0.1); color:var(--accent); font-size:0.6rem; padding:5px 10px;" onclick="promptEditBroadcast('${b.id}')">EDIT</button>
+                                <button class="btn-action" style="background:rgba(239, 68, 68, 0.1); color:#ef4444; font-size:0.6rem; padding:5px 10px;" onclick="deleteBroadcast('${b.id}')">DELETE</button>
+                            </div>
                         </div>
                         <div style="font-size:0.65rem; color:var(--text-muted); font-weight:800; text-transform:uppercase;">${b.labelEn || ''}</div>
                         <div style="font-weight:800; color:var(--accent); font-size:0.9rem;">${b.titleEn || b.titleAr}</div>
                     </div>
-                `).join('');
+                `;
+
+                pinnedContainer.innerHTML = pinned.map(renderCard).join('') || '<div style="grid-column:span 2; padding:20px; text-align:center; opacity:0.3; font-size:0.8rem;">No pinned core signals.</div>';
+                container.innerHTML = regular.map(renderCard).join('') || '<div style="grid-column:span 2; padding:40px; text-align:center; opacity:0.5;">No recent announcements.</div>';
             });
         }
 
@@ -1190,6 +1204,7 @@
             const title = document.getElementById('bc-title');
             const content = document.getElementById('bc-content');
             const svg = document.getElementById('bc-svg');
+            const pinned = document.getElementById('bc-pinned');
             
             if(!title.value || !content.value) return alert('Please fill in all fields');
             
@@ -1214,11 +1229,31 @@
                 contentAr: content.value,
                 svg: svg.value,
                 iconColor: colors[svg.value] || '#3b82f6',
-                at: new Date().toISOString()
+                at: new Date().toISOString(),
+                pinned: pinned.checked
             });
 
-            label.value = ''; title.value = ''; content.value = '';
+            label.value = ''; title.value = ''; content.value = ''; pinned.checked = false;
             btn.disabled = false;
+        }
+
+        async function promptEditBroadcast(id) {
+            const snap = await db.collection('broadcasts').doc(id).get();
+            const b = snap.data();
+            if(!b) return;
+
+            const newTitle = prompt("Update Main Message:", b.titleEn);
+            if(newTitle === null) return;
+            const newContent = prompt("Update Popup Details:", b.contentEn);
+            if(newContent === null) return;
+
+            await db.collection('broadcasts').doc(id).update({
+                titleEn: newTitle,
+                titleAr: newTitle,
+                contentEn: newContent,
+                contentAr: newContent,
+                updated_at: new Date().toISOString()
+            });
         }
 
         async function deleteBroadcast(id) {
