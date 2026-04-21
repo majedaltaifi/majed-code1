@@ -369,7 +369,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 .btn-primary:hover{box-shadow:0 6px 16px rgba(128,209,233,.3);transform:translateY(-1px)}
 .btn-primary:active{transform:scale(.97)}
 .btn-primary:disabled{opacity:.4;pointer-events:none;transform:none;box-shadow:none}
-.version-tag{font-size:.68rem;color:var(--text-muted);text-align:center;margin-top:20px;opacity:.6;letter-spacing:0.5px}
+.version-tag{font-size:.68rem;color:var(--text-muted);text-align:center;margin-top:20px;opacity:.6;letter-spacing:0.5px;z-index:100;position:relative}
 .btn-secondary{background:var(--glass);color:var(--text);border:1px solid var(--glass-border)}
 .btn-ghost{background:transparent;color:var(--turquoise);font-size:.85rem;padding:8px;width:auto}
 .btn svg{width:18px;height:18px}
@@ -869,7 +869,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
         <span data-t="loginSubmit"></span>
       </button>
-      <div class="version-tag">Version 3.2 — Firebase Sync</div>
+      <div class="version-tag">Version 3.3 — Deep Sync</div>
     </div>
   </div>
 </div>
@@ -900,7 +900,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
         </div>
         <div class="hero-content">
-          <div class="hero-greet" data-t="hubGreeting"></div>
+          <div class="hero-greet" id="welcome-greeting"></div>
           <div class="hero-sub" data-t="hubSub"></div>
           <div class="hero-badge">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -2128,6 +2128,7 @@ function syncReports() {
       reports.sort((a,b) => new Date(b.at) - new Date(a.at));
       saveReports(reports);
       renderRecentReports();
+      applyPersonalization(); // Ensure name is sync'd too
       if(currentTab==='reports') renderReports();
     }, err => {
       console.warn("Report Sync Error:", err);
@@ -2335,7 +2336,7 @@ function displayName(fullName){
 }
 function applyPersonalization(){
   const t=T[lang],en=T.en;
-  const greetEl=document.querySelector('.hero-greet');
+  const greetEl=document.getElementById('welcome-greeting');
   if(!greetEl)return;
   if(currentUser&&currentUser.name&&!currentUser.guest){
     const nameStr = displayName(currentUser.name);
@@ -2994,7 +2995,9 @@ function startNewChat() {
 }
 
 function openSupport() {
-  openTechSupport();
+  if(!currentUser || currentUser.guest) return;
+  const myID = String(currentUser.empNo);
+  openChat('direct_' + myID, 'Support');
 }
 
 async function filterHub() {
@@ -3612,7 +3615,7 @@ function toast(msg){
 /* ══════════════════════════════════════════
    AUTO-UPDATE: detect new SW version and reload
    ══════════════════════════════════════════ */
-const APP_VERSION='3.2';
+const APP_VERSION='3.3';
 let __refreshing=false;
 function showUpdateBanner(msg){
   const b=document.getElementById('update-banner');
@@ -3627,7 +3630,7 @@ if('serviceWorker' in navigator){
     showUpdateBanner('جاري التحديث...');
     setTimeout(()=>window.location.reload(),400);
   });
-  navigator.serviceWorker.register('sw.js?v=3.2').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=3.3').then(reg=>{
     // check for updates on load
     reg.update().catch(()=>{});
     // re-check periodically + on visibility
