@@ -1,6 +1,6 @@
 {
-  "name": "NIT - Confidential Reporting System",
-  "short_name": "NIT Report",
+  "name": "Nesma Reports",
+  "short_name": "Nesma Reports",
   "description": "نظام الإبلاغ السري - نسما للبنية التحتية والتقنية",
   "start_url": "./index.html",
   "display": "standalone",
