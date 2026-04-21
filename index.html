@@ -869,7 +869,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
         <span data-t="loginSubmit"></span>
       </button>
-      <div class="version-tag">Version 3.7 — Privacy Logic</div>
+      <div class="version-tag">Version 3.8 — Chat Privacy</div>
     </div>
   </div>
 </div>
@@ -3111,6 +3111,16 @@ async function openChatWithUser(targetEmpNo, targetName) {
 
 
 async function openChat(id, optName){
+  if(!currentUser || currentUser.guest) return;
+  const myID = String(currentUser.empNo);
+  
+  // Strict Privacy Check: Only participants can open the room
+  const parts = id.split('_');
+  if(!parts.includes(myID)){
+    console.error("Access Denied to Chat:", id);
+    return toast("Access Denied");
+  }
+
   currentChatId = id;
   activeRoom = id;
   const t = T[lang];
@@ -3624,7 +3634,7 @@ function toast(msg){
 /* ══════════════════════════════════════════
    AUTO-UPDATE: detect new SW version and reload
    ══════════════════════════════════════════ */
-const APP_VERSION='3.7';
+const APP_VERSION='3.8';
 let __refreshing=false;
 function showUpdateBanner(msg){
   const b=document.getElementById('update-banner');
@@ -3639,7 +3649,7 @@ if('serviceWorker' in navigator){
     showUpdateBanner('جاري التحديث...');
     setTimeout(()=>window.location.reload(),400);
   });
-  navigator.serviceWorker.register('sw.js?v=3.7').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=3.8').then(reg=>{
     // check for updates on load
     reg.update().catch(()=>{});
     // re-check periodically + on visibility
