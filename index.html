@@ -2870,33 +2870,47 @@ async function filterHub() {
   try {
     const vPrefix = v.charAt(0).toUpperCase() + v.slice(1);
     
-    // Multi-criteria search
+    // Multi-criteria search (checking legacy and new field names)
     const queries = [
       db.collection('employees').orderBy('nameEn').startAt(vPrefix).endAt(vPrefix + '\uf8ff').limit(5).get(),
+      db.collection('employees').orderBy('name_en').startAt(vPrefix).endAt(vPrefix + '\uf8ff').limit(5).get(),
       db.collection('employees').where('empNo', '==', v).get(),
-      db.collection('employees').where('empNo', '==', parseInt(v)||0).get()
+      db.collection('employees').where('empNo', '==', parseInt(v)||0).get(),
+      db.collection('employees').where('emp_no', '==', v).get(),
+      db.collection('employees').where('emp_no', '==', parseInt(v)||0).get()
     ];
 
     const results = await Promise.all(queries);
     let matchesMap = new Map();
     results.forEach(snap => {
-      snap.docs.forEach(d => matchesMap.set(d.id, d.data()));
+      snap.docs.forEach(d => {
+        const data = d.data();
+        matchesMap.set(data.empNo || data.emp_no || d.id, data);
+      });
     });
     
     let matches = Array.from(matchesMap.values());
     
     if(!empList) return;
     if(!matches.length) {
-      empList.innerHTML = '<div style="padding:40px;text-align:center;font-size:0.85rem;color:var(--text-muted)">NO OPERATIVES FOUND</div>';
+      // Check if collection is empty or fields are different
+      const probe = await db.collection('employees').limit(1).get();
+      if(probe.empty) {
+        empList.innerHTML = '<div style="padding:40px;text-align:center;font-size:0.85rem;color:var(--danger)">TACTICAL DATABASE EMPTY<br><small>Please re-import employee data.</small></div>';
+      } else {
+        empList.innerHTML = '<div style="padding:40px;text-align:center;font-size:0.85rem;color:var(--text-muted)">NO OPERATIVES FOUND<br><small>Search by ID (e.g. 1010) or Prefix.</small></div>';
+        console.log("Probable fields:", Object.keys(probe.docs[0].data()));
+      }
     } else {
       empList.innerHTML = matches.map(e => {
-        const name = e.nameEn || e.name || 'Employee ' + e.empNo;
-        const dept = e.deptEn || e.department || '';
-        return `<button class="list-item" onclick="openChatWithUser('${e.empNo}', '${name.replace(/'/g, "\\'")}')">
+        const eid = e.empNo || e.emp_no || '---';
+        const name = e.nameEn || e.name_en || e.name || 'Employee ' + eid;
+        const dept = e.deptEn || e.department || e.dept || '';
+        return `<button class="list-item" onclick="openChatWithUser('${eid}', '${name.replace(/'/g, "\\'")}')">
           <div class="list-avatar" style="background:rgba(59,130,246,0.1);color:var(--primary)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
           <div class="list-body">
             <div class="list-title">${name}</div>
-            <div class="list-preview">ID: ${e.empNo} • ${dept}</div>
+            <div class="list-preview">ID: ${eid} • ${dept}</div>
           </div>
         </button>`;
       }).join('');
