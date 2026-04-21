@@ -794,14 +794,13 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       <h2 class="login-title" data-t="loginTitle"></h2>
       <p class="login-subtitle" data-t="loginSubtitle"></p>
       <div class="login-error" id="login-error"></div>
-      <div class="login-found" id="login-found"></div>
       <div class="field">
         <label class="field-label" data-t="loginEmpNo"></label>
         <input type="text" class="text-input" id="login-emp-no" inputmode="numeric" data-t-placeholder="loginEmpNoPh" dir="ltr" style="font-family:'Futura PT',monospace;letter-spacing:1px;font-size:1.05rem" oninput="lookupEmployee(this.value)">
       </div>
       <div class="field">
         <label class="field-label" data-t="loginName"></label>
-        <input type="text" class="text-input" id="login-name" data-t-placeholder="loginNamePh" autocomplete="name">
+        <input type="text" class="text-input" id="login-name" data-t-placeholder="loginNamePh" autocomplete="name" readonly style="opacity:0.8;background:rgba(255,255,255,0.02);cursor:not-allowed">
       </div>
       <div class="field">
         <label class="field-label" data-t="loginPassword"></label>
@@ -812,7 +811,6 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
         <span data-t="loginSubmit"></span>
       </button>
-      <button class="login-guest-btn" onclick="loginAsGuest()" data-t="loginGuest"></button>
     </div>
   </div>
 </div>
@@ -1064,7 +1062,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       </div>
       <div id="detail-wrap" style="margin-top:14px;display:none">
         <label class="field-label" data-t="detailLabel"></label>
-        <div class="detail-list" id="detail-list"></div>
+        <div class="chip-row" id="detail-list"></div>
       </div>
     </div>
 
@@ -1438,6 +1436,7 @@ ar:{dir:'rtl',ff:'var(--font-ar)',name:'العربية',
   notifBroadcast1:'تحديث سياسة الإبلاغ',notifBroadcast1Desc:'تم تحديث سياسة حماية المبلّغين — البلاغات المؤكدة تحصل على مكافأة.',
   useCamera:'استخدام الكاميرا',exportPdf:'تصدير PDF',showQr:'رمز QR',reportQrCaption:'امسح للوصول السريع للبلاغ',
   supportTitle:'دعم فني',supportDesc:'تواصل مع فرق الدعم (موارد بشرية، تقنية معلومات، رواتب، مرافق)',
+  openTechSupportLabel:'فتح تذكرة دعم',
   supportCat:'نوع الطلب',supportSubject:'الموضوع',supportDetails:'التفاصيل',supportSubmit:'إرسال الطلب',supportSent:'تم إرسال طلب الدعم',
   supportCats:[{id:'hr',svg:'users',color:'#80d1e9',label:'موارد بشرية'},{id:'it',svg:'laptop',color:'#a78bfa',label:'تقنية معلومات'},{id:'payroll',svg:'money',color:'#4ade80',label:'رواتب'},{id:'facilities',svg:'building',color:'#fbbf24',label:'مرافق'},{id:'other',svg:'clipboard',color:'#f472b6',label:'أخرى'}],
   companyTitle:'معلومات الشركة',sitesTitle:'مواقع المشاريع',emergencyLabel:'خط الطوارئ',hrLabel:'الموارد البشرية',itLabel:'الدعم التقني',ethicsLabel:'لجنة النزاهة',workingHours:'أوقات العمل',workingHoursValue:'الأحد – الخميس، 8:00 ص – 5:00 م',hqAddress:'المقر الرئيسي',hqAddressValue:'جدة، طريق الملك فهد، برج نسما',website:'الموقع الإلكتروني',callNow:'اتصال',emailNow:'بريد',
@@ -2111,14 +2110,8 @@ async function lookupEmployee(val){
         const nameField=document.getElementById('login-name');
         const name=rec.name || rec['Employee Name - English'] || 'Unknown';
         nameField.value=name;
-        const role = rec.position || rec.unit || '';
-        const dept = rec.department || rec.project || rec.site || '';
-        const t=T[lang],en=T.en;
-        foundBox.innerHTML=`<span>${t.loginFound||en.loginFound} <span class="e-name">${escapeHtml(name)}</span>${dept?' • '+escapeHtml(dept):''}${role?' • '+escapeHtml(role):''}</span>`;
-        foundBox.classList.add('show');
         setHint.style.display = rec.password ? 'none' : 'block';
       } else {
-        foundBox.classList.remove('show');
         setHint.style.display='none';
       }
     } catch(e) {
@@ -2191,11 +2184,6 @@ async function doLogin(){
   enterMainApp();
   toast((t.loginFound||en.loginFound)+' — '+displayName(name));
   if(navigator.vibrate)navigator.vibrate([20,50,20]);
-}
-function loginAsGuest(){
-  const t=T[lang],en=T.en;
-  saveUser({empNo:null,name:t.guestMode||en.guestMode,dept:'',role:'',guest:true,at:new Date().toISOString()});
-  enterMainApp();
 }
 
 function handleLogoutOrLogin(){
@@ -2546,7 +2534,7 @@ function markAllRead(){
    SUPPORT REQUESTS
    ══════════════════════════════════════════ */
 let selectedSupCat='';
-function openSupport(){
+function openTechSupport(){
   selectedSupCat='';
   document.getElementById('sup-subject').value='';
   document.getElementById('sup-details').value='';
@@ -2615,6 +2603,12 @@ function openCompanyInfo(){
     ${row('building','#80d1e9',t.hqAddress||en.hqAddress,t.hqAddressValue||en.hqAddressValue)}
     ${row('clock','#fbbf24',t.workingHours||en.workingHours,t.workingHoursValue||en.workingHoursValue)}
     ${row('globe','#06b6d4',t.website||en.website,c.website.replace('https://',''),c.website,'↗')}
+    <div class="field" style="margin-top:16px">
+      <button class="btn btn-secondary" onclick="openTechSupport()" style="gap:8px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span>${t.openTechSupportLabel||'Technical Support Ticket'}</span>
+      </button>
+    </div>
   `;
   openSheet('sheet-company');
 }
@@ -3210,11 +3204,11 @@ function buildDetailList(){
   const list=document.getElementById('detail-list');if(!list)return;
   const details=((ISSUE_HIERARCHY[selectedEnv]||{})[selectedType]||{})[selectedSubIssue]||[];
   if(!details.length){list.innerHTML='';return}
-  list.innerHTML=details.map(d=>`<button class="detail-option ${selectedDetail===d?'selected':''}" onclick="selDetail('${d.replace(/'/g,"\\'")}',this)">${tr(d)}</button>`).join('');
+  list.innerHTML=details.map(d=>`<button class="chip ${selectedDetail===d?'selected':''}" onclick="selDetail('${d.replace(/'/g,"\\'")}',this)">${tr(d)}</button>`).join('');
 }
 function selDetail(d,el){
   selectedDetail=d;
-  document.querySelectorAll('#detail-list .detail-option').forEach(c=>c.classList.remove('selected'));
+  document.querySelectorAll('#detail-list .chip').forEach(c=>c.classList.remove('selected'));
   el.classList.add('selected');
   if(navigator.vibrate)navigator.vibrate(8);
   updateProgress();
