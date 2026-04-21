@@ -3205,7 +3205,7 @@ function resetForm(){
   const sw=document.getElementById('sub-issue-wrap');if(sw)sw.style.display='none';
   const dw=document.getElementById('detail-wrap');if(dw)dw.style.display='none';
   document.querySelectorAll('.form-section').forEach(s=>s.classList.remove('completed'));
-  buildEnvGrid();buildTypeGrid();buildSevOpts();buildFreqRow();
+  buildEnvGrid();buildTypeGrid();buildSevOpts();buildFreqRow();buildLocOpts();setDefaultLocation();
   try{document.getElementById('f-date').valueAsDate=new Date()}catch(e){}
 }
 
@@ -3264,6 +3264,16 @@ function buildLocOpts(){
   const s=document.getElementById('f-location');if(!s)return;
   const v=s.value;
   s.innerHTML=`<option value="">${T[lang].selectPH}</option>`+T[lang].locations.map((l,i)=>`<option value="${i}" ${v==i?'selected':''}>${l}</option>`).join('')
+}
+function setDefaultLocation(){
+  const s=document.getElementById('f-location');if(!s||!currentUser||!currentUser.site)return;
+  const site=currentUser.site.trim().toLowerCase(); if(!site)return;
+  for(let i=1;i<s.options.length;i++){
+    const opt=s.options[i].text.toLowerCase();
+    if(opt.includes(site)||site.includes(opt.split(' ')[0].toLowerCase())){
+      s.selectedIndex=i; break;
+    }
+  }
 }
 
 function selType(id,el){
