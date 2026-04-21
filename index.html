@@ -468,7 +468,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 .qr-label{font-size:.72rem;color:#1a1c5e;font-family:var(--font-en);font-weight:700;letter-spacing:1px}
 
 /* ── LOGIN SCREEN ── */
-#screen-login{position:fixed;inset:0;z-index:50;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;padding-top:calc(var(--sa-t) + 20px);background:linear-gradient(160deg,var(--bg) 0%,var(--bg2) 55%,var(--nit-dark) 100%);overflow-y:auto}
+#screen-login{position:fixed;inset:0;z-index:60;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;padding-top:calc(var(--sa-t) + 20px);background:linear-gradient(160deg,var(--bg) 0%,var(--bg2) 55%,var(--nit-dark) 100%);overflow-y:auto}
 #screen-login.show{display:flex;animation:fadeUp .4s var(--ease) both}
 #screen-login .login-box{width:100%;max-width:420px}
 #screen-login .logo-wrap{display:flex;justify-content:center;margin-bottom:20px}
@@ -2179,8 +2179,8 @@ async function submitForgotPassword(){
 
 function goBackToLang(){
   document.getElementById('screen-login').classList.remove('show');
-  document.getElementById('screen-lang').style.display = 'flex';
-  localStorage.removeItem('lang_picked'); 
+  document.getElementById('screen-lang').classList.add('show');
+  localStorage.removeItem(LS_LANG); 
 }
 
 async function handleLogoutOrLogin(){
