@@ -365,10 +365,11 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 .btn::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;border-radius:50%;background:rgba(255,255,255,.3);transform:translate(-50%,-50%);transition:width .5s,height .5s}
 .btn:active::before{width:300px;height:300px;transition:width .4s,height .4s}
 .btn > *{position:relative;z-index:1}
-.btn-primary{background:linear-gradient(135deg,var(--turquoise),var(--nit-blue));color:#fff;box-shadow:0 4px 16px rgba(128,209,233,.25),inset 0 1px 0 rgba(255,255,255,.15)}
-.btn-primary:hover{box-shadow:0 6px 22px rgba(128,209,233,.35),inset 0 1px 0 rgba(255,255,255,.2);transform:translateY(-1px)}
+.btn-primary{background:linear-gradient(135deg,var(--turquoise),var(--nit-blue));color:#fff;box-shadow:0 4px 12px rgba(128,209,233,.2)}
+.btn-primary:hover{box-shadow:0 6px 16px rgba(128,209,233,.3);transform:translateY(-1px)}
 .btn-primary:active{transform:scale(.97)}
 .btn-primary:disabled{opacity:.4;pointer-events:none;transform:none;box-shadow:none}
+.version-tag{font-size:.68rem;color:var(--text-muted);text-align:center;margin-top:20px;opacity:.6;letter-spacing:0.5px}
 .btn-secondary{background:var(--glass);color:var(--text);border:1px solid var(--glass-border)}
 .btn-ghost{background:transparent;color:var(--turquoise);font-size:.85rem;padding:8px;width:auto}
 .btn svg{width:18px;height:18px}
