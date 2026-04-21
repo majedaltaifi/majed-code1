@@ -1450,8 +1450,15 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script>
-  const APP_VERSION='3.17';
+  const APP_VERSION='3.18';
   let __refreshing=false;
+  
+  // FAIL-SAFE: ensure splash disappears even if logic hangs
+  setTimeout(() => {
+    const s = document.getElementById('splash');
+    if(s && !s.classList.contains('hide')) s.classList.add('hide');
+  }, 3500);
+
   function showUpdateBanner(msg){
     const b=document.getElementById('update-banner');
     if(b){ if(document.getElementById('update-msg')) document.getElementById('update-msg').textContent=msg; b.classList.add('show'); }
@@ -1464,7 +1471,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.17').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.18').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
