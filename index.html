@@ -915,11 +915,12 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 
       <div class="chat-hub-content">
         <!-- Support Quick Action -->
-        <div class="hub-support-wrap">
+        <div class="hub-support-wrap" style="position:relative">
           <button class="hub-support-btn" onclick="console.log('Support clicked'); openChatWithUser('admin', T[lang].integrityTeam || 'Integrity Team')">
             <div class="hs-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
             <div class="hs-label" data-t="integrityTeam">SUPPORT</div>
           </button>
+          <div id="support-dot" style="display:none;position:absolute;top:5px;right:5px;width:12px;height:12px;background:var(--danger);border-radius:50%;border:2px solid var(--bg-card);box-shadow:0 0 10px rgba(255,82,82,0.4);z-index:2"></div>
         </div>
 
         <div id="hub-default-view">
@@ -1971,11 +1972,18 @@ function syncChats() {
       renderChats();
       
       let totalUnread = 0;
+      let adminUnread = 0;
       chats.forEach(c => {
-        totalUnread += (c.unread_counts && c.unread_counts[myID]) || 0;
+        const unread = (c.unread_counts && c.unread_counts[myID]) || 0;
+        totalUnread += unread;
+        if (c.id === 'direct_' + myID) adminUnread = unread;
       });
+      
       const dot = document.getElementById('chats-dot');
       if(dot) dot.style.display = totalUnread > 0 ? 'block' : 'none';
+      
+      const sDot = document.getElementById('support-dot');
+      if(sDot) sDot.style.display = adminUnread > 0 ? 'block' : 'none';
     }, err => console.error("Chat Sync Error:", err));
 }
 
