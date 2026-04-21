@@ -2080,7 +2080,7 @@ async function lookupEmployee(val){
       const nameField=document.getElementById('login-name');
       if(doc.exists){
         const rec = doc.data();
-        nameField.value=rec.name || rec['Employee Name - English'] || 'Unknown';
+        nameField.value=rec.name || rec.name_en || rec['Employee Name - English'] || 'Unknown';
       } else {
         nameField.value='';
       }
