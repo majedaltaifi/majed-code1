@@ -933,7 +933,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
           <div class="action-info"><div class="action-title" data-t="hubTrack"></div><div class="action-desc" data-t="hubTrackDesc"></div></div>
           <span class="action-arrow">›</span>
         </button>
-        <button class="action-card" onclick="openTechSupport()">
+        <button class="action-card" onclick="openSupport()">
           <div class="action-icon" style="color:#a78bfa;background:linear-gradient(135deg,rgba(167,139,250,.18),rgba(139,92,246,.28));box-shadow:inset 0 0 0 1px rgba(167,139,250,.2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
           <div class="action-info"><div class="action-title" data-t="hubSupport">SUPPORT</div><div class="action-desc" data-t="hubSupportDesc"></div></div>
           <span class="action-arrow">›</span>
@@ -1446,7 +1446,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script>
-  const APP_VERSION='3.25';
+  const APP_VERSION='3.26';
   let __refreshing=false;
   
   function showUpdateBanner(msg){
@@ -1461,7 +1461,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.25').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.26').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
@@ -3167,7 +3167,6 @@ async function openChat(id, optName){
   }
 
   currentChatId = id;
-  activeRoom = id;
   const t = T[lang];
   let headerName = optName || t.chatName;
   document.querySelector('#sheet-chat .sheet-title').textContent = headerName;
