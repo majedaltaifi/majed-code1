@@ -725,7 +725,54 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 }
 
 /* ── PRINT ── */
-@media print{.bg-layer,.bottom-nav,.sheet-header,.sheet-footer,.app-header{display:none!important}body{background:#fff;color:#000}.sheet{position:static;transform:none;display:block}}
+@media print {
+  .bg-layer, .bottom-nav, .sheet-header, .sheet-footer, .app-header, #splash, .toast, .confirm-actions, .sheet-back, .h-btn {
+    display: none !important;
+  }
+  html, body {
+    height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+    background: #fff !important;
+    color: #000 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  #main-app {
+    display: none !important;
+  }
+  .sheet {
+    position: static !important;
+    display: none !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    transform: none !important;
+    padding: 0 !important;
+    height: auto !important;
+  }
+  .sheet.show {
+    display: block !important;
+  }
+  .sheet-body {
+    overflow: visible !important;
+    height: auto !important;
+    padding: 40px 20px !important;
+  }
+  .ref-number {
+    border: 2px solid #000 !important;
+    color: #000 !important;
+    background: #f0f0f0 !important;
+  }
+  .success-check {
+    color: #000 !important;
+    border-color: #000 !important;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
 
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-track{background:transparent}
