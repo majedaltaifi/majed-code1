@@ -2303,9 +2303,11 @@ async function submitForgotPassword(){
         }
       });
 
+      const parts = email.split('@');
+      const masked = parts[0].substring(0, 1) + '***@' + parts[1];
       status.innerHTML = `<div style="color:var(--success);background:rgba(0,230,118,0.1);padding:12px;border-radius:10px;border:1px solid rgba(0,230,118,0.2)">
         ${t.forgotPassSent || en.forgotPassSent}:<br>
-        <strong style="margin-top:5px;display:block">${email}</strong>
+        <strong style="margin-top:5px;display:block">${masked}</strong>
       </div>`;
     } else {
       status.innerHTML = `<div style="color:var(--danger);background:rgba(255,82,82,0.1);padding:12px;border-radius:10px;border:1px solid rgba(255,82,82,0.2)">
