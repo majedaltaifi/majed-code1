@@ -238,7 +238,7 @@ body{font-family:var(--font-ar);font-weight:500;color:var(--text);background:var
 .about-block .logo-sm{height:24px;filter:brightness(0) invert(1);opacity:.5;margin-bottom:8px}
 
 /* ══════════ BOTTOM NAV ══════════ */
-.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;z-index:100;background:rgba(8,9,34,.92);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border-top:1px solid var(--glass-border);display:flex;justify-content:space-around;align-items:center;padding:6px 6px calc(var(--sa-b) + 6px);height:calc(var(--nav-h) + var(--sa-b))}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;margin:0 auto;width:100%;max-width:480px;z-index:500;background:rgba(8,9,34,.94);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border-top:1px solid var(--glass-border);display:flex;justify-content:space-around;align-items:center;padding:6px 6px calc(var(--sa-b) + 6px);height:calc(var(--nav-h) + var(--sa-b));transition:transform .3s var(--ease);will-change:transform}
 .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 4px;border:none;background:none;cursor:pointer;color:var(--text-muted);font-family:inherit;transition:color .25s;min-width:0;position:relative}
 .nav-btn svg{width:22px;height:22px;transition:transform .3s cubic-bezier(.5,1.6,.4,1),filter .3s}
 .nav-btn .nav-lbl{font-size:.66rem;font-weight:600;white-space:nowrap;transition:opacity .25s}
@@ -690,7 +690,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 /* Tablet + small desktop: expand a bit */
 @media(min-width:700px){
   #main-app{max-width:640px;border-radius:var(--r-xl);overflow:hidden;margin-top:20px;margin-bottom:20px;min-height:calc(100dvh - 40px);box-shadow:0 20px 60px rgba(0,0,0,.45),0 0 0 1px rgba(128,209,233,.1)}
-  .bottom-nav{max-width:640px;border-radius:0 0 var(--r-xl) var(--r-xl);bottom:20px}
+  .bottom-nav{max-width:640px;border-radius:0}
   body{background:radial-gradient(ellipse at top,var(--nit-dark) 0%,var(--bg) 60%)}
   .type-grid{grid-template-columns:1fr 1fr 1fr}
   .hero-card{padding:26px 22px}
