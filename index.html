@@ -868,7 +868,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
         <span data-t="loginSubmit"></span>
       </button>
-      <div class="version-tag">Version 3.16 — Hard Fix Manage</div>
+      <div class="version-tag">Version 3.17 — Recovery Fix</div>
     </div>
   </div>
 </div>
@@ -1450,7 +1450,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script>
-  const APP_VERSION='3.16';
+  const APP_VERSION='3.17';
   let __refreshing=false;
   function showUpdateBanner(msg){
     const b=document.getElementById('update-banner');
@@ -1464,7 +1464,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.16').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.17').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
@@ -2217,29 +2217,33 @@ function enterMainApp(){
 function switchTab(tabId){
   currentTab=tabId;
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
+  const targetPane = document.getElementById(tabId);
+  if(targetPane) targetPane.classList.add('active');
   
   document.querySelectorAll('.nav-btn').forEach(n=>n.classList.remove('active'));
-  document.querySelector(`.nav-btn[data-tab="${tabId}"]`)?.classList.add('active');
+  const activeNav = document.querySelector(`.nav-btn[data-tab="${tabId}"]`);
+  if(activeNav) activeNav.classList.add('active');
 
   const title=document.getElementById('header-title');
-  if(tabId==='home') title.setAttribute('data-t','tabHome');
-  else if(tabId==='reports') title.setAttribute('data-t','tabReports');
-  else if(tabId==='chats') title.setAttribute('data-t','tabChats');
-  else if(tabId==='more') title.setAttribute('data-t','tabMore');
-  updateTranslations();
+  if(title){
+    if(tabId==='home') title.setAttribute('data-t','tabHome');
+    else if(tabId==='reports') title.setAttribute('data-t','tabReports');
+    else if(tabId==='chats') title.setAttribute('data-t','tabChats');
+    else if(tabId==='more') title.setAttribute('data-t','tabMore');
+    updateTranslations();
+  }
 
   // Show manage button only on chats tab
-  const mBtn = document.getElementById('manage-chats-btn');
+  const mBtn = document.getElementById('header-manage-btn');
   if(mBtn) mBtn.style.display = (tabId==='chats') ? 'flex' : 'none';
-  if(tabId!=='chats' && chatManageMode) toggleChatManage(); // exit manage mode if leaving tab
+  if(tabId!=='chats' && chatManageMode) toggleChatManage(); 
 }
 
 function toggleChatManage(){
   chatManageMode = !chatManageMode;
-  const btn = document.getElementById('manage-chats-btn');
-  btn.style.opacity = chatManageMode ? '0.5' : '1';
-  renderChats(); // Re-render to show/hide delete buttons
+  const btn = document.getElementById('header-manage-btn');
+  if(btn) btn.style.opacity = chatManageMode ? '0.5' : '1';
+  renderChats(); 
 }
 
 async function lookupEmployee(val){
