@@ -884,9 +884,9 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
           <div class="action-info"><div class="action-title" data-t="hubTrack"></div><div class="action-desc" data-t="hubTrackDesc"></div></div>
           <span class="action-arrow">›</span>
         </button>
-        <button class="action-card" onclick="openChatWithUser('admin', T[lang].integrityTeam || 'Integrity Team')">
+        <button class="action-card" onclick="openTechSupport()">
           <div class="action-icon" style="color:#a78bfa;background:linear-gradient(135deg,rgba(167,139,250,.18),rgba(139,92,246,.28));box-shadow:inset 0 0 0 1px rgba(167,139,250,.2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
-          <div class="action-info"><div class="action-title" data-t="integrityTeam">SUPPORT</div><div class="action-desc" data-t="supportDesc"></div></div>
+          <div class="action-info"><div class="action-title" data-t="hubSupport">SUPPORT</div><div class="action-desc" data-t="hubSupportDesc"></div></div>
           <span class="action-arrow">›</span>
         </button>
       </div>
@@ -1461,6 +1461,8 @@ ar:{dir:'rtl',ff:'var(--font-ar)',name:'العربية',
   logoutConfirm:'هل تريد تسجيل الخروج؟',guestMode:'وضع الضيف',
   empNotFound:'الرقم غير مسجل. جرّب رقم آخر أو ادخل كضيف',roleField:'field',roleSupervisor:'Site Supervisor',roleDriver:'Driver',
   broadcastsLabel:'آخر الأخبار',broadcastsSee:'عرض الكل',
+  hubChatDesc:'تواصل مع الجميع، بما في ذلك زملاءك وفريق الإدارة',
+  hubSupport:'مدراء الدعم',hubSupportDesc:'تواصل مع فرق الدعم (موارد بشرية، تقنية معلومات، رواتب...)',
   envLabel:'موقع العمل',envSubtitle:'حدد المكان الذي تريد الإبلاغ عنه',
   envSite:'الموقع الميداني',envOffice:'المكتب',envAccom:'السكن',
   catSafety:'سلامة',catService:'خدمة',catViolation:'مخالفة',
@@ -1490,10 +1492,11 @@ ar:{dir:'rtl',ff:'var(--font-ar)',name:'العربية',
   _chatKeywords:{'بلاغ|ابلاغ|مخالفة|أبلغ':'بالتأكيد! اضغط على زر (+) في الأسفل لتقديم بلاغك بسرية تامة.','آمن|سري|سرية|محمي':'نعم، بلاغك مشفر ومجهول الهوية بالكامل.','متابعة|تتبع|رقم مرجعي':'يمكنك متابعة بلاغاتك من تبويب "بلاغاتي".','شكر':'العفو! نحن هنا لخدمتك.','مساعدة|ساعد':'أنا هنا لمساعدتك! يمكنك تقديم بلاغ جديد أو متابعة بلاغ سابق.'}
 },
 en:{dir:'ltr',ff:'var(--font-en)',name:'English',
-  hubGreeting:'Welcome',hubSub:'Confidential Reporting System — Your identity is fully protected',
+  hubGreeting:'Welcome back',hubSub:'Confidential Reporting System — Your identity is fully protected',
   hubReport:'New Report',hubReportDesc:'Report a violation or suspicious activity',
   hubTrack:'Track by Reference',hubTrackDesc:'Follow up using a reference number',
-  hubChat:'Secure Chat',hubChatDesc:'Direct contact with the integrity team',
+  hubChat:'Secure Chat',hubChatDesc:'Connect with everyone, including colleagues and the management team',
+  hubSupport:'Management Support',hubSupportDesc:'Contact support teams (HR, IT, Payroll, Facilities)',
   privacyBadge:'Fully anonymous',
   tabHome:'Home',tabReports:'My Reports',tabChats:'Chats',tabMore:'More',
   homeQuickActions:'Quick Actions',homeStats:'Overview',homeRecent:'Recent Activity',homeViewAll:'View All',
@@ -2211,9 +2214,7 @@ async function handleLogoutOrLogin(){
 function displayName(fullName){
   const n=(fullName||'').trim();
   if(!n)return '';
-  // Placeholder like "موظف رقم 42" or "Employee 42" — keep full, it's meaningful
   if(/^موظف\s*رقم\s*\d+$/.test(n)||/^Employee\s*\d+$/i.test(n))return n;
-  // Real name — show first + last word if has 2+ words, else the single word
   const parts=n.split(/\s+/).filter(Boolean);
   if(parts.length>=2)return parts[0]+' '+parts[parts.length-1];
   return parts[0]||n;
@@ -2222,8 +2223,9 @@ function applyPersonalization(){
   const t=T[lang],en=T.en;
   const greetEl=document.querySelector('.hero-greet');
   if(!greetEl)return;
-  if(currentUser&&!currentUser.guest){
-    greetEl.textContent=(t.welcomeBack||en.welcomeBack)+'، '+displayName(currentUser.name);
+  if(currentUser&&currentUser.name&&!currentUser.guest){
+    const nameStr = displayName(currentUser.name);
+    greetEl.textContent=(t.welcomeBack||en.welcomeBack)+(lang==='ar'?' ':' back, ')+nameStr;
   }else{
     greetEl.textContent=t.welcomeGuest||en.welcomeGuest;
   }
@@ -2878,8 +2880,7 @@ function startNewChat() {
 }
 
 function openSupport() {
-  console.log("Support activation requested");
-  openChatWithUser('admin', T[lang].integrityTeam || 'Management Support');
+  openTechSupport();
 }
 
 async function filterHub() {
