@@ -869,7 +869,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
         <span data-t="loginSubmit"></span>
       </button>
-      <div class="version-tag">Version 3.12 — Data Integrity</div>
+      <div class="version-tag">Version 3.13 — Chat Management</div>
     </div>
   </div>
 </div>
@@ -1460,7 +1460,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.12').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.13').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
@@ -2984,7 +2984,7 @@ function renderChats(){
       const timeStr = c.updated_at ? formatRelativeTime(new Date(c.updated_at)) : '';
       const unread = (c.unread_counts && c.unread_counts[myID]) || 0;
       
-      return `<button class="list-item" onclick="openChat('${c.id}', '${otherName}')" style="position:relative">
+      return `<div class="list-item" onclick="openChat('${c.id}', '${otherName}')" style="position:relative">
         ${unread > 0 ? `<div style="position:absolute;top:15px;right:15px;width:10px;height:10px;background:var(--danger);border-radius:50%;border:2px solid white"></div>` : ''}
         <div class="list-avatar" style="background:rgba(59,130,246,0.1);color:var(--primary)">
           ${otherId === 'admin' ? 
@@ -2997,11 +2997,25 @@ function renderChats(){
             <div class="list-title">${otherName}</div>
             <div class="list-time">${timeStr}</div>
           </div>
-          <div class="list-preview">${escapeHtml(preview.slice(0,80))}</div>
+          <div class="msg-row" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+            <div class="list-preview" style="flex:1;min-width:0">${escapeHtml(preview.slice(0,80))}</div>
+            <button class="chat-del-btn" onclick="event.stopPropagation(); deleteChatSession('${c.id}')" style="background:none;border:none;color:var(--danger);padding:4px;cursor:pointer;opacity:0.6">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
         </div>
-      </button>`;
+      </div>`;
     }).join('');
   }
+}
+
+async function deleteChatSession(id){
+  if(!confirm("Delete this conversation?")) return;
+  try {
+    await db.collection('chat_sessions').doc(id).delete();
+    toast("Deleted Successfully");
+    syncChats(); // Refresh local list
+  } catch(e) { console.error("Del Error", e); toast("Delete Failed"); }
 }
 
 function startNewChat() {
