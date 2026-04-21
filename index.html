@@ -3590,7 +3590,7 @@ function toast(msg){
 /* ══════════════════════════════════════════
    AUTO-UPDATE: detect new SW version and reload
    ══════════════════════════════════════════ */
-const APP_VERSION='3.0';
+const APP_VERSION='3.1';
 let __refreshing=false;
 function showUpdateBanner(msg){
   const b=document.getElementById('update-banner');
@@ -3605,7 +3605,7 @@ if('serviceWorker' in navigator){
     showUpdateBanner('جاري التحديث...');
     setTimeout(()=>window.location.reload(),400);
   });
-  navigator.serviceWorker.register('sw.js?v=3.0').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=3.1').then(reg=>{
     // check for updates on load
     reg.update().catch(()=>{});
     // re-check periodically + on visibility
