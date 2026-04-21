@@ -2107,17 +2107,22 @@ async function lookupEmployee(val){
     const errBox=document.getElementById('login-error');
     const setHint=document.getElementById('login-set-hint');
     errBox.classList.remove('show');
-    if(!empNo){foundBox.classList.remove('show');setHint.style.display='none';return}
+    if(!empNo){
+      document.getElementById('login-name').value = '';
+      setHint.style.display='none';
+      return;
+    }
     
     try {
       const doc = await db.collection('employees').doc(empNo).get();
+      const nameField=document.getElementById('login-name');
       if(doc.exists){
         const rec = doc.data();
-        const nameField=document.getElementById('login-name');
         const name=rec.name || rec['Employee Name - English'] || 'Unknown';
         nameField.value=name;
         setHint.style.display = rec.password ? 'none' : 'block';
       } else {
+        nameField.value='';
         setHint.style.display='none';
       }
     } catch(e) {
