@@ -1446,7 +1446,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script>
-  const APP_VERSION='3.22';
+  const APP_VERSION='3.23';
   let __refreshing=false;
   
   function showUpdateBanner(msg){
@@ -1461,7 +1461,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.22').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.23').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
@@ -3126,6 +3126,8 @@ async function openChatWithUser(targetEmpNo, targetName) {
     sessionData.names[myID] = currentUser.name || 'User ' + myID;
     sessionData.names[tID] = targetName;
     
+    sessionData.updated_at = new Date().toISOString();
+    
     // Compatibility fields
     sessionData.other_name = targetName;
     sessionData.target_id = tID;
@@ -3134,7 +3136,7 @@ async function openChatWithUser(targetEmpNo, targetName) {
     
     const searchInput = document.getElementById('chats-search');
     if(searchInput) searchInput.value = '';
-    filterHub();
+    filterHub(); // Reset view to Recent Messages
 
     openChat(roomId, targetName);
   } catch(e) { console.error("Create chat error", e); }
