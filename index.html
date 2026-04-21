@@ -2177,22 +2177,29 @@ async function submitForgotPassword(){
   } catch(e) { status.innerHTML = 'Error: ' + e.message; }
 }
 
-function handleLogoutOrLogin(){
+async function handleLogoutOrLogin(){
   const t=T[lang],en=T.en;
   if(!currentUser){
     // Go to login
-    document.getElementById('main-app').classList.remove('show');
+    document.getElementById('main-app').style.display='none';
     document.getElementById('screen-login').classList.add('show');
     return;
   }
   if(!confirm(t.logoutConfirm||en.logoutConfirm))return;
-  saveUser(null);
-  document.getElementById('main-app').classList.remove('show');
-  document.getElementById('screen-login').classList.add('show');
-  document.getElementById('login-emp-no').value='';
-  document.getElementById('login-name').value='';
-  document.getElementById('login-found').classList.remove('show');
-  document.getElementById('login-error').classList.remove('show');
+  
+  try {
+    // 1. Sign out from Firebase
+    if(window.firebase && firebase.auth) await firebase.auth().signOut();
+    // 2. Clear local storage
+    saveUser(null);
+    // 3. Reset UI
+    location.reload(); // Hard reset is safest for logouts
+  } catch(e) {
+    console.error("Logout error:", e);
+    // Fallback reset
+    saveUser(null);
+    location.reload();
+  }
 }
 
 function displayName(fullName){
