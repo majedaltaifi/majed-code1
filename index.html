@@ -869,7 +869,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
         <span data-t="loginSubmit"></span>
       </button>
-      <div class="version-tag">Version 3.11 — Fix Connectivity</div>
+      <div class="version-tag">Version 3.12 — Data Integrity</div>
     </div>
   </div>
 </div>
@@ -1460,7 +1460,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.11').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.12').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
@@ -3215,13 +3215,20 @@ async function sendChat(){
     const parts = currentChatId.split('_').filter(p=>p!=='direct');
     if(currentChatId.startsWith('direct_') && !parts.includes('admin')) parts.push('admin');
 
+    // Create session doc with rich metadata for Admin
     await sessionRef.set({
        participants: parts,
-       updated_at: now
+       updated_at: now,
+       last_msg: txt,
+       user_name: currentUser.name || 'Unknown',
+       emp_no: currentUser.empNo,
+       type: currentChatId.startsWith('direct_') ? 'support' : 'direct',
+       created_at: firebase.firestore.FieldValue.serverTimestamp() // Real server time
     }, {merge:true});
 
     await sessionRef.collection('messages').add({
       sender_id: String(currentUser.empNo),
+      sender_name: currentUser.name || 'User',
       text: txt,
       created_at: now
     });
