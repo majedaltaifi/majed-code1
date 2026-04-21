@@ -869,7 +869,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
         <span data-t="loginSubmit"></span>
       </button>
-      <div class="version-tag">Version 3.6 — Native Depth</div>
+      <div class="version-tag">Version 3.7 — Privacy Logic</div>
     </div>
   </div>
 </div>
@@ -3369,7 +3369,16 @@ function togSwitch(el,kind){
 function togAnon(el){
   el.classList.toggle('on');
   isAnonymous=el.classList.contains('on');
-  document.getElementById('contact-fields').classList.toggle('show',!isAnonymous);
+  const cf=document.getElementById('contact-fields');
+  if(cf) cf.classList.toggle('show',!isAnonymous);
+  
+  // Auto-populate defaults if NOT anonymous
+  if(!isAnonymous && currentUser){
+    const emailField = document.getElementById('f-email');
+    const phoneField = document.getElementById('f-phone');
+    if(emailField && !emailField.value) emailField.value = currentUser.email || '';
+    if(phoneField && !phoneField.value) phoneField.value = currentUser.phone || '';
+  }
 }
 
 function onDescInput(el){
@@ -3615,7 +3624,7 @@ function toast(msg){
 /* ══════════════════════════════════════════
    AUTO-UPDATE: detect new SW version and reload
    ══════════════════════════════════════════ */
-const APP_VERSION='3.6';
+const APP_VERSION='3.7';
 let __refreshing=false;
 function showUpdateBanner(msg){
   const b=document.getElementById('update-banner');
@@ -3630,7 +3639,7 @@ if('serviceWorker' in navigator){
     showUpdateBanner('جاري التحديث...');
     setTimeout(()=>window.location.reload(),400);
   });
-  navigator.serviceWorker.register('sw.js?v=3.6').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=3.7').then(reg=>{
     // check for updates on load
     reg.update().catch(()=>{});
     // re-check periodically + on visibility
