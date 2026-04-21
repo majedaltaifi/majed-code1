@@ -2177,6 +2177,12 @@ async function submitForgotPassword(){
   } catch(e) { status.innerHTML = 'Error: ' + e.message; }
 }
 
+function goBackToLang(){
+  document.getElementById('screen-login').classList.remove('show');
+  document.getElementById('screen-lang').style.display = 'flex';
+  localStorage.removeItem('lang_picked'); 
+}
+
 async function handleLogoutOrLogin(){
   const t=T[lang],en=T.en;
   if(!currentUser){
