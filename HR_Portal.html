@@ -829,24 +829,29 @@
         }
 
         function initRealtimeSync() {
+            console.log("Starting Realtime Sync for majed-code1...");
             db.collection('reports').onSnapshot(snap => {
+                console.log("Reports Sync Received:", snap.size, "documents");
                 allReports = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                // Sort locally by created_at or at
                 allReports.sort((a,b) => {
-                    const dateA = a.created_at ? (a.created_at.toDate ? a.created_at.toDate() : new Date(a.created_at)) : (a.at ? new Date(a.at) : 0);
-                    const dateB = b.created_at ? (b.created_at.toDate ? b.created_at.toDate() : new Date(b.created_at)) : (b.at ? new Date(b.at) : 0);
+                    const dateA = a.created_at ? (a.created_at.toDate ? a.created_at.toDate() : new Date(a.created_at)) : (a.at ? (a.at.toDate ? a.at.toDate() : new Date(a.at)) : 0);
+                    const dateB = b.created_at ? (b.created_at.toDate ? b.created_at.toDate() : new Date(b.created_at)) : (b.at ? (b.at.toDate ? b.at.toDate() : new Date(b.at)) : 0);
                     return dateB - dateA;
                 });
                 updateDashboards();
                 if(activeView === 'all-reports') applyFilters();
                 if(activeView === 'hr-reports') updateHRReports();
                 if(activeView === 'per-site') updateSiteView();
+            }, err => {
+                console.error("Reports Sync Error:", err);
+                alert("Database Connection Error. Please check Firestore Rules.");
             });
 
             db.collection('chat_sessions').onSnapshot(snap => {
+                console.log("Chats Sync Received:", snap.size, "sessions");
                 allSessions = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 if(activeView === 'chat') renderChatUsers();
-            });
+            }, err => console.error("Chats Sync Error:", err));
         }
 
         function updateDashboards() {
