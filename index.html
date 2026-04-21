@@ -1417,7 +1417,7 @@ ar:{dir:'rtl',ff:'var(--font-ar)',name:'العربية',
   hubGreeting:'مرحباً بك',hubSub:'نظام الإبلاغ السري — هويتك محمية بالكامل',
   hubReport:'بلاغ جديد',hubReportDesc:'أبلغ عن مخالفة أو نشاط مشبوه',
   hubTrack:'متابعة بلاغ',hubTrackDesc:'تتبع حالة بلاغ سابق بالرقم المرجعي',
-  hubChat:'محادثة سرية',hubChatDesc:'تواصل مباشر مع فريق النزاهة',
+  hubChat:'الدردشة الآمنة',hubChatDesc:'يمكنك التحدث مع الجميع، بما في ذلك زملائك وفريق الإدارة',
   privacyBadge:'هويتك محمية',
   tabHome:'الرئيسية',tabReports:'بلاغاتي',tabChats:'محادثاتي',tabMore:'المزيد',
   homeQuickActions:'إجراءات سريعة',homeStats:'نظرة عامة',homeRecent:'آخر النشاطات',homeViewAll:'عرض الكل',
@@ -1456,12 +1456,12 @@ ar:{dir:'rtl',ff:'var(--font-ar)',name:'العربية',
   forgotPassSent:'تم إرسال رابط إعادة التعيين إلى بريدك المسجل',
   forgotPassNotFound:'الرقم الوظيفي غير موجود أو لا يوجد إيميل مسجل',
   loginFound:'أهلاً',loginSkip:'تخطي',biometricPrompt:'استخدام البصمة',
-  welcomeBack:'أهلاً بك',welcomeGuest:'مرحباً بك',
+  welcomeBack:'مرحباً، ',welcomeGuest:'مرحباً بك',
   moreProfile:'الملف الشخصي',moreLogout:'تسجيل الخروج',moreLoginNow:'تسجيل الدخول الآن',
   logoutConfirm:'هل تريد تسجيل الخروج؟',guestMode:'وضع الضيف',
   empNotFound:'الرقم غير مسجل. جرّب رقم آخر أو ادخل كضيف',roleField:'field',roleSupervisor:'Site Supervisor',roleDriver:'Driver',
   broadcastsLabel:'آخر الأخبار',broadcastsSee:'عرض الكل',
-  hubChatDesc:'تواصل مع الجميع، بما في ذلك زملاءك وفريق الإدارة',
+  hubChatDesc:'يمكنك التحدث مع الجميع، بما في ذلك زملائك وفريق الإدارة',
   hubSupport:'مدراء الدعم',hubSupportDesc:'تواصل مع فرق الدعم (موارد بشرية، تقنية معلومات، رواتب...)',
   envLabel:'موقع العمل',envSubtitle:'حدد المكان الذي تريد الإبلاغ عنه',
   envSite:'الموقع الميداني',envOffice:'المكتب',envAccom:'السكن',
@@ -1853,6 +1853,48 @@ const TYPE_ICONS={
 const TYPE_COLORS={env:'#4ade80',safety:'#fbbf24',fraud:'#f87171',misconduct:'#f472b6',neglect:'#a78bfa',other:'#94a3b8'};
 
 /* ══════════════════════════════════════════
+   INFO CARDS DATA (SITES, CONTACTS)
+   ══════════════════════════════════════════ */
+const COMPANY_CONTACTS = {
+  emergency: { tel: '92000222', label: 'NIT Emergency' },
+  hr: { tel: '0126131111', email: 'hr.support@nesma-it.com' },
+  it: { tel: '0126131122', email: 'it.support@nesma-it.com' },
+  ethics: { tel: '0126131133', email: 'integrity@nesma-it.com' },
+  website: 'https://www.nesma-it.com'
+};
+
+const SITES = [
+  { id: 'HQ', locKey: 0, color: '#80d1e9', svg: 'siteHq' },
+  { id: 'NEOM', locKey: 1, color: '#4ade80', svg: 'siteCity' },
+  { id: 'REDSEA', locKey: 2, color: '#06b6d4', svg: 'siteBeach' },
+  { id: 'QIDDIYA', locKey: 3, color: '#fbbf24', svg: 'siteSparkle' },
+  { id: 'AMAALA', locKey: 4, color: '#f472b6', svg: 'sitePalm' },
+  { id: 'LINE', locKey: 5, color: '#a78bfa', svg: 'siteLine' },
+  { id: 'RIYADH', locKey: 6, color: '#94a3b8', svg: 'siteLandmark' }
+];
+
+const SITE_DESCS_AR = {
+  HQ: 'المقر الرئيسي لشركة نسما للبنية التحتية والتقنية - جدة.',
+  NEOM: 'مدينة المستقبل في تبوك - مشاريع البنية التحتية الذكية.',
+  REDSEA: 'وجهة السياحة المتجددة - ربط جزر البحر الأحمر.',
+  QIDDIYA: 'عاصمة الترفيه والرياضة والفنون - مشروع القدية.',
+  AMAALA: 'مشروع آمالا - ريفييرا الشرق الأوسط.',
+  LINE: 'مشروع ذا لاين - الثورة في الحياة الحضرية.',
+  RIYADH: 'مشاريع تطوير البنية التحتية في العاصمة الرياض.'
+};
+
+const SITE_DESCS_EN = {
+  HQ: 'Headquarters of Nesma Infrastructure & Technology - Jeddah.',
+  NEOM: 'The city of the future in Tabuk - Smart infrastructure projects.',
+  REDSEA: 'Regenerative tourism destination - Connecting Red Sea islands.',
+  QIDDIYA: 'Capital of entertainment, sports, and arts - Qiddiya project.',
+  AMAALA: 'Amaala Project - The Riviera of the Middle East.',
+  LINE: 'The Line Project - Revolutionizing urban living.',
+  RIYADH: 'Infrastructure development projects in the capital, Riyadh.'
+};
+
+
+/* ══════════════════════════════════════════
    UNIFIED ICON LIBRARY — all SVG, 24x24, stroke 1.7, rounded, currentColor
    ══════════════════════════════════════════ */
 const ICO={
@@ -1906,7 +1948,7 @@ const ISSUE_HIERARCHY={
     Service:{
       'Transport':['Bus is dirty','Bus is late','Bad driver'],
       'Maintenance':['Appliances','Plumbing','Lighting'],
-      'Supplies':['General supplies request']
+      'Supplies':[]
     },
     Violation:{
       'Fraud':['Bribery','Theft','Fake invoicing'],
@@ -1983,6 +2025,7 @@ const I18N={
   'Harassment':{ar:'تحرش'},'Discrimination':{ar:'تمييز'},'Workplace conflict':{ar:'نزاع في العمل'},'Misuse of authority':{ar:'سوء استخدام الصلاحية'},'Noise complaint':{ar:'شكوى ضوضاء'},'Privacy violation':{ar:'انتهاك خصوصية'},
   'Safety ignored':{ar:'تجاهل السلامة'},'Procedure not followed':{ar:'عدم اتباع الإجراءات'},'Equipment misuse':{ar:'سوء استخدام معدات'}
 };
+
 function tr(key){const l=I18N[key];if(!l)return key;return l[lang]||l.en||key}
 
 /* ══════════════════════════════════════════
