@@ -824,25 +824,6 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   </div>
 </div>
 
-<!-- RESET PASSWORD SCREEN -->
-<div id="screen-reset-password">
-  <div class="login-box">
-    <div class="logo-wrap"><img src="assets/logo.png" alt="NIT"></div>
-    <div class="login-card">
-      <h2 class="login-title" data-t="forgotPassTitle"></h2>
-      <p class="login-subtitle" id="reset-user-hint"></p>
-      <div class="field">
-        <label class="field-label" data-t="loginPassword"></label>
-        <input type="password" class="text-input" id="new-password" data-t-placeholder="loginPasswordPh" inputmode="numeric" dir="ltr">
-      </div>
-      <button class="btn btn-primary" onclick="executePasswordReset()" style="margin-top:12px">
-        <span data-t="saveLabel">حفظ كلمة المرور</span>
-      </button>
-      <div id="reset-error" style="color:var(--danger);margin-top:12px;font-size:0.8rem;text-align:center"></div>
-    </div>
-  </div>
-</div>
-
 <!-- MAIN APP -->
 <div id="main-app">
 
@@ -1412,6 +1393,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script>
   const firebaseConfig = {
@@ -2000,14 +1982,11 @@ const I18N={
 function tr(key){const l=I18N[key];if(!l)return key;return l[lang]||l.en||key}
 
 /* ══════════════════════════════════════════
-   BROADCASTS (static company announcements — mirror Majed's broadcasts table)
+   SYNC ENGINE (FIRESTORE)
    ══════════════════════════════════════════ */
 let broadcastsDb=[];
 let unsubBroadcasts = null, unsubChats = null, unsubMsgs = null, activeRoom = null;
 
-/* ══════════════════════════════════════════
-   TACTICAL SYNC ENGINE (FIRESTORE)
-   ══════════════════════════════════════════ */
 function syncBroadcasts() {
   if (unsubBroadcasts) unsubBroadcasts();
   unsubBroadcasts = db.collection('broadcasts').onSnapshot(snap => {
@@ -2034,69 +2013,35 @@ function syncChats() {
         totalUnread += unread;
         if (c.id === 'direct_' + myID) adminUnread = unread;
       });
-      
       const dot = document.getElementById('chats-dot');
       if(dot) dot.style.display = totalUnread > 0 ? 'block' : 'none';
-      
       const sDot = document.getElementById('support-dot');
       if(sDot) sDot.style.display = adminUnread > 0 ? 'block' : 'none';
     }, err => console.error("Chat Sync Error:", err));
 }
 
-
-
 /* ══════════════════════════════════════════
-   STATE
+   STATE & PERSISTENCE
    ══════════════════════════════════════════ */
 let lang='ar',currentTab='home',selectedType='',selectedSeverity='',
     isAnonymous=true,isOngoing=false,uploadedFiles=[],deferredPrompt=null,
     currentChatId=null,selectedEnv='',selectedSubIssue='',selectedDetail='',selectedFrequency='';
 
-const LS_LANG='nit_lang',LS_REPORTS='nit_reports',LS_CHATS='nit_chats',LS_NOTIFS='nit_notifs',LS_SUPPORT='nit_support',LS_SEEN_WELCOME='nit_seen_welcome',LS_USER='nit_user',LS_PASS='nit_pass';
-
-function hashPass(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h)+s.charCodeAt(i);return (h>>>0).toString(36)}
-function loadPasses(){try{return JSON.parse(localStorage.getItem(LS_PASS)||'{}')}catch(e){return{}}}
-function savePass(empNo,pwd){const p=loadPasses();p[empNo]=hashPass(pwd);localStorage.setItem(LS_PASS,JSON.stringify(p))}
-function checkPass(empNo,pwd){const p=loadPasses();return p[empNo]&&p[empNo]===hashPass(pwd)}
-function hasPass(empNo){return !!loadPasses()[empNo]}
+const LS_LANG='nit_lang',LS_REPORTS='nit_reports',LS_CHATS='nit_chats',LS_NOTIFS='nit_notifs',LS_SUPPORT='nit_support',LS_USER='nit_user';
 
 let currentUser=null,employeesDb=null,empLookupDebounce=null;
 
 function loadUser(){try{return JSON.parse(localStorage.getItem(LS_USER)||'null')}catch(e){return null}}
 function saveUser(u){if(u)localStorage.setItem(LS_USER,JSON.stringify(u));else localStorage.removeItem(LS_USER);currentUser=u}
-
 function loadReports(){try{return JSON.parse(localStorage.getItem(LS_REPORTS)||'[]')}catch(e){return[]}}
 function saveReports(r){localStorage.setItem(LS_REPORTS,JSON.stringify(r))}
 function loadChats(){try{return JSON.parse(localStorage.getItem(LS_CHATS)||'[]')}catch(e){return[]}}
 function saveChats(c){localStorage.setItem(LS_CHATS,JSON.stringify(c))}
 function loadNotifs(){try{return JSON.parse(localStorage.getItem(LS_NOTIFS)||'[]')}catch(e){return[]}}
 function saveNotifs(n){localStorage.setItem(LS_NOTIFS,JSON.stringify(n))}
-function loadSupport(){try{return JSON.parse(localStorage.getItem(LS_SUPPORT)||'[]')}catch(e){return[]}}
-function saveSupport(s){localStorage.setItem(LS_SUPPORT,JSON.stringify(s))}
-
-/* Site data (from NIT backend) */
-const SITES=[
-  {id:'jeddah',svg:'siteHq',locKey:0,color:'#80d1e9'},
-  {id:'neom',svg:'siteCity',locKey:1,color:'#a78bfa'},
-  {id:'redsea',svg:'siteBeach',locKey:2,color:'#fbbf24'},
-  {id:'qiddiya',svg:'siteSparkle',locKey:3,color:'#f472b6'},
-  {id:'amaala',svg:'sitePalm',locKey:4,color:'#4ade80'},
-  {id:'theline',svg:'siteLine',locKey:5,color:'#06b6d4'},
-  {id:'riyadh',svg:'siteLandmark',locKey:6,color:'#f87171'}
-];
-const SITE_DESCS_AR={jeddah:'المركز التشغيلي الرئيسي — الإدارة العليا والخدمات',neom:'مشروع التطوير العملاق في شمال غرب المملكة',redsea:'وجهة سياحية فاخرة على ساحل البحر الأحمر',qiddiya:'مشروع ترفيهي وثقافي ضخم جنوب الرياض',amaala:'وجهة ساحلية فاخرة متكاملة',theline:'مدينة خطية مبتكرة ضمن مشروع نيوم',riyadh:'مشاريع العاصمة — بنية تحتية وتشغيل'};
-const SITE_DESCS_EN={jeddah:'Main operations center — HQ & services',neom:'Mega development in NW Saudi Arabia',redsea:'Luxury tourism destination on the Red Sea',qiddiya:'Massive entertainment & culture project',amaala:'Integrated luxury coastal destination',theline:'Innovative linear city within NEOM',riyadh:'Capital projects — infrastructure & ops'};
-
-const COMPANY_CONTACTS={
-  emergency:{tel:'+966-920000137',svg:'alert',color:'#f87171'},
-  hr:{tel:'+966-12-2500100',email:'hr@nesma.com.sa',svg:'users',color:'#80d1e9'},
-  it:{tel:'+966-12-2500200',email:'it@nesma.com.sa',svg:'laptop',color:'#a78bfa'},
-  ethics:{tel:'+966-12-2500900',email:'integrity@nesma.com.sa',svg:'shieldCheck',color:'#4ade80'},
-  website:'https://nesma.com.sa'
-};
 
 /* ══════════════════════════════════════════
-   LANGUAGE / INIT
+   INIT & AUTH
    ══════════════════════════════════════════ */
 function setLang(l){
   lang=l;localStorage.setItem(LS_LANG,l);
@@ -2107,12 +2052,9 @@ function setLang(l){
   applyT();
   buildTypeGrid();buildSevOpts();buildLocOpts();
   document.getElementById('screen-lang').classList.remove('show');
-  // If no user profile yet, show login screen; else go to main app
   currentUser=loadUser();
   if(!currentUser){
-    checkResetParams(); // Tactical: Check if we are here via a reset link
     document.getElementById('screen-login').classList.add('show');
-    loadEmployeesDb(); 
     return;
   }
   enterMainApp();
@@ -2122,136 +2064,85 @@ function enterMainApp(){
   document.getElementById('screen-login').classList.remove('show');
   document.getElementById('screen-lang').classList.remove('show');
   document.getElementById('main-app').classList.add('show');
-  seedNotifsIfFirstTime();
-  switchTab('home');
-  applyPersonalization();
-  
-  // Tactical Cloud Sync Initialization
-  syncBroadcasts();
-  syncChats();
-
-  updateStats();renderReports();renderChats();renderStatsDashboard();
-  updateCurrentLangLabel();
-  updateBellDot();
-  renderProfileCard();
-  updateLogoutBtn();
-}
-
-function pickLang(l){setLang(l);closeSheet('sheet-lang-picker');toast(T[l].moreLanguage+': '+T[l].name)}
-
-/* ══════════════════════════════════════════
-   LOGIN / PROFILE
-   ══════════════════════════════════════════ */
-function toBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = error => reject(error);
-  });
+  seedNotifsIfFirstTime(); switchTab('home'); applyPersonalization();
+  syncBroadcasts(); syncChats();
+  updateStats(); renderReports();renderChats();renderStatsDashboard();
+  renderProfileCard(); updateLogoutBtn();
 }
 
 async function lookupEmployee(val){
   clearTimeout(empLookupDebounce);
   empLookupDebounce=setTimeout(async()=>{
     const empNo=(val||'').trim();
-    const foundBox=document.getElementById('login-found');
-    const errBox=document.getElementById('login-error');
-    const setHint=document.getElementById('login-set-hint');
-    errBox.classList.remove('show');
-    if(!empNo){
-      document.getElementById('login-name').value = '';
-      setHint.style.display='none';
-      return;
-    }
-    
+    if(!empNo){document.getElementById('login-name').value = '';return;}
     try {
       const doc = await db.collection('employees').doc(empNo).get();
       const nameField=document.getElementById('login-name');
       if(doc.exists){
         const rec = doc.data();
-        const name=rec.name || rec['Employee Name - English'] || 'Unknown';
-        nameField.value=name;
-        setHint.style.display = rec.password ? 'none' : 'block';
+        nameField.value=rec.name || rec['Employee Name - English'] || 'Unknown';
       } else {
         nameField.value='';
-        setHint.style.display='none';
       }
-    } catch(e) {
-      console.error('Firestore lookup failed', e);
-    }
+    } catch(e) {}
   },250);
 }
 
 async function doLogin(){
-  const empNo=document.getElementById('login-emp-no').value.trim();
-  const name=document.getElementById('login-name').value.trim();
-  const pwd=document.getElementById('login-password').value.trim();
-  const errBox=document.getElementById('login-error');
-  const t=T[lang],en=T.en;
+  const empNo = document.getElementById('login-emp-no').value.trim();
+  const pwd = document.getElementById('login-password').value.trim();
+  const errBox = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+  const t = T[lang], en = T.en;
   
-  if(!name){errBox.textContent=t.loginName||en.loginName;errBox.classList.add('show');return}
+  if(!empNo) return;
+  btn.disabled = true; btn.innerHTML = 'Signing in...'; errBox.classList.remove('show');
   
-  let dept='', role='', project='', site='', email='', phone='';
-  
-  if(empNo){
-    try {
-      const doc = await db.collection('employees').doc(empNo).get();
-      if(doc.exists){
-        const rec = doc.data();
-        dept = rec.department || '';
-        role = rec.position || '';
-        project = rec.project || '';
-        site = rec.site || '';
-        email = rec.email || '';
-        phone = rec.phone || '';
-
-        // Password Check
-        if(rec.password) {
-          if(pwd !== rec.password) {
-            errBox.textContent=t.loginPasswordMismatch||en.loginPasswordMismatch;
-            errBox.classList.add('show');
-            return;
-          }
-        } else if(pwd.length >= 4) {
-          // Set initial password
-          await db.collection('employees').doc(empNo).update({ password: pwd });
-        } else if(pwd.length > 0) {
-           errBox.textContent="كلمة المرور يجب أن تكون 4 أرقام على الأقل";
-           errBox.classList.add('show');
-           return;
-        } else {
-           errBox.textContent=t.loginPassword||en.loginPassword;
-           errBox.classList.add('show');
-           return;
-        }
-      } else {
-        errBox.textContent=t.empNotFound||en.empNotFound;
-        errBox.classList.add('show');
-        return;
-      }
-    } catch(e) {
-      errBox.textContent="خطأ في الاتصال بالسحابة";
-      errBox.classList.add('show');
+  try {
+    const doc = await db.collection('employees').doc(empNo).get();
+    if(!doc.exists){
+      errBox.textContent = t.loginInvalid || en.loginInvalid;
+      errBox.classList.add('show'); btn.disabled = false; btn.innerHTML = en.loginSubmit;
       return;
     }
+    const rec = doc.data();
+    const email = rec.email;
+    const dbPwd = rec.password || '';
+    if(!email) {
+      errBox.textContent = "No email associated with this ID. Contact Admin.";
+      errBox.classList.add('show'); btn.disabled = false; btn.innerHTML = en.loginSubmit;
+      return;
+    }
+    try {
+      await firebase.auth().signInWithEmailAndPassword(email, pwd);
+      handleSuccessLogin(rec, empNo);
+    } catch(authErr) {
+      if(authErr.code === 'auth/user-not-found' && pwd === dbPwd && pwd.length >= 4) {
+        await firebase.auth().createUserWithEmailAndPassword(email, pwd);
+        handleSuccessLogin(rec, empNo);
+        return;
+      }
+      errBox.textContent = t.loginPasswordMismatch || en.loginPasswordMismatch;
+      errBox.classList.add('show');
+    }
+  } catch(e) {
+    errBox.textContent = "Error: " + e.message; errBox.classList.add('show');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> ${t.loginSubmit || en.loginSubmit}`;
   }
-  
-  saveUser({
-    empNo: empNo||null,
-    name, dept, role, project, site, email, phone,
-    guest: !empNo,
-    at: new Date().toISOString()
-  });
-  
-  enterMainApp();
-  toast((t.loginFound||en.loginFound)+' — '+displayName(name));
-  if(navigator.vibrate)navigator.vibrate([20,50,20]);
 }
 
-function goBackToLang(){
-  document.getElementById('screen-login').classList.remove('show');
-  document.getElementById('screen-lang').classList.add('show');
+function handleSuccessLogin(rec, empNo){
+  const name=rec.name || rec['Employee Name - English'] || 'User';
+  currentUser = { 
+    empNo, name, role: rec.role || 'employee', 
+    dept: rec.department || rec.dept || '', 
+    project: rec.project||'', site: rec.site||'', email: rec.email||'', phone: rec.phone||'',
+    at: new Date().toISOString()
+  };
+  saveUser(currentUser); enterMainApp();
+  if(navigator.vibrate)navigator.vibrate([20,50,20]);
 }
 
 function openForgotPass(){
@@ -2264,45 +2155,13 @@ async function submitForgotPassword(){
   const empNo = document.getElementById('forgot-emp-no').value.trim();
   const status = document.getElementById('forgot-status');
   const t = T[lang], en = T.en;
-  
   if(!empNo) return;
-  status.innerHTML = '<span style="color:var(--text-muted)">Searching...</span>';
-  
+  status.innerHTML = 'Searching...';
   try {
     const doc = await db.collection('employees').doc(empNo).get();
     if(doc.exists && doc.data().email) {
       const email = doc.data().email;
-      const name = doc.data().name || 'Employee';
-      
-      // 1. Generate Token
-      const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-      const resetLink = window.location.href.split('?')[0] + `?token=${token}&id=${empNo}`;
-
-      // 2. Save reset request to Firestore
-      await db.collection('password_resets').doc(token).set({
-        empNo,
-        created_at: new Date().toISOString(),
-        used: false
-      });
-      
-      // 3. Write to 'mail' collection
-      await db.collection('mail').add({
-        to: email,
-        message: {
-          subject: 'إعادة تعيين كلمة المرور - NIT Field',
-          text: `مرحباً ${name}، رابط إعادة التأسيس: ${resetLink}`,
-          html: `<div dir="rtl" style="font-family:sans-serif;padding:20px;border:1px solid #eee;border-radius:10px;max-width:500px;margin:auto">
-            <h2 style="color:#003466;text-align:center">إعادة تعيين كلمة المرور</h2>
-            <p>مرحباً <b>${name}</b>،</p>
-            <p>لقد تلقينا طلباً لتغيير كلمة المرور الخاصة بك. يرجى الضغط على الزر أدناه للبدء:</p>
-            <div style="text-align:center;margin:30px 0">
-              <a href="${resetLink}" style="background:#80d1e9;color:#003466;padding:14px 28px;text-decoration:none;border-radius:30px;font-weight:bold;display:inline-block">تغيير كلمة المرور الآن</a>
-            </div>
-            <p style="font-size:13px;color:#888;background:#f9f9f9;padding:10px;border-radius:5px">إذا لم تطلب هذا التغيير، يرجى تجاهل هذا الإيميل.</p>
-          </div>`
-        }
-      });
-
+      await firebase.auth().sendPasswordResetEmail(email);
       const parts = email.split('@');
       const masked = parts[0].substring(0, 1) + '***@' + parts[1];
       status.innerHTML = `<div style="color:var(--success);background:rgba(0,230,118,0.1);padding:12px;border-radius:10px;border:1px solid rgba(0,230,118,0.2)">
@@ -2314,51 +2173,7 @@ async function submitForgotPassword(){
         ${t.forgotPassNotFound || en.forgotPassNotFound}
       </div>`;
     }
-  } catch(e) {
-    status.innerHTML = 'Error communicating with cloud.';
-  }
-}
-
-let resetToken = '', resetEmpNo = '';
-async function checkResetParams(){
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get('token');
-  const id = params.get('id');
-  if(token && id) {
-    // Show reset screen instead of login
-    resetToken = token;
-    resetEmpNo = id;
-    document.getElementById('screen-login').classList.remove('show');
-    document.getElementById('screen-reset-password').classList.add('show');
-    document.getElementById('reset-user-hint').textContent = `Set new password for ID: ${id}`;
-  }
-}
-
-async function executePasswordReset(){
-  const newPwd = document.getElementById('new-password').value.trim();
-  const error = document.getElementById('reset-error');
-  if(newPwd.length < 4) {
-    error.textContent = "كلمة المرور قصيرة جداً (أقل من 4 أرقام)";
-    return;
-  }
-  
-  try {
-    const resetDoc = await db.collection('password_resets').doc(resetToken).get();
-    if(!resetDoc.exists || resetDoc.data().empNo !== resetEmpNo) {
-       error.textContent = "رابط إعادة التعيين غير صالح أو منتهي الصلاحية";
-       return;
-    }
-    
-    // Update Password
-    await db.collection('employees').doc(resetEmpNo).update({ password: newPwd });
-    // Clear Token
-    await db.collection('password_resets').doc(resetToken).delete();
-    
-    toast("تم تغيير كلمة المرور بنجاح! جاري التوجيه لتسجيل الدخول...");
-    setTimeout(() => window.location.href = window.location.href.split('?')[0], 2000);
-  } catch(e) {
-    error.textContent = "فشل في تحديث كلمة السر";
-  }
+  } catch(e) { status.innerHTML = 'Error: ' + e.message; }
 }
 
 function handleLogoutOrLogin(){
