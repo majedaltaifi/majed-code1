@@ -2213,37 +2213,7 @@ function enterMainApp(){
   renderProfileCard(); updateLogoutBtn();
 }
 
-function switchTab(tabId){
-  currentTab=tabId;
-  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
-  const targetPane = document.getElementById(tabId);
-  if(targetPane) targetPane.classList.add('active');
-  
-  document.querySelectorAll('.nav-btn').forEach(n=>n.classList.remove('active'));
-  const activeNav = document.querySelector(`.nav-btn[data-tab="${tabId}"]`);
-  if(activeNav) activeNav.classList.add('active');
-
-  const title=document.getElementById('header-title');
-  if(title){
-    if(tabId==='home') title.setAttribute('data-t','tabHome');
-    else if(tabId==='reports') title.setAttribute('data-t','tabReports');
-    else if(tabId==='chats') title.setAttribute('data-t','tabChats');
-    else if(tabId==='more') title.setAttribute('data-t','tabMore');
-    updateTranslations();
-  }
-
-  // Show manage button only on chats tab
-  const mBtn = document.getElementById('header-manage-btn');
-  if(mBtn) mBtn.style.display = (tabId==='chats') ? 'flex' : 'none';
-  if(tabId!=='chats' && chatManageMode) toggleChatManage(); 
-}
-
-function toggleChatManage(){
-  chatManageMode = !chatManageMode;
-  const btn = document.getElementById('header-manage-btn');
-  if(btn) btn.style.opacity = chatManageMode ? '0.5' : '1';
-  renderChats(); 
-}
+// switchTab and toggleChatManage defined below with full logic
 
 async function lookupEmployee(val){
   clearTimeout(empLookupDebounce);
@@ -2521,7 +2491,7 @@ function switchTab(tab){
   currentTab=tab;
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
   const pane=document.getElementById('tab-'+tab);
-  // force reflow for re-animation
+  if(!pane) return;
   pane.offsetHeight;
   pane.classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
@@ -2530,8 +2500,19 @@ function switchTab(tab){
   if(tab==='chats')renderChats();
   if(tab==='home'){updateStats();applyPersonalization();renderStatsDashboard()}
   if(tab==='more'){renderProfileCard();updateLogoutBtn()}
+  // Show/hide manage button
+  const mBtn = document.getElementById('header-manage-btn');
+  if(mBtn) mBtn.style.display = (tab==='chats') ? 'flex' : 'none';
+  if(tab!=='chats' && chatManageMode) toggleChatManage();
   window.scrollTo({top:0,behavior:'smooth'});
   if(navigator.vibrate)navigator.vibrate(8);
+}
+
+function toggleChatManage(){
+  chatManageMode = !chatManageMode;
+  const btn = document.getElementById('header-manage-btn');
+  if(btn) btn.style.opacity = chatManageMode ? '0.5' : '1';
+  renderChats();
 }
 
 function updateHeader(){
@@ -2988,11 +2969,6 @@ function doTrackByRef(){
 /* ══════════════════════════════════════════
    CHATS TAB (FIRESTORE CONNECTED)
    ══════════════════════════════════════════ */
-let chatManageMode = false;
-function toggleChatManage(){
-  chatManageMode = !chatManageMode;
-  renderChats();
-}
 
 function renderChats(){
   let sessions = loadChats().sort((a,b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
