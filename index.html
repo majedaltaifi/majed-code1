@@ -869,7 +869,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
         <span data-t="loginSubmit"></span>
       </button>
-      <div class="version-tag">Version 3.10 — UX Fix</div>
+      <div class="version-tag">Version 3.11 — Fix Connectivity</div>
     </div>
   </div>
 </div>
@@ -1446,6 +1446,27 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script>
+  const APP_VERSION='3.11';
+  let __refreshing=false;
+  function showUpdateBanner(msg){
+    const b=document.getElementById('update-banner');
+    if(b){ if(document.getElementById('update-msg')) document.getElementById('update-msg').textContent=msg; b.classList.add('show'); }
+  }
+  function hideUpdateBanner(){ const b=document.getElementById('update-banner'); if(b) b.classList.remove('show'); }
+  
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(__refreshing)return; __refreshing=true;
+      showUpdateBanner('Updating...');
+      setTimeout(()=>window.location.reload(),400);
+    });
+    navigator.serviceWorker.register('sw.js?v=3.11').then(reg=>{
+      reg.update().catch(()=>{});
+      setInterval(()=>reg.update().catch(()=>{}),60*1000);
+    }).catch(()=>{});
+  }
+
+
   const firebaseConfig = {
     apiKey: "AIzaSyCWW5fJIYSw0p_LGuDJZA-4bOfQ92tdUPM",
     authDomain: "majed-code1.firebaseapp.com",
@@ -2930,9 +2951,6 @@ function doTrackByRef(){
 }
 
 /* ══════════════════════════════════════════
-   CHATS TAB
-   ══════════════════════════════════════════ */
-/* ══════════════════════════════════════════
    CHATS TAB (FIRESTORE CONNECTED)
    ══════════════════════════════════════════ */
 function renderChats(){
@@ -3188,12 +3206,20 @@ async function sendChat(){
   if(!txt||!currentChatId)return;
   
   inp.value='';
-  document.getElementById('chat-send-btn').disabled=true;
+  inp.disabled=true;
   
   const now = new Date().toISOString();
   const sessionRef = db.collection('chat_sessions').doc(currentChatId);
   
   try {
+    const parts = currentChatId.split('_').filter(p=>p!=='direct');
+    if(currentChatId.startsWith('direct_') && !parts.includes('admin')) parts.push('admin');
+
+    await sessionRef.set({
+       participants: parts,
+       updated_at: now
+    }, {merge:true});
+
     await sessionRef.collection('messages').add({
       sender_id: String(currentUser.empNo),
       text: txt,
@@ -3212,7 +3238,12 @@ async function sendChat(){
       });
     }
     await sessionRef.update(updates);
-  } catch(e) { console.error("Send error", e); toast("Offline"); }
+    inp.disabled=false;inp.focus();
+  } catch(e) { 
+    console.error("Send error", e); 
+    toast(e.message.includes('permission') ? "Permission Error (Contact Admin)" : "Connection Error"); 
+    inp.disabled=false;inp.focus();
+  }
 }
 
 function sendQuick(btn,txt){
@@ -3643,41 +3674,9 @@ function toast(msg){
 }
 
 /* ══════════════════════════════════════════
-   AUTO-UPDATE: detect new SW version and reload
+   AUTO-UPDATE (HANDLED AT TOP)
    ══════════════════════════════════════════ */
-const APP_VERSION='3.10';
-let __refreshing=false;
-function showUpdateBanner(msg){
-  const b=document.getElementById('update-banner');
-  if(msg)document.getElementById('update-msg').textContent=msg;
-  b.classList.add('show');
-}
-function hideUpdateBanner(){document.getElementById('update-banner').classList.remove('show')}
 
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{
-    if(__refreshing)return;__refreshing=true;
-    showUpdateBanner('جاري التحديث...');
-    setTimeout(()=>window.location.reload(),400);
-  });
-  navigator.serviceWorker.register('sw.js?v=3.10').then(reg=>{
-    // check for updates on load
-    reg.update().catch(()=>{});
-    // re-check periodically + on visibility
-    setInterval(()=>reg.update().catch(()=>{}),60*1000);
-    document.addEventListener('visibilitychange',()=>{if(!document.hidden)reg.update().catch(()=>{})});
-    reg.addEventListener('updatefound',()=>{
-      const nw=reg.installing;if(!nw)return;
-      nw.addEventListener('statechange',()=>{
-        if(nw.state==='installed'&&navigator.serviceWorker.controller){
-          // new version waiting — tell it to activate immediately
-          showUpdateBanner('تحديث جديد...');
-          nw.postMessage({type:'SKIP_WAITING'});
-        }
-      });
-    });
-  }).catch(()=>{});
-}
 
 /* ══════════════════════════════════════════
    STARTUP
