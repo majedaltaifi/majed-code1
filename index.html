@@ -3208,7 +3208,8 @@ function selSubIssue(s,el){
 }
 function buildDetailList(){
   const list=document.getElementById('detail-list');if(!list)return;
-  const details=((ISSUE_HIERARCHY[selectedEnv]||{})[selectedType]||{})[selectedSubIssue]||[];
+  const groups=(ISSUE_HIERARCHY[selectedEnv]||{})[selectedType]||{};
+  const details=groups[selectedSubIssue]||[];
   if(!details.length){list.innerHTML='';return}
   list.innerHTML=details.map(d=>`<button class="chip ${selectedDetail===d?'selected':''}" onclick="selDetail('${d.replace(/'/g,"\\'")}',this)">${tr(d)}</button>`).join('');
 }
