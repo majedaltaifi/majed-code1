@@ -812,6 +812,9 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
         <label class="field-label" data-t="loginPassword"></label>
         <input type="password" class="text-input" id="login-password" data-t-placeholder="loginPasswordPh" autocomplete="current-password" inputmode="numeric" dir="ltr">
         <div id="login-set-hint" style="font-size:.72rem;color:var(--turquoise);margin-top:5px;display:none" data-t="loginSetPassword"></div>
+        <div style="text-align:end;margin-top:6px">
+          <button class="btn-ghost" onclick="openForgotPass()" style="font-size:.75rem;padding:4px" data-t="forgotPass"></button>
+        </div>
       </div>
       <button class="btn btn-primary" onclick="doLogin()" id="login-btn" style="margin-top:8px">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
@@ -1356,6 +1359,29 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <div class="sheet-body" id="sites-body"></div>
 </div>
 
+<!-- FORGOT PASSWORD SHEET -->
+<div class="sheet" id="sheet-forgot-pass">
+  <div class="sheet-header">
+    <button class="sheet-back" onclick="closeSheet('sheet-forgot-pass')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="sheet-title-wrap">
+      <div class="sheet-title" data-t="forgotPassTitle"></div>
+      <div class="sheet-subtitle" data-t="forgotPassDesc"></div>
+    </div>
+  </div>
+  <div class="sheet-body">
+    <div class="field">
+      <label class="field-label" data-t="loginEmpNo"></label>
+      <input type="text" class="text-input" id="forgot-emp-no" inputmode="numeric" dir="ltr" placeholder="e.g., 1452">
+    </div>
+    <button class="btn btn-primary" onclick="submitForgotPassword()" style="margin-top:12px">
+       <span data-t="loginSubmit"></span>
+    </button>
+    <div id="forgot-status" style="margin-top:16px;font-size:0.85rem;text-align:center;line-height:1.5"></div>
+  </div>
+</div>
+
 <div class="confetti-wrap" id="confetti"></div>
 <div class="toast" id="toast"></div>
 <script src="assets/qrcode.min.js"></script>
@@ -1424,6 +1450,9 @@ ar:{dir:'rtl',ff:'var(--font-ar)',name:'العربية',
   loginEmpNo:'الرقم الوظيفي',loginEmpNoPh:'مثلاً: 1452',loginName:'الاسم',loginNamePh:'اسمك الكامل',
   loginPassword:'كلمة مرور (اختيارية)',loginPasswordPh:'4 أرقام على الأقل',loginPasswordMismatch:'كلمة المرور غير صحيحة',loginSetPassword:'قم بإنشاء كلمة مرور سرية',
   loginSubmit:'دخول',loginGuest:'متابعة كضيف',loginInvalid:'رقم موظف غير صحيح',
+  forgotPass:'نسيت كلمة المرور؟',forgotPassTitle:'استعادة كلمة المرور',forgotPassDesc:'أدخل رقمك الوظيفي لإرسال رابط إعادة التعيين لبريدك المسجل',
+  forgotPassSent:'تم إرسال رابط إعادة التعيين إلى بريدك المسجل',
+  forgotPassNotFound:'الرقم الوظيفي غير موجود أو لا يوجد إيميل مسجل',
   loginFound:'أهلاً',loginSkip:'تخطي',biometricPrompt:'استخدام البصمة',
   welcomeBack:'أهلاً بك',welcomeGuest:'مرحباً بك',
   moreProfile:'الملف الشخصي',moreLogout:'تسجيل الخروج',moreLoginNow:'تسجيل الدخول الآن',
@@ -1497,6 +1526,9 @@ en:{dir:'ltr',ff:'var(--font-en)',name:'English',
   loginEmpNo:'Employee Number',loginEmpNoPh:'e.g., 1452',loginName:'Name',loginNamePh:'Your full name',
   loginPassword:'Password (optional)',loginPasswordPh:'min 4 characters',loginPasswordMismatch:'Incorrect password',loginSetPassword:'Create a secret password',
   loginSubmit:'Login',loginGuest:'Continue as Guest',loginInvalid:'Invalid employee number',
+  forgotPass:'Forgot Password?',forgotPassTitle:'Reset Password',forgotPassDesc:'Enter your employee ID to receive a reset link on your registered email',
+  forgotPassSent:'A reset link has been sent to your registered email',
+  forgotPassNotFound:'Employee ID not found or no email associated',
   loginFound:'Welcome',loginSkip:'Skip',biometricPrompt:'Use Biometric',
   welcomeBack:'Welcome back',welcomeGuest:'Welcome',
   moreProfile:'Profile',moreLogout:'Sign Out',moreLoginNow:'Sign In Now',
@@ -2200,6 +2232,43 @@ async function doLogin(){
 function goBackToLang(){
   document.getElementById('screen-login').classList.remove('show');
   document.getElementById('screen-lang').classList.add('show');
+}
+
+function openForgotPass(){
+  document.getElementById('forgot-emp-no').value = '';
+  document.getElementById('forgot-status').innerHTML = '';
+  openSheet('sheet-forgot-pass');
+}
+
+async function submitForgotPassword(){
+  const empNo = document.getElementById('forgot-emp-no').value.trim();
+  const status = document.getElementById('forgot-status');
+  const t = T[lang], en = T.en;
+  
+  if(!empNo) return;
+  
+  status.innerHTML = '<span style="color:var(--text-muted)">Searching...</span>';
+  
+  try {
+    const doc = await db.collection('employees').doc(empNo).get();
+    if(doc.exists && doc.data().email) {
+      const email = doc.data().email;
+      // Mask email for privacy: m***@nesma.com
+      const parts = email.split('@');
+      const masked = parts[0].substring(0, 1) + '***@' + parts[1];
+      
+      status.innerHTML = `<div style="color:var(--success);background:rgba(0,230,118,0.1);padding:12px;border-radius:10px;border:1px solid rgba(0,230,118,0.2)">
+        ${t.forgotPassSent || en.forgotPassSent}:<br>
+        <strong style="margin-top:5px;display:block">${masked}</strong>
+      </div>`;
+    } else {
+      status.innerHTML = `<div style="color:var(--danger);background:rgba(255,82,82,0.1);padding:12px;border-radius:10px;border:1px solid rgba(255,82,82,0.2)">
+        ${t.forgotPassNotFound || en.forgotPassNotFound}
+      </div>`;
+    }
+  } catch(e) {
+    status.innerHTML = 'Error communicating with cloud.';
+  }
 }
 
 function handleLogoutOrLogin(){
