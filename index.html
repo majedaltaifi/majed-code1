@@ -916,7 +916,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       <div class="chat-hub-content">
         <!-- Support Quick Action -->
         <div class="hub-support-wrap" style="position:relative">
-          <button class="hub-support-btn" onclick="console.log('Support clicked'); openChatWithUser('admin', T[lang].integrityTeam || 'Integrity Team')">
+          <button class="hub-support-btn" onclick="openSupport()">
             <div class="hs-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
             <div class="hs-label" data-t="integrityTeam">SUPPORT</div>
           </button>
@@ -1412,7 +1412,7 @@ ar:{dir:'rtl',ff:'var(--font-ar)',name:'العربية',
   confirmTitle:'تم إرسال البلاغ',confirmText:'شكراً لمساهمتك في الحفاظ على بيئة عمل آمنة ونزيهة',
   trackTitle:'متابعة بلاغ',trackDesc:'أدخل الرقم المرجعي',trackBtn:'بحث',trackRef:'الرقم المرجعي',
   trackNotFound:'لم يتم العثور على بلاغ بهذا الرقم',
-  chatName:'فريق النزاهة', integrityTeam:'فريق النزاهة - الإدارة', chatStatus:'متصل الآن',chatPlaceholder:'اكتب رسالتك...',
+  chatName:'فريق الإدارة', integrityTeam:'شات الإدارة (فريق النزاهة)', chatStatus:'متصل الآن',chatPlaceholder:'اكتب رسالتك...',
   statusPending:'قيد الانتظار',statusReview:'قيد المراجعة',statusDone:'تم الإغلاق',
   aboutText:'تطبيق NIT للإبلاغ السري — هويتك محمية وبلاغك مشفر بالكامل.',
   privacyText:'لا يتم جمع أي بيانات شخصية. كل البلاغات مجهولة المصدر ومحفوظة محلياً على جهازك فقط.',
@@ -1484,7 +1484,7 @@ en:{dir:'ltr',ff:'var(--font-en)',name:'English',
   confirmTitle:'Report Submitted',confirmText:'Thank you for contributing to a safe and ethical work environment.',
   trackTitle:'Track Report',trackDesc:'Enter the reference number',trackBtn:'Search',trackRef:'Reference Number',
   trackNotFound:'No report found with that reference',
-  chatName:'Integrity Team', integrityTeam:'Integrity Team - Management', chatStatus:'Online now',chatPlaceholder:'Type your message...',
+  chatName:'Management Team', integrityTeam:'Management Support', chatStatus:'Online now',chatPlaceholder:'Type your message...',
   statusPending:'Pending',statusReview:'Under Review',statusDone:'Closed',
   aboutText:'NIT Confidential Reporting — your identity is protected and your report is fully encrypted.',
   privacyText:'No personal data is collected. All reports are anonymous and stored locally on your device only.',
@@ -2879,7 +2879,8 @@ function startNewChat() {
 }
 
 function openSupport() {
-  openChatWithUser('admin', T[lang].integrityTeam || 'Integrity Team');
+  console.log("Support activation requested");
+  openChatWithUser('admin', T[lang].integrityTeam || 'Management Support');
 }
 
 async function filterHub() {
