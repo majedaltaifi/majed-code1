@@ -824,6 +824,25 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   </div>
 </div>
 
+<!-- RESET PASSWORD SCREEN -->
+<div id="screen-reset-password">
+  <div class="login-box">
+    <div class="logo-wrap"><img src="assets/logo.png" alt="NIT"></div>
+    <div class="login-card">
+      <h2 class="login-title" data-t="forgotPassTitle"></h2>
+      <p class="login-subtitle" id="reset-user-hint"></p>
+      <div class="field">
+        <label class="field-label" data-t="loginPassword"></label>
+        <input type="password" class="text-input" id="new-password" data-t-placeholder="loginPasswordPh" inputmode="numeric" dir="ltr">
+      </div>
+      <button class="btn btn-primary" onclick="executePasswordReset()" style="margin-top:12px">
+        <span data-t="saveLabel">حفظ كلمة المرور</span>
+      </button>
+      <div id="reset-error" style="color:var(--danger);margin-top:12px;font-size:0.8rem;text-align:center"></div>
+    </div>
+  </div>
+</div>
+
 <!-- MAIN APP -->
 <div id="main-app">
 
@@ -2091,8 +2110,9 @@ function setLang(l){
   // If no user profile yet, show login screen; else go to main app
   currentUser=loadUser();
   if(!currentUser){
+    checkResetParams(); // Tactical: Check if we are here via a reset link
     document.getElementById('screen-login').classList.add('show');
-    loadEmployeesDb(); // warm cache in background
+    loadEmployeesDb(); 
     return;
   }
   enterMainApp();
@@ -2246,20 +2266,46 @@ async function submitForgotPassword(){
   const t = T[lang], en = T.en;
   
   if(!empNo) return;
-  
   status.innerHTML = '<span style="color:var(--text-muted)">Searching...</span>';
   
   try {
     const doc = await db.collection('employees').doc(empNo).get();
     if(doc.exists && doc.data().email) {
       const email = doc.data().email;
-      // Mask email for privacy: m***@nesma.com
-      const parts = email.split('@');
-      const masked = parts[0].substring(0, 1) + '***@' + parts[1];
+      const name = doc.data().name || 'Employee';
       
+      // 1. Generate Token
+      const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      const resetLink = window.location.href.split('?')[0] + `?token=${token}&id=${empNo}`;
+
+      // 2. Save reset request to Firestore
+      await db.collection('password_resets').doc(token).set({
+        empNo,
+        created_at: new Date().toISOString(),
+        used: false
+      });
+      
+      // 3. Write to 'mail' collection
+      await db.collection('mail').add({
+        to: email,
+        message: {
+          subject: 'إعادة تعيين كلمة المرور - NIT Field',
+          text: `مرحباً ${name}، رابط إعادة التأسيس: ${resetLink}`,
+          html: `<div dir="rtl" style="font-family:sans-serif;padding:20px;border:1px solid #eee;border-radius:10px;max-width:500px;margin:auto">
+            <h2 style="color:#003466;text-align:center">إعادة تعيين كلمة المرور</h2>
+            <p>مرحباً <b>${name}</b>،</p>
+            <p>لقد تلقينا طلباً لتغيير كلمة المرور الخاصة بك. يرجى الضغط على الزر أدناه للبدء:</p>
+            <div style="text-align:center;margin:30px 0">
+              <a href="${resetLink}" style="background:#80d1e9;color:#003466;padding:14px 28px;text-decoration:none;border-radius:30px;font-weight:bold;display:inline-block">تغيير كلمة المرور الآن</a>
+            </div>
+            <p style="font-size:13px;color:#888;background:#f9f9f9;padding:10px;border-radius:5px">إذا لم تطلب هذا التغيير، يرجى تجاهل هذا الإيميل.</p>
+          </div>`
+        }
+      });
+
       status.innerHTML = `<div style="color:var(--success);background:rgba(0,230,118,0.1);padding:12px;border-radius:10px;border:1px solid rgba(0,230,118,0.2)">
         ${t.forgotPassSent || en.forgotPassSent}:<br>
-        <strong style="margin-top:5px;display:block">${masked}</strong>
+        <strong style="margin-top:5px;display:block">${email}</strong>
       </div>`;
     } else {
       status.innerHTML = `<div style="color:var(--danger);background:rgba(255,82,82,0.1);padding:12px;border-radius:10px;border:1px solid rgba(255,82,82,0.2)">
@@ -2268,6 +2314,48 @@ async function submitForgotPassword(){
     }
   } catch(e) {
     status.innerHTML = 'Error communicating with cloud.';
+  }
+}
+
+let resetToken = '', resetEmpNo = '';
+async function checkResetParams(){
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+  const id = params.get('id');
+  if(token && id) {
+    // Show reset screen instead of login
+    resetToken = token;
+    resetEmpNo = id;
+    document.getElementById('screen-login').classList.remove('show');
+    document.getElementById('screen-reset-password').classList.add('show');
+    document.getElementById('reset-user-hint').textContent = `Set new password for ID: ${id}`;
+  }
+}
+
+async function executePasswordReset(){
+  const newPwd = document.getElementById('new-password').value.trim();
+  const error = document.getElementById('reset-error');
+  if(newPwd.length < 4) {
+    error.textContent = "كلمة المرور قصيرة جداً (أقل من 4 أرقام)";
+    return;
+  }
+  
+  try {
+    const resetDoc = await db.collection('password_resets').doc(resetToken).get();
+    if(!resetDoc.exists || resetDoc.data().empNo !== resetEmpNo) {
+       error.textContent = "رابط إعادة التعيين غير صالح أو منتهي الصلاحية";
+       return;
+    }
+    
+    // Update Password
+    await db.collection('employees').doc(resetEmpNo).update({ password: newPwd });
+    // Clear Token
+    await db.collection('password_resets').doc(resetToken).delete();
+    
+    toast("تم تغيير كلمة المرور بنجاح! جاري التوجيه لتسجيل الدخول...");
+    setTimeout(() => window.location.href = window.location.href.split('?')[0], 2000);
+  } catch(e) {
+    error.textContent = "فشل في تحديث كلمة السر";
   }
 }
 
