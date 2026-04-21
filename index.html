@@ -869,7 +869,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
         <span data-t="loginSubmit"></span>
       </button>
-      <div class="version-tag">Version 3.8 — Chat Privacy</div>
+      <div class="version-tag">Version 3.9 — Chat Persistence</div>
     </div>
   </div>
 </div>
@@ -2994,10 +2994,21 @@ function startNewChat() {
   }, 300);
 }
 
-function openSupport() {
+async function openSupport() {
   if(!currentUser || currentUser.guest) return;
   const myID = String(currentUser.empNo);
-  openChat('direct_' + myID, 'Support');
+  const roomId = 'direct_' + myID;
+  // Ensure session exists first
+  try {
+    await db.collection('chat_sessions').doc(roomId).set({
+      participants: [myID, 'admin'],
+      updated_at: new Date().toISOString(),
+      names: { [myID]: (currentUser.name || 'User'), 'admin': 'Support' },
+      other_name: 'Support',
+      target_id: 'admin'
+    }, {merge: true});
+  } catch(e) { console.error("Support Init Error", e); }
+  openChat(roomId, 'Support');
 }
 
 async function filterHub() {
@@ -3113,10 +3124,8 @@ async function openChatWithUser(targetEmpNo, targetName) {
 async function openChat(id, optName){
   if(!currentUser || currentUser.guest) return;
   const myID = String(currentUser.empNo);
-  
-  // Strict Privacy Check: Only participants can open the room
   const parts = id.split('_');
-  if(!parts.includes(myID)){
+  if(!parts.includes(myID) && myID !== 'admin'){ 
     console.error("Access Denied to Chat:", id);
     return toast("Access Denied");
   }
@@ -3124,24 +3133,15 @@ async function openChat(id, optName){
   currentChatId = id;
   activeRoom = id;
   const t = T[lang];
-  
-  // Ensure we don't show the user's own name in the header if they are in their own session
   let headerName = optName || t.chatName;
-  if (currentUser && optName === currentUser.name) {
-    // If somehow the name passed is my name, try to find the other party
-    headerName = t.integrityTeam || t.chatName;
-  }
-  
   document.querySelector('#sheet-chat .sheet-title').textContent = headerName;
   
-  // Clear unread count for me
-  if(currentUser && !currentUser.guest){
-    const myID = String(currentUser.empNo);
+  if(!currentUser.guest){
     const up = {}; up[`unread_counts.${myID}`] = 0;
-    db.collection('chat_sessions').doc(id).update(up).catch(e=>console.warn("Unread reset skip", e));
+    db.collection('chat_sessions').doc(id).update(up).catch(()=>{});
   }
 
-  renderChatMessages({messages:[]}); // Temporary clear
+  renderChatMessages({messages:[]});
   openSheet('sheet-chat');
   
   if(unsubMsgs) unsubMsgs();
@@ -3154,6 +3154,9 @@ async function openChat(id, optName){
         at: d.data().created_at
       }));
       renderChatMessages({messages: msgs});
+      // Scroll to bottom
+      const m = document.getElementById('chat-messages');
+      if(m) m.scrollTop = m.scrollHeight;
     });
 }
 
@@ -3634,7 +3637,7 @@ function toast(msg){
 /* ══════════════════════════════════════════
    AUTO-UPDATE: detect new SW version and reload
    ══════════════════════════════════════════ */
-const APP_VERSION='3.8';
+const APP_VERSION='3.9';
 let __refreshing=false;
 function showUpdateBanner(msg){
   const b=document.getElementById('update-banner');
@@ -3649,7 +3652,7 @@ if('serviceWorker' in navigator){
     showUpdateBanner('جاري التحديث...');
     setTimeout(()=>window.location.reload(),400);
   });
-  navigator.serviceWorker.register('sw.js?v=3.8').then(reg=>{
+  navigator.serviceWorker.register('sw.js?v=3.9').then(reg=>{
     // check for updates on load
     reg.update().catch(()=>{});
     // re-check periodically + on visibility
