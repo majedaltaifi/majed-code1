@@ -1446,7 +1446,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script>
-  const APP_VERSION='3.24';
+  const APP_VERSION='3.25';
   let __refreshing=false;
   
   function showUpdateBanner(msg){
@@ -1461,7 +1461,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.24').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.25').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
@@ -3052,30 +3052,35 @@ async function filterHub() {
 
   try {
     const vPrefix = v.charAt(0).toUpperCase() + v.slice(1);
-    const queries = [];
     
-    // Name search
-    queries.push(db.collection('employees').orderBy('nameEn').startAt(vPrefix).endAt(vPrefix + '\uf8ff').limit(10).get());
-    queries.push(db.collection('employees').orderBy('name_en').startAt(vPrefix).endAt(vPrefix + '\uf8ff').limit(10).get());
-    
-    // ID search (String & Number variants)
-    queries.push(db.collection('employees').where('empNo', '==', v).get());
-    queries.push(db.collection('employees').where('emp_no', '==', v).get());
-    if(!isNaN(v)) {
-      queries.push(db.collection('employees').where('empNo', '==', Number(v)).get());
-      queries.push(db.collection('employees').where('emp_no', '==', Number(v)).get());
-    }
+    // Fail-safe query wrapper: one failing query shouldn't kill the search
+    const safeGet = (q) => q.get().catch(err => {
+      console.warn("Sub-query failed:", err);
+      return { docs: [] };
+    });
+
+    const queries = [
+      // Direct ID lookup (most important)
+      safeGet(db.collection('employees').where('emp_no', '==', v)),
+      safeGet(db.collection('employees').where('emp_no', '==', Number(v) || -1)),
+      safeGet(db.collection('employees').where('empNo', '==', v)),
+      safeGet(db.collection('employees').where('empNo', '==', Number(v) || -1)),
+      
+      // Name lookup
+      safeGet(db.collection('employees').orderBy('name_en').startAt(vPrefix).endAt(vPrefix + '\uf8ff').limit(10)),
+      safeGet(db.collection('employees').orderBy('nameEn').startAt(vPrefix).endAt(vPrefix + '\uf8ff').limit(10))
+    ];
 
     const results = await Promise.all(queries);
     
-    // If a newer search has started, ignore this one
     if(mySearchId !== lastSearchId) return;
 
     let matchesMap = new Map();
     results.forEach(snap => {
+      if(!snap || !snap.docs) return;
       snap.docs.forEach(d => {
         const data = d.data();
-        const id = data.empNo || data.emp_no || d.id;
+        const id = data.emp_no || data.empNo || d.id;
         matchesMap.set(String(id), data);
       });
     });
@@ -3084,12 +3089,12 @@ async function filterHub() {
     
     if(!empList) return;
     if(!matches.length) {
-      empList.innerHTML = '<div style="padding:40px;text-align:center;font-size:0.85rem;color:var(--text-muted)">NO OPERATIVES FOUND<br><small>Double check the ID or Name.</small></div>';
+      empList.innerHTML = '<div style="padding:40px;text-align:center;font-size:0.85rem;color:var(--text-muted)">NO OPERATIVES FOUND<br><small>Double check the ID (e.g. 1010).</small></div>';
     } else {
       empList.innerHTML = matches.map(e => {
-        const eid = e.empNo || e.emp_no || '---';
-        const name = e.nameEn || e.name_en || e.name || 'Employee ' + eid;
-        const dept = e.deptEn || e.department || e.dept || '';
+        const eid = e.emp_no || e.empNo || '---';
+        const name = e.name_en || e.nameEn || e.name || 'Employee ' + eid;
+        const dept = e.department || e.deptEn || e.dept || '';
         return `<button class="list-item" onclick="openChatWithUser('${eid}', '${name.replace(/'/g, "\\'")}')">
           <div class="list-avatar" style="background:rgba(59,130,246,0.1);color:var(--primary)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
           <div class="list-body">
