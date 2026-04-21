@@ -1460,7 +1460,7 @@ ar:{dir:'rtl',ff:'var(--font-ar)',name:'العربية',
   moreProfile:'الملف الشخصي',moreLogout:'تسجيل الخروج',moreLoginNow:'تسجيل الدخول الآن',
   logoutConfirm:'هل تريد تسجيل الخروج؟',guestMode:'وضع الضيف',
   empNotFound:'الرقم غير مسجل. جرّب رقم آخر أو ادخل كضيف',roleField:'field',roleSupervisor:'Site Supervisor',roleDriver:'Driver',
-  broadcastsTitle:'آخر الأخبار',broadcastsSee:'عرض الكل',
+  broadcastsLabel:'آخر الأخبار',broadcastsSee:'عرض الكل',
   envLabel:'موقع العمل',envSubtitle:'حدد المكان الذي تريد الإبلاغ عنه',
   envSite:'الموقع الميداني',envOffice:'المكتب',envAccom:'السكن',
   catSafety:'سلامة',catService:'خدمة',catViolation:'مخالفة',
@@ -1536,7 +1536,7 @@ en:{dir:'ltr',ff:'var(--font-en)',name:'English',
   moreProfile:'Profile',moreLogout:'Sign Out',moreLoginNow:'Sign In Now',
   logoutConfirm:'Sign out?',guestMode:'Guest Mode',
   empNotFound:'Number not found. Try another or continue as guest',roleField:'Field',roleSupervisor:'Site Supervisor',roleDriver:'Driver',
-  broadcastsTitle:'Latest News',broadcastsSee:'See all',
+  broadcastsLabel:'Latest News',broadcastsSee:'See all',
   envLabel:'Work Environment',envSubtitle:'Select where the issue occurred',
   envSite:'Site',envOffice:'Office',envAccom:'Accommodation',
   catSafety:'Safety',catService:'Service',catViolation:'Violation',
@@ -2443,14 +2443,15 @@ function renderBroadcasts(){
   const wrap=document.getElementById('broadcasts-wrap');
   const row=document.getElementById('broadcasts-row');
   if(!wrap||!row)return;
-  if(!broadcastsDb.length){wrap.style.display='none';return}
+  if(!broadcastsDb || !broadcastsDb.length){wrap.style.display='none';return}
   wrap.style.display='block';
   row.innerHTML=broadcastsDb.map(b=>{
-    const title=(lang==='ar'?b.titleAr:b.titleEn)||b.titleEn;
-    const content=(lang==='ar'?b.contentAr:b.contentEn)||b.contentEn;
-    const label=(lang==='ar'?(b.labelAr||title):(b.labelEn||b.titleEn));
+    const title = (lang==='ar' ? (b.titleAr || b.title) : (b.titleEn || b.title)) || b.title || 'Broadcast';
+    const label = (lang==='ar' ? (b.labelAr || title) : (b.labelEn || b.titleEn || title)) || 'Nesma IT';
+    const icon = ICO[b.svg] || ICO.megaphone || ICO.broadcast;
+    const color = b.iconColor || 'white';
     return `<div class="bc-item" onclick="openBroadcast('${b.id}')">
-      <div class="bc-item-icon" style="color:${b.iconColor}">${ICO[b.svg]||ICO.broadcast}</div>
+      <div class="bc-item-icon" style="color:${color}">${icon}</div>
       <div class="bc-item-body">
         <div class="bc-item-label">${label}</div>
         <div class="bc-item-title">${title}</div>
