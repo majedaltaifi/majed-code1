@@ -1446,7 +1446,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script>
-  const APP_VERSION='3.26';
+  const APP_VERSION='3.27';
   let __refreshing=false;
   
   function showUpdateBanner(msg){
@@ -1461,7 +1461,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.26').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.27').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
@@ -2116,20 +2116,35 @@ function syncBroadcasts() {
 function syncChats() {
   if (!currentUser || currentUser.guest) return;
   if (unsubChats) unsubChats();
-  const myID = String(currentUser.empNo);
+  const myIDStr = String(currentUser.empNo);
+  const myIDNum = Number(currentUser.empNo);
+  
+  // Listen to both string and number variants if possible, or just merge results
   unsubChats = db.collection('chat_sessions')
-    .where('participants', 'array-contains', myID)
+    .where('participants', 'array-contains', myIDStr)
     .onSnapshot(snap => {
-      const chats = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
-      saveChats(chats);
-      renderChats();
+      let chats = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+      
+      // Also check for numeric if different (just in case)
+      if(!isNaN(myIDNum) && myIDNum != myIDStr) {
+         db.collection('chat_sessions').where('participants', 'array-contains', myIDNum).get().then(s2 => {
+            s2.docs.forEach(d => {
+               if(!chats.find(c => c.id === d.id)) chats.push({id: d.id, ...d.data()});
+            });
+            saveChats(chats);
+            renderChats();
+         });
+      } else {
+        saveChats(chats);
+        renderChats();
+      }
       
       let totalUnread = 0;
       let adminUnread = 0;
       chats.forEach(c => {
-        const unread = (c.unread_counts && c.unread_counts[myID]) || 0;
+        const unread = (c.unread_counts && (c.unread_counts[myIDStr] || c.unread_counts[myIDNum])) || 0;
         totalUnread += unread;
-        if (c.id === 'direct_' + myID) adminUnread = unread;
+        if (c.id === 'direct_' + myIDStr || c.id === 'direct_' + myIDNum) adminUnread = unread;
       });
       const dot = document.getElementById('chats-dot');
       if(dot) dot.style.display = totalUnread > 0 ? 'block' : 'none';
