@@ -868,7 +868,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
         <span data-t="loginSubmit"></span>
       </button>
-      <div class="version-tag">Version 3.14 — Manage History</div>
+      <div class="version-tag">Version 3.15 — Universal Management</div>
     </div>
   </div>
 </div>
@@ -883,10 +883,15 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       <div class="h-t" id="header-title">—</div>
       <div class="h-s" id="header-subtitle">—</div>
     </div>
-    <button class="h-btn bell-btn" onclick="openNotifications()" id="header-bell-btn" aria-label="Notifications">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-      <span class="dot"></span>
-    </button>
+    <div class="header-actions">
+      <button class="h-btn" id="manage-chats-btn" onclick="toggleChatManage()" style="display:none;color:var(--danger)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button>
+      <button class="h-btn bell-btn" onclick="openNotifications()" id="header-bell-btn" aria-label="Notifications">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="dot"></span>
+      </button>
+    </div>
   </header>
 
   <!-- TAB CONTENT -->
@@ -1042,7 +1047,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       <div class="about-block">
         <img class="logo-sm" src="assets/logo.png" alt="NIT">
         <div>Nesma Reports</div>
-        <div>v2.0</div>
+        <div>v3.15</div>
       </div>
     </div>
 
@@ -1445,7 +1450,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script>
-  const APP_VERSION='3.11';
+  const APP_VERSION='3.15';
   let __refreshing=false;
   function showUpdateBanner(msg){
     const b=document.getElementById('update-banner');
@@ -1459,7 +1464,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.14').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.15').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
@@ -1757,7 +1762,7 @@ tl:{dir:'ltr',ff:'var(--font-en)',name:'Filipino',
   types:[{id:'env',icon:'🏭',label:'Kapaligiran'},{id:'safety',icon:'⚠️',label:'Panganib'},{id:'fraud',icon:'💰',label:'Pandaraya'},{id:'misconduct',icon:'🚨',label:'Maling Pag-uugali'},{id:'neglect',icon:'🔧',label:'Kapabayaan'},{id:'other',icon:'📋',label:'Iba Pa'}],
   severity:[{id:'low',label:'Mababa'},{id:'medium',label:'Katamtaman'},{id:'high',label:'Mataas'},{id:'critical',label:'Kritikal'}],
   locations:['HQ — Jeddah','NEOM','Red Sea','Qiddiya','Amaala','The Line','Riyadh','Iba'],
-  rl:{type:'Uri',desc:'Paglalarawan',location:'Lokasyon',date:'Petsa',time:'Oras',ongoing:'Patuloy',severity:'Kalubhaan',contact:'Kontak',files:'Attachment',anonymous:'Anonymous',yes:'Oo',no:'Hindi'},
+  rl:{type:'Uri',desc:'Paglalarawan',location:'Lokasyon',date:'Petsa',time:'Oras',ongoing:'Patuloy',severity:'Kalubhaan',kontak:'Kontak',files:'Attachment',anonymous:'Anonymous',yes:'Oo',no:'Hindi'},
   nextSteps:['48 oras','Anonymous','Follow up','Itabi'],
   trackSteps:[{t:'Natanggap',d:'Natanggap'},{t:'Sinusuri',d:'Sinusuri'},{t:'Aksyon',d:'Aksyon'},{t:'Sarado',d:'Sarado'}],
   quickReplies:['Mag-ulat','Safe?','I-track?','Salamat'],
@@ -1864,7 +1869,7 @@ id:{dir:'ltr',ff:'var(--font-en)',name:'Bahasa',
   noReports:'Belum ada laporan',noReportsSub:'Tekan + untuk memulai',
   noChats:'Belum ada chat',noChatsSub:'Mulai chat dengan tim',
   newChat:'Chat Baru',newReport:'Laporan Baru',
-  moreSettings:'Pengaturan',moreLanguage:'Bahasa',moreInstall:'Instal',moreAbout:'Tentang',morePrivacy:'Privasi',
+  moreSettings:'Pengaturan',moreLanguage:'Bahasa',moreInstall:'Instal',moreAbout:'Tentang',morePrivasi:'Privasi',
   backHome:'Kembali',formSubtitle:'Isi form',
   step1Title:'Jenis',step1Desc:'Pilih jenis',
   step2Title:'Detail',step2Desc:'Jelaskan',
@@ -2162,7 +2167,7 @@ function syncReports() {
    ══════════════════════════════════════════ */
 let lang='ar',currentTab='home',selectedType='',selectedSeverity='',
     isAnonymous=true,isOngoing=false,uploadedFiles=[],deferredPrompt=null,
-    currentChatId=null,selectedEnv='',selectedSubIssue='',selectedDetail='',selectedFrequency='';
+    currentChatId=null,selectedEnv='',selectedSubIssue='',selectedDetail='',selectedFrequency='', chatManageMode=false;
 
 const LS_LANG='nit_lang',LS_REPORTS='nit_reports',LS_CHATS='nit_chats',LS_NOTIFS='nit_notifs',LS_SUPPORT='nit_support',LS_USER='nit_user';
 
@@ -2207,6 +2212,34 @@ function enterMainApp(){
   setTimeout(() => { updateStats(); renderReports(); }, 500);
   setTimeout(() => { updateStats(); renderReports(); }, 2000);
   renderProfileCard(); updateLogoutBtn();
+}
+
+function switchTab(tabId){
+  currentTab=tabId;
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  
+  document.querySelectorAll('.nav-btn').forEach(n=>n.classList.remove('active'));
+  document.querySelector(`.nav-btn[data-tab="${tabId}"]`)?.classList.add('active');
+
+  const title=document.getElementById('header-title');
+  if(tabId==='home') title.setAttribute('data-t','tabHome');
+  else if(tabId==='reports') title.setAttribute('data-t','tabReports');
+  else if(tabId==='chats') title.setAttribute('data-t','tabChats');
+  else if(tabId==='more') title.setAttribute('data-t','tabMore');
+  updateTranslations();
+
+  // Show manage button only on chats tab
+  const mBtn = document.getElementById('manage-chats-btn');
+  if(mBtn) mBtn.style.display = (tabId==='chats') ? 'flex' : 'none';
+  if(tabId!=='chats' && chatManageMode) toggleChatManage(); // exit manage mode if leaving tab
+}
+
+function toggleChatManage(){
+  chatManageMode = !chatManageMode;
+  const btn = document.getElementById('manage-chats-btn');
+  btn.style.opacity = chatManageMode ? '0.5' : '1';
+  renderChats(); // Re-render to show/hide delete buttons
 }
 
 async function lookupEmployee(val){
@@ -2962,18 +2995,6 @@ function renderChats(){
   let sessions = loadChats().sort((a,b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
   const list = document.getElementById('chats-list');
   if(!list) return;
-
-  // Add Manage button to hub header if not there
-  const hubHeader = document.querySelector('.chats-hub-header') || document.querySelector('.tab-pane#chats .section-header');
-  if(hubHeader && !document.getElementById('chat-manage-btn')){
-    const btn = document.createElement('button');
-    btn.id = 'chat-manage-btn';
-    btn.className = 'icon-btn';
-    btn.style.marginInlineStart = 'auto';
-    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
-    btn.onclick = (e) => { e.stopPropagation(); toggleChatManage(); };
-    hubHeader.appendChild(btn);
-  }
 
   if(!sessions.length){
     list.innerHTML=`<div class="empty-state">
