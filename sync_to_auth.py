@@ -3,7 +3,7 @@ from firebase_admin import credentials, firestore, auth
 import os
 
 # 1. Setup
-cred_path = 'cloude-code1-firebase-adminsdk-fbsvc-60c02c7001.json'
+cred_path = 'majed-code1-service-key.json'
 if not firebase_admin._apps:
     cred = credentials.Certificate(cred_path)
     firebase_admin.initialize_app(cred)

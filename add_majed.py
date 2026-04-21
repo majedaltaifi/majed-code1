@@ -3,7 +3,7 @@ from firebase_admin import credentials, firestore
 from datetime import datetime
 
 # Initialize Firebase Admin
-cred = credentials.Certificate("cloude-code1-firebase-adminsdk-fbsvc-60c02c7001.json")
+cred = credentials.Certificate("majed-code1-service-key.json")
 firebase_admin.initialize_app(cred)
 
 db = firestore.client()
