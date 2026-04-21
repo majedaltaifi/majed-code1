@@ -882,9 +882,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       <div class="h-s" id="header-subtitle">—</div>
     </div>
     <div class="header-actions" style="display:flex;align-items:center;gap:8px">
-      <button class="h-btn" id="header-manage-btn" onclick="toggleChatManage()" style="color:#ff5252;display:flex">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width:20px;height:20px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      </button>
+
       <button class="h-btn bell-btn" onclick="openNotifications()" id="header-bell-btn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span class="dot"></span>
@@ -1448,7 +1446,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script>
-  const APP_VERSION='3.20';
+  const APP_VERSION='3.22';
   let __refreshing=false;
   
   function showUpdateBanner(msg){
@@ -1463,7 +1461,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.20').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.22').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
@@ -2166,7 +2164,7 @@ function syncReports() {
    ══════════════════════════════════════════ */
 let lang='ar',currentTab='home',selectedType='',selectedSeverity='',
     isAnonymous=true,isOngoing=false,uploadedFiles=[],deferredPrompt=null,
-    currentChatId=null,selectedEnv='',selectedSubIssue='',selectedDetail='',selectedFrequency='', chatManageMode=false;
+    currentChatId=null,selectedEnv='',selectedSubIssue='',selectedDetail='',selectedFrequency='';
 
 const LS_LANG='nit_lang',LS_REPORTS='nit_reports',LS_CHATS='nit_chats',LS_NOTIFS='nit_notifs',LS_SUPPORT='nit_support',LS_USER='nit_user';
 
@@ -2500,19 +2498,8 @@ function switchTab(tab){
   if(tab==='chats')renderChats();
   if(tab==='home'){updateStats();applyPersonalization();renderStatsDashboard()}
   if(tab==='more'){renderProfileCard();updateLogoutBtn()}
-  // Show/hide manage button
-  const mBtn = document.getElementById('header-manage-btn');
-  if(mBtn) mBtn.style.display = (tab==='chats') ? 'flex' : 'none';
-  if(tab!=='chats' && chatManageMode) toggleChatManage();
   window.scrollTo({top:0,behavior:'smooth'});
   if(navigator.vibrate)navigator.vibrate(8);
-}
-
-function toggleChatManage(){
-  chatManageMode = !chatManageMode;
-  const btn = document.getElementById('header-manage-btn');
-  if(btn) btn.style.opacity = chatManageMode ? '0.5' : '1';
-  renderChats();
 }
 
 function updateHeader(){
@@ -2999,13 +2986,8 @@ function renderChats(){
       const timeStr = c.updated_at ? formatRelativeTime(new Date(c.updated_at)) : '';
       const unread = (c.unread_counts && c.unread_counts[myID]) || 0;
       
-      return `<div class="list-item ${chatManageMode ? 'manage-active' : ''}" onclick="${chatManageMode ? '' : `openChat('${c.id}', '${otherName}')`}" style="position:relative">
+      return `<div class="list-item" onclick="openChat('${c.id}', '${otherName}')" style="position:relative">
         ${unread > 0 ? `<div style="position:absolute;top:15px;right:15px;width:10px;height:10px;background:var(--danger);border-radius:50%;border:2px solid white"></div>` : ''}
-        ${chatManageMode ? `
-          <button class="chat-del-bubble" onclick="event.stopPropagation(); deleteChatSession('${c.id}')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        ` : ''}
         <div class="list-avatar" style="background:rgba(59,130,246,0.1);color:var(--primary)">
           ${otherId === 'admin' ? 
             `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>` : 
@@ -3022,15 +3004,6 @@ function renderChats(){
       </div>`;
     }).join('');
   }
-}
-
-async function deleteChatSession(id){
-  if(!confirm("Delete this conversation?")) return;
-  try {
-    await db.collection('chat_sessions').doc(id).delete();
-    toast("Deleted Successfully");
-    syncChats(); // Refresh local list
-  } catch(e) { console.error("Del Error", e); toast("Delete Failed"); }
 }
 
 function startNewChat() {
