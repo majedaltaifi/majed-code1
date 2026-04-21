@@ -1446,7 +1446,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script>
-  const APP_VERSION='3.23';
+  const APP_VERSION='3.24';
   let __refreshing=false;
   
   function showUpdateBanner(msg){
@@ -1461,7 +1461,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.23').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.24').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
@@ -3031,7 +3031,10 @@ async function openSupport() {
   openChat(roomId, 'Support');
 }
 
+let lastSearchId = 0;
+
 async function filterHub() {
+  const mySearchId = ++lastSearchId;
   const v = (document.getElementById('chats-search')?.value||'').trim().toLowerCase();
   const resArea = document.getElementById('hub-search-view');
   const inboxArea = document.getElementById('hub-default-view');
@@ -3049,23 +3052,31 @@ async function filterHub() {
 
   try {
     const vPrefix = v.charAt(0).toUpperCase() + v.slice(1);
+    const queries = [];
     
-    // Multi-criteria search (checking legacy and new field names)
-    const queries = [
-      db.collection('employees').orderBy('nameEn').startAt(vPrefix).endAt(vPrefix + '\uf8ff').limit(5).get(),
-      db.collection('employees').orderBy('name_en').startAt(vPrefix).endAt(vPrefix + '\uf8ff').limit(5).get(),
-      db.collection('employees').where('empNo', '==', v).get(),
-      db.collection('employees').where('empNo', '==', parseInt(v)||0).get(),
-      db.collection('employees').where('emp_no', '==', v).get(),
-      db.collection('employees').where('emp_no', '==', parseInt(v)||0).get()
-    ];
+    // Name search
+    queries.push(db.collection('employees').orderBy('nameEn').startAt(vPrefix).endAt(vPrefix + '\uf8ff').limit(10).get());
+    queries.push(db.collection('employees').orderBy('name_en').startAt(vPrefix).endAt(vPrefix + '\uf8ff').limit(10).get());
+    
+    // ID search (String & Number variants)
+    queries.push(db.collection('employees').where('empNo', '==', v).get());
+    queries.push(db.collection('employees').where('emp_no', '==', v).get());
+    if(!isNaN(v)) {
+      queries.push(db.collection('employees').where('empNo', '==', Number(v)).get());
+      queries.push(db.collection('employees').where('emp_no', '==', Number(v)).get());
+    }
 
     const results = await Promise.all(queries);
+    
+    // If a newer search has started, ignore this one
+    if(mySearchId !== lastSearchId) return;
+
     let matchesMap = new Map();
     results.forEach(snap => {
       snap.docs.forEach(d => {
         const data = d.data();
-        matchesMap.set(data.empNo || data.emp_no || d.id, data);
+        const id = data.empNo || data.emp_no || d.id;
+        matchesMap.set(String(id), data);
       });
     });
     
@@ -3073,14 +3084,7 @@ async function filterHub() {
     
     if(!empList) return;
     if(!matches.length) {
-      // Check if collection is empty or fields are different
-      const probe = await db.collection('employees').limit(1).get();
-      if(probe.empty) {
-        empList.innerHTML = '<div style="padding:40px;text-align:center;font-size:0.85rem;color:var(--danger)">TACTICAL DATABASE EMPTY<br><small>Please re-import employee data.</small></div>';
-      } else {
-        empList.innerHTML = '<div style="padding:40px;text-align:center;font-size:0.85rem;color:var(--text-muted)">NO OPERATIVES FOUND<br><small>Search by ID (e.g. 1010) or Prefix.</small></div>';
-        console.log("Probable fields:", Object.keys(probe.docs[0].data()));
-      }
+      empList.innerHTML = '<div style="padding:40px;text-align:center;font-size:0.85rem;color:var(--text-muted)">NO OPERATIVES FOUND<br><small>Double check the ID or Name.</small></div>';
     } else {
       empList.innerHTML = matches.map(e => {
         const eid = e.empNo || e.emp_no || '---';
@@ -3095,7 +3099,12 @@ async function filterHub() {
         </button>`;
       }).join('');
     }
-  } catch(e) { console.error("Search Error:", e); }
+  } catch(e) { 
+    if(mySearchId === lastSearchId) {
+      console.error("Search Error:", e);
+      if(empList) empList.innerHTML = '<div style="padding:20px;color:var(--danger)">Search Interrupted</div>';
+    }
+  }
 }
 
 async function openChatWithUser(targetEmpNo, targetName) {
