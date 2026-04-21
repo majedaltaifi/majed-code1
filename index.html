@@ -778,8 +778,6 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}
 </style>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 </head>
 <body>
 
@@ -868,7 +866,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
         <span data-t="loginSubmit"></span>
       </button>
-      <div class="version-tag">Version 3.17 — Recovery Fix</div>
+      <div class="version-tag">Version 3.19 — Stable Recovery</div>
     </div>
   </div>
 </div>
@@ -1450,15 +1448,9 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script>
-  const APP_VERSION='3.18';
+  const APP_VERSION='3.19';
   let __refreshing=false;
   
-  // FAIL-SAFE: ensure splash disappears even if logic hangs
-  setTimeout(() => {
-    const s = document.getElementById('splash');
-    if(s && !s.classList.contains('hide')) s.classList.add('hide');
-  }, 3500);
-
   function showUpdateBanner(msg){
     const b=document.getElementById('update-banner');
     if(b){ if(document.getElementById('update-msg')) document.getElementById('update-msg').textContent=msg; b.classList.add('show'); }
@@ -1471,7 +1463,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.18').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.19').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
