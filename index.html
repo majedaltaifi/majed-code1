@@ -40,11 +40,14 @@ html,body{margin:0;padding:0;background:var(--bg);-webkit-text-size-adjust:100%}
 body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size:16px;text-align:start;width:100%;min-height:100dvh;scrollbar-width:none;-webkit-font-smoothing:antialiased;line-height:1.5}
 [dir="ltr"] body{font-family:var(--font-en)}
 
-/* ── BG ── */
-.bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none}
-.bg-grad{position:absolute;inset:0;background:radial-gradient(circle at 10% 10%,#1a1c5e 0,#080922 100%)}
-.bg-grad::before{content:'';position:absolute;inset:0;background:url('https://www.transparenttextures.com/patterns/dark-matter.png');opacity:.08}
-.bg-grad::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 85% 85%,rgba(128,209,233,0.06),transparent 45%)}
+/* ── BG (Galaxy Theme) ── */
+.bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;background:#050614;overflow:hidden}
+.bg-grad{position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,#1a1c5e 0,transparent 40%),radial-gradient(circle at 80% 80%,#0d0e3d 0,#050614 100%)}
+.bg-grad::before{content:'';position:absolute;inset:0;background:url('https://www.transparenttextures.com/patterns/dark-matter.png');opacity:.12;mix-blend-mode:overlay}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:.15;animation:orbFloat 20s infinite alternate ease-in-out}
+.bg-orb-1{width:600px;height:600px;background:var(--turquoise);top:-200px;right:-150px;animation-delay:-2s}
+.bg-orb-2{width:500px;height:500px;background:var(--nit-blue);bottom:-150px;left:-100px;animation-delay:-7s}
+@keyframes orbFloat{0%{transform:translate(0,0) scale(1)}100%{transform:translate(40px,40px) scale(1.1)}}
 
 /* ── SPLASH ── */
 #splash{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,var(--bg),var(--nit-dark),var(--nit-blue));transition:opacity .6s ease,visibility .6s ease;overflow:hidden}
@@ -801,7 +804,8 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 
 <div class="bg-layer">
   <div class="bg-grad"></div>
-  <div class="bg-orb"></div><div class="bg-orb"></div>
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
 </div>
 
 <!-- SPLASH -->
