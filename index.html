@@ -1446,7 +1446,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script>
-  const APP_VERSION='3.37';
+  const APP_VERSION='3.38';
   let __refreshing=false;
   
   function showUpdateBanner(msg){
@@ -1461,7 +1461,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.37').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.38').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
@@ -2117,7 +2117,6 @@ let unsubChatsV3 = null, unsubChatsLegacy = null;
 
 function syncChats() {
   if (!currentUser || currentUser.guest) return;
-  // Unsubscribe previous listeners
   if (unsubChats) { unsubChats(); unsubChats = null; }
   if (unsubChatsV3) { unsubChatsV3(); unsubChatsV3 = null; }
   if (unsubChatsLegacy) { unsubChatsLegacy(); unsubChatsLegacy = null; }
@@ -2126,7 +2125,6 @@ function syncChats() {
   let chatsV3 = [], chatsLegacy = [];
 
   const mergeAndRender = () => {
-    // Deduplicate by id, prefer v3 entries
     const allMap = new Map();
     chatsLegacy.forEach(c => allMap.set(c.id, c));
     chatsV3.forEach(c => allMap.set(c.id, c));
@@ -2143,15 +2141,15 @@ function syncChats() {
     if (dot) dot.style.display = totalUnread > 0 ? 'block' : 'none';
   };
 
-  // Listen to conversations_v3 (new engine)
+  // conversations_v3: use participants array-contains (auto-indexed in Firestore)
   unsubChatsV3 = db.collection('conversations_v3')
-    .where('members.' + myID, '==', true)
+    .where('participants', 'array-contains', myID)
     .onSnapshot(snap => {
       chatsV3 = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       mergeAndRender();
     }, err => console.warn('V3 sync error:', err));
 
-  // Also listen to chat_sessions (legacy) for old conversations
+  // chat_sessions: legacy conversations
   unsubChatsLegacy = db.collection('chat_sessions')
     .where('participants', 'array-contains', myID)
     .onSnapshot(snap => {
@@ -2188,7 +2186,7 @@ let lang='ar',currentTab='home',selectedType='',selectedSeverity='',
     isAnonymous=true,isOngoing=false,uploadedFiles=[],deferredPrompt=null,
     currentChatId=null,selectedEnv='',selectedSubIssue='',selectedDetail='',selectedFrequency='';
 
-const LS_LANG='nit_lang',LS_REPORTS='nit_reports',LS_CHATS='nit_chats',LS_NOTIFS='nit_notifs',LS_SUPPORT='nit_support',LS_USER='nit_user',CACHE_NAME='nit-cache-v3.37';
+const LS_LANG='nit_lang',LS_REPORTS='nit_reports',LS_CHATS='nit_chats',LS_NOTIFS='nit_notifs',LS_SUPPORT='nit_support',LS_USER='nit_user',CACHE_NAME='nit-cache-v3.38';
 
 let currentUser=null,employeesDb=null,empLookupDebounce=null;
 
