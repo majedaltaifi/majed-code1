@@ -652,8 +652,25 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 .chat-send-circle { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--turquoise), var(--nit-blue)); color: white; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; box-shadow: 0 5px 15px var(--turq-glow); transition: 0.3s var(--ease); }
 .chat-send-circle:active { transform: scale(0.9); opacity: 0.8; }
 
-.hub-section{margin-bottom:28px}
-.hub-section-label{font-size:.76rem;font-weight:900;color:var(--text-muted);letter-spacing:1px;margin-bottom:12px;padding:0 4px}
+.support-btn-glass { 
+  display: flex; align-items: center; gap: 14px; padding: 14px 18px; 
+  background: var(--glass); border: 1px solid var(--glass-border); 
+  border-radius: 18px; cursor: pointer; margin-top: 15px; 
+  transition: all 0.3s var(--ease);
+}
+.support-btn-glass:active { transform: scale(0.97); background: var(--glass-hover); }
+.support-icon { 
+  width: 44px; height: 44px; border-radius: 14px; 
+  background: linear-gradient(135deg, var(--nit-blue), var(--nit-dark)); 
+  display: flex; align-items: center; justify-content: center; color: var(--turquoise);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.support-icon svg { width: 22px; height: 22px; }
+.support-text-wrap { flex: 1; }
+.support-title { font-size: 0.85rem; font-weight: 900; color: #fff; letter-spacing: 0.8px; }
+.support-sub { font-size: 0.7rem; color: var(--text-dim); margin-top: 1px; }
+.support-arrow { color: var(--turquoise); opacity: 0.6; }
+[dir="rtl"] .support-arrow { transform: scaleX(-1); }
 
 .freq-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .freq-btn{padding:10px 4px;border:1.5px solid transparent;border-radius:var(--r);text-align:center;cursor:pointer;transition:all .25s;font-size:.75rem;font-weight:700;background:rgba(255,255,255,.04);color:var(--text-dim)}
@@ -1010,20 +1027,18 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
             <input type="text" id="chat-search" placeholder="Search by name or phone..." oninput="performDatabaseSearch()">
           </div>
           
-          <div style="margin-top: 15px;">
-            <div class="chat-card pinned" onclick="openSupportChat()" style="margin-bottom: 0; background: linear-gradient(135deg, #2563eb, #1e40af); border: none;">
-              <div class="chat-avatar" style="background: rgba(255,255,255,0.2); color: white;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:24px"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              </div>
-              <div class="chat-info">
-                <div class="chat-name" style="color: white;">MANAGEMENT SUPPORT</div>
-                <div class="chat-msg-preview" style="color: rgba(255,255,255,0.7);">Open a secure line with HR</div>
-              </div>
-              <div style="color: white; opacity: 0.5;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="width:16px"><polyline points="9 18 15 12 9 6"/></svg>
-              </div>
-            </div>
-          </div>
+      <div class="support-btn-glass" onclick="openSupportChat()">
+        <div class="support-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <div class="support-text-wrap">
+          <div class="support-title">MANAGEMENT SUPPORT</div>
+          <div class="support-sub">Open secure line</div>
+        </div>
+        <div class="support-arrow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
         </div>
 
         <div class="chat-scroll-area">
