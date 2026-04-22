@@ -943,7 +943,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       <div class="recent-header" id="recent-label">
         <div class="recent-header-title">
           <span class="ra-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></span>
-          <span data-t="homeRecent" onclick="this.diagCount=(this.diagCount||0)+1;if(this.diagCount>=5){alert('UID: '+ (firebase.auth().currentUser ? firebase.auth().currentUser.uid : 'None') + '\nEmpNo: ' + currentUser.empNo + '\nVer: 3.29'); this.diagCount=0;}"></span>
+          <span data-t="homeRecent"></span>
         </div>
         <button id="recent-view-all" class="view-all-btn" onclick="switchTab('reports')" data-t="homeViewAll"></button>
       </div>
@@ -1446,7 +1446,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script>
-  const APP_VERSION='3.30';
+  const APP_VERSION='3.31';
   let __refreshing=false;
   
   function showUpdateBanner(msg){
@@ -1461,7 +1461,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.30').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.31').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
@@ -2116,20 +2116,19 @@ function syncBroadcasts() {
 function syncChats() {
   if (!currentUser || currentUser.guest) return;
   if (unsubChats) unsubChats();
-  const myIDStr = String(currentUser.empNo);
-  const myIDNum = Number(currentUser.empNo);
+  const myID = String(currentUser.empNo);
   
   const handleUpdate = (snap) => {
-    let chats = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+    const chats = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
     saveChats(chats);
     renderChats();
     
     let totalUnread = 0;
     let adminUnread = 0;
     chats.forEach(c => {
-      const unread = (c.unread_counts && (c.unread_counts[myIDStr] || c.unread_counts[myIDNum])) || 0;
+      const unread = (c.unread_counts && c.unread_counts[myID]) || 0;
       totalUnread += unread;
-      if (c.id === 'direct_' + myIDStr || c.id === 'direct_' + myIDNum) adminUnread = unread;
+      if (c.id === 'direct_' + myID) adminUnread = unread;
     });
     const dot = document.getElementById('chats-dot');
     if(dot) dot.style.display = totalUnread > 0 ? 'block' : 'none';
@@ -2137,24 +2136,9 @@ function syncChats() {
     if(sDot) sDot.style.display = adminUnread > 0 ? 'block' : 'none';
   };
 
-  // Immediate fetch with error reporting
-  db.collection('chat_sessions').where('participants', 'array-contains', myIDStr).get()
-    .then(handleUpdate)
-    .catch(err => {
-      console.error("Manual Fetch Error:", err);
-      if(err.code === 'permission-denied') toast("Firestore Access Denied");
-    });
-
-  // Real-time listener
   unsubChats = db.collection('chat_sessions')
-    .where('participants', 'array-contains', myIDStr)
-    .onSnapshot(handleUpdate, err => {
-      console.error("Chat Sync Error:", err);
-      if(err.code === 'permission-denied') {
-        const inbox = document.getElementById('hub-default-view');
-        if(inbox) inbox.innerHTML += '<div style="color:#ef4444;font-size:11px;text-align:center;padding:10px">Access Denied by Firebase Rules</div>';
-      }
-    });
+    .where('participants', 'array-contains', myID)
+    .onSnapshot(handleUpdate, err => console.error("Chat Sync Error:", err));
 }
 
 function syncReports() {
