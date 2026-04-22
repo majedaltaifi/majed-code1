@@ -2985,7 +2985,8 @@ function renderChats() {
     const myID = String(currentUser.empNo);
     const otherId = (s.participants || []).find(p => String(p) !== myID) || 'admin';
     const otherName = (otherId === 'admin') ? 'Management Support' : (s.names ? s.names[otherId] : (s.other_name || 'User ' + otherId));
-    const preview = s.last_msg || s.last_message || 'No messages yet';
+    const rawPreview = s.last_msg || s.last_message || '';
+    const preview = rawPreview ? (String(s.last_sender) === myID ? 'You: ' + rawPreview : rawPreview) : 'No messages yet';
     const time = s.updated_at ? formatRelativeTime(new Date(s.updated_at)) : '';
     const unread = (s.unread_counts && s.unread_counts[myID]) || 0;
 
