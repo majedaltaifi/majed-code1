@@ -977,24 +977,27 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
         </div>
       </div>
 
-      <div class="chat-hub-content">
-        <!-- Support Quick Action -->
-        <div class="hub-support-wrap" style="position:relative">
-          <button class="hub-support-btn" onclick="openSupport()">
-            <div class="hs-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
-            </div>
-            <div class="hs-label-wrap">
-              <div class="hs-label">Management Support</div>
-              <div class="hs-desc">Direct line to NIT Management for all inquiries.</div>
-            </div>
-          </button>
+    <!-- CHATS TAB -->
+    <div class="tab-pane" id="tab-chats">
       <div class="header">
         <div class="header-left">
           <h1 class="header-title" data-t="chatTitle"></h1>
           <div class="header-subtitle" data-t="chatDesc"></div>
         </div>
       </div>
+      
+      <div style="padding:0 20px; margin-bottom:20px">
+        <button class="hub-support-btn" onclick="openSupport()">
+          <div class="hs-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+          </div>
+          <div class="hs-label-wrap">
+            <div class="hs-label">Management Support</div>
+            <div class="hs-desc">Direct line to NIT Management.</div>
+          </div>
+        </button>
+      </div>
+
       <div class="search-wrap" style="padding:0 20px;margin-bottom:15px">
         <div class="search-input-box" style="position:relative">
           <input type="text" id="chats-search" class="text-input" data-t-placeholder="searchPlaceholder" style="padding-left:40px" oninput="searchGlobalUsers(this.value)">
@@ -1034,6 +1037,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 
     <!-- MORE TAB -->
     <div class="tab-pane" id="tab-more">
+
       <div id="profile-card-wrap"></div>
       <div class="section-label" data-t="moreSettings"></div>
       <div class="settings-list">
