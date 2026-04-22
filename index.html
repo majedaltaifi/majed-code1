@@ -2147,7 +2147,6 @@ function syncAllChats() {
   // Listen for all chats where this user is a member
   unsubSupportPreview = db.collection('chats')
     .where('members', 'array-contains', myID)
-    .orderBy('last_at', 'desc')
     .onSnapshot(snap => {
       const container = document.getElementById('chats-list-container');
       if (!container) return;
@@ -2162,13 +2161,22 @@ function syncAllChats() {
         return;
       }
       
+      const chats = [];
+      snap.forEach(doc => chats.push({id: doc.id, ...doc.data()}));
+      
+      // Sort in client to avoid index issues
+      chats.sort((a,b) => {
+        const ta = a.last_at ? a.last_at.toMillis() : 0;
+        const tb = b.last_at ? b.last_at.toMillis() : 0;
+        return tb - ta;
+      });
+
       let html = '';
-      snap.forEach(doc => {
-        const d = doc.data();
+      chats.forEach(d => {
         let otherName = 'Conversation';
         let otherID = '';
         
-        if (doc.id.includes('_Support')) {
+        if (d.id.includes('_Support')) {
           otherName = 'Support';
           otherID = 'Support';
         } else {
