@@ -782,16 +782,15 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 .chat-input-area { padding: 12px 16px 20px; background: rgba(8,9,34,0.3); border-top: 1px solid var(--glass-border); }
 .chat-input-box { 
   display: flex; align-items: center; gap: 10px; background: var(--glass); border: 1.5px solid var(--glass-border); 
-  border-radius: 18px; padding: 5px; 
+  border-radius: 18px; padding: 5px 14px 5px 5px; 
 }
-.chat-input-box input { flex: 1; background: none; border: none; color: #fff; font-size: 0.95rem; font-family: inherit; outline: none; height: 42px; padding: 0 10px; }
+.chat-input-box input { flex: 1; background: none; border: none; color: #fff; font-size: 0.95rem; font-family: inherit; outline: none; height: 42px; padding: 0; }
 .chat-send-btn { 
-  width: 42px; height: 42px; border-radius: 14px; background: linear-gradient(135deg, var(--turquoise), var(--nit-blue)); 
-  color: #fff; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s var(--ease);
-  box-shadow: 0 4px 12px rgba(128,209,233,0.25);
+  width: 42px; height: 42px; border-radius: 14px; background: transparent; 
+  color: var(--turquoise); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s var(--ease);
 }
-.chat-send-btn:active { transform: scale(0.92); opacity: 0.9; }
-.chat-send-btn svg { width: 20px; height: 20px; transform: rotate(-45deg) translate(1px, -1px); }
+.chat-send-btn:active { transform: scale(0.92); opacity: 0.6; }
+.chat-send-btn svg { width: 22px; height: 22px; transform: rotate(0); }
 
 /* ── CHAT BUBBLES ── */
 .msg { max-width: 80%; padding: 12px 16px; border-radius: 18px; font-size: 0.92rem; line-height: 1.5; position: relative; animation: msgIn 0.3s var(--ease) both; }
@@ -1378,10 +1377,10 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <div class="chat-body" id="chat-msgs"></div>
   <div class="chat-input-area">
     <div class="chat-input-box">
+      <input type="text" id="chat-input" placeholder="Type a message..." dir="auto">
       <button class="chat-send-btn" id="btn-send-chat" onclick="sendMessage()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
       </button>
-      <input type="text" id="chat-input" placeholder="Type a message..." dir="auto">
     </div>
   </div>
 </div>
@@ -3006,24 +3005,36 @@ function initChatSystem() {
 }
 
 async function sendMessage() {
+  console.log("sendMessage called");
   const input = document.getElementById('chat-input');
-  if (!input || !currentUser) return;
+  if (!input) { console.error("Chat input not found"); return; }
+  
+  const user = currentUser || loadUser();
+  if (!user) { console.error("No current user found"); alert("Session error. Please login again."); return; }
+  
   const text = input.value.trim();
   if (!text) return;
 
+  console.log("Sending message for user:", user.employeeId);
+
   const msg = {
     text: text,
-    senderId: currentUser.employeeId,
-    senderName: currentUser.name || "User",
+    senderId: user.employeeId,
+    senderName: user.name || "User",
     timestamp: firebase.firestore.FieldValue.serverTimestamp()
   };
 
   try {
-    await db.collection('chats').doc(currentUser.employeeId).collection('messages').add(msg);
+    await db.collection('chats').doc(user.employeeId).collection('messages').add(msg);
+    console.log("Message added to Firestore");
     input.value = '';
     input.focus();
+    // Local fast scroll
+    const msgsDiv = document.getElementById('chat-msgs');
+    if (msgsDiv) msgsDiv.scrollTop = msgsDiv.scrollHeight;
   } catch(e) {
     console.error("Chat send error:", e);
+    alert("Send failed. Check connection.");
   }
 }
 
