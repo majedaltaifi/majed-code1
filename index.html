@@ -986,31 +986,11 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
         <div id="search-results" class="search-results-overlay"></div>
       </div>
 
-      <div class="chat-content">
-        <div class="support-card" id="btn-support" onclick="openChatScreen()">
-          <div class="support-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-10.6 8.38 8.38 0 0 1 3.9.9"/><path d="M11.8 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/><path d="M13.5 14L18 18.5"/><path d="M18 13.5L13.5 18"/></svg>
-          </div>
-          <div class="support-label">Support</div>
-        </div>
-
         <!-- Support Chat List Item -->
         <div class="section-label" style="margin-top:20px;">Messages</div>
-        <div id="chats-list" class="list">
-          <!-- Dynamically populated or static 'Support' row -->
-          <div class="list-item" onclick="openChatScreen()">
-            <div class="list-avatar">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-10.6 8.38 8.38 0 0 1 3.9.9"/><path d="M11.8 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/><path d="M13.5 14L18 18.5"/><path d="M18 13.5L13.5 18"/></svg>
-            </div>
-            <div class="list-body">
-              <div class="list-top" style="justify-content: space-between; display: flex; align-items: baseline;">
-                <span class="list-title">Support</span>
-                <span class="list-time" id="support-last-time" style="margin-inline-start: auto; color: var(--text-muted); font-size: 0.7rem;"></span>
-              </div>
-              <div class="list-preview" id="support-last-msg">Start a conversation...</div>
-            </div>
-            <div class="unread-dot" id="support-unread-dot" style="display:none;"></div>
-          </div>
+        <div id="chats-list-container" class="list">
+          <!-- Dynamically populated by syncAllChats() -->
+          <div style="padding:20px;text-align:center;opacity:0.5;">Loading conversations...</div>
         </div>
       </div>
     </div>
@@ -2148,28 +2128,71 @@ function syncBroadcasts() {
   }, err => console.error("Broadcast Sync Error:", err));
 }
 
-function syncSupportPreview() {
+function syncAllChats() {
   if (!currentUser || currentUser.guest) return;
-  if (unsubSupportPreview) unsubSupportPreview();
   const myID = String(currentUser.empNo);
-  const chatId = `${myID}_Support`;
-  unsubSupportPreview = db.collection('chats').doc(chatId).collection('messages')
-    .orderBy('timestamp', 'desc')
-    .limit(1)
+  
+  if (unsubSupportPreview) unsubSupportPreview();
+  
+  unsubSupportPreview = db.collection('chats')
+    .where('members', 'array-contains', myID)
     .onSnapshot(snap => {
-      const msgEl = document.getElementById('support-last-msg');
-      const timeEl = document.getElementById('support-last-time');
-      if (!snap.empty) {
-        const last = snap.docs[0].data();
-        if (msgEl) msgEl.textContent = last.text || '...';
-        if (timeEl && last.timestamp) {
-          try {
-            timeEl.textContent = formatRelativeTime(last.timestamp.toDate());
-          } catch(e) { 
-            timeEl.textContent = 'Just now';
-          }
-        }
+      const container = document.getElementById('chats-list-container');
+      if (!container) return;
+      
+      if (snap.empty) {
+        container.innerHTML = '<div style="padding:20px;text-align:center;opacity:0.4;">No messages yet.</div>';
+        return;
       }
+      
+      const chats = [];
+      snap.forEach(doc => chats.push({id: doc.id, ...doc.data()}));
+      
+      // Client-side sort to avoid index requirements for now
+      chats.sort((a,b) => {
+        const ta = (a.last_at && a.last_at.toMillis) ? a.last_at.toMillis() : 0;
+        const tb = (b.last_at && b.last_at.toMillis) ? b.last_at.toMillis() : 0;
+        return tb - ta;
+      });
+
+      let html = '';
+      chats.forEach(d => {
+        let otherName = 'Support';
+        let otherID = 'Support';
+        
+        if (!d.id.includes('_Support')) {
+          const members = d.members || [];
+          members.forEach(m => {
+            if (m !== myID) {
+              otherID = m;
+              otherName = (d.memberNames && d.memberNames[m]) || 'Employee ' + m;
+            }
+          });
+        }
+        
+        let timeStr = '';
+        if (d.last_at) {
+          try { timeStr = formatRelativeTime(d.last_at.toDate()); } catch(e) { timeStr = 'Just now'; }
+        }
+        
+        html += `
+          <div class="list-item" onclick="openChatWith('${d.id}', '${otherName}')">
+            <div class="list-avatar">
+              ${otherID === 'Support' ? 
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-10.6 8.38 8.38 0 0 1 3.9.9"/><path d="M11.8 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/><path d="M13.5 14L18 18.5"/><path d="M18 13.5L13.5 18"/></svg>' : 
+                (otherName.charAt(0).toUpperCase())}
+            </div>
+            <div class="list-body">
+              <div class="list-top" style="justify-content: space-between; display: flex; align-items: baseline;">
+                <span class="list-title">${otherName}</span>
+                <span class="list-time" style="margin-inline-start: auto; color: var(--text-muted); font-size: 0.7rem;">${timeStr}</span>
+              </div>
+              <div class="list-preview">${d.last_msg || 'Start a conversation...'}</div>
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
     });
 }
 
@@ -2242,7 +2265,7 @@ function setLang(l){
     document.getElementById('screen-lang').classList.remove('show');
     document.getElementById('main-app').classList.add('show');
     seedNotifsIfFirstTime(); switchTab('home'); applyPersonalization();
-    syncBroadcasts(); syncReports(); syncSupportPreview();
+    syncBroadcasts(); syncReports(); syncAllChats();
     // Double-tap render to catch any early data
     setTimeout(() => { updateStats(); renderReports(); }, 500);
     setTimeout(() => { updateStats(); renderReports(); }, 2000);
