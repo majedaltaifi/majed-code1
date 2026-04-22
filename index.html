@@ -763,6 +763,19 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 .support-icon { width: 42px; height: 42px; border-radius: 12px; background: rgba(128,209,233,0.1); color: var(--turquoise); display: flex; align-items: center; justify-content: center; }
 .support-icon svg { width: 24px; height: 24px; }
 .support-label { font-size: 0.8rem; font-weight: 700; color: #fff; }
+
+/* ── SEARCH RESULTS ── */
+.search-results-overlay { 
+  position: absolute; top: 100%; left: 0; right: 0; background: var(--bg); border: 1.5px solid var(--glass-border); 
+  box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 100; max-height: 380px; overflow-y: auto; display: none; margin: 5px 16px; border-radius: 18px; 
+}
+.search-item { padding: 14px 18px; display: flex; align-items: center; gap: 14px; cursor: pointer; border-bottom: 1px solid var(--glass-border); transition: 0.2s; }
+.search-item:last-child { border-bottom: none; }
+.search-item:active { background: var(--glass-hover); }
+.search-avatar { width: 42px; height: 42px; border-radius: 12px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--turquoise); font-size: 1.1rem; }
+.search-info { flex: 1; }
+.search-name { font-size: 0.95rem; font-weight: 700; color: #fff; }
+.search-meta { font-size: 0.75rem; color: var(--text-dim); }
 </style>
 </head>
 <body>
@@ -947,8 +960,9 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       <div class="search-container">
         <div class="search-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="chat-global-search" placeholder="Search...">
+          <input type="text" id="chat-global-search" placeholder="Search..." oninput="handleChatSearch(this.value)">
         </div>
+        <div id="search-results" class="search-results-overlay"></div>
       </div>
 
       <div class="chat-content">
@@ -2871,6 +2885,43 @@ function doTrackByRef(){
   if(!r){box.innerHTML=`<div style="padding:14px;background:rgba(255,82,82,.08);border:1px solid rgba(255,82,82,.2);border-radius:var(--r);color:var(--danger);font-size:.85rem;text-align:center">${T[lang].trackNotFound}</div>`;return}
   closeSheet('sheet-track-ref');
   setTimeout(()=>openTrackDetail(ref),300);
+}
+
+// ─── CHAT SEARCH LOGIC ───────────────────
+let searchDebounce = null;
+async function handleChatSearch(q) {
+  const overlay = document.getElementById('search-results');
+  const val = q.trim();
+  if (val.length < 1) { overlay.style.display = 'none'; return; }
+
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(async () => {
+    overlay.innerHTML = '<div style="padding:20px;text-align:center;opacity:0.5">Searching...</div>';
+    overlay.style.display = 'block';
+
+    try {
+      // Direct doc fetch by employeeId
+      const doc = await db.collection('employees').doc(val).get();
+      if (doc.exists) {
+        const u = doc.data();
+        const name = u.name || u['Employee Name - English'] || 'User';
+        overlay.innerHTML = `
+          <div class="search-item" onclick="overlay.style.display='none'">
+            <div class="search-avatar">${name.charAt(0).toUpperCase()}</div>
+            <div class="search-info">
+              <div class="search-name">${name}</div>
+              <div class="search-meta">ID: ${doc.id}</div>
+            </div>
+          </div>
+        `;
+      } else {
+        overlay.innerHTML = '<div style="padding:20px;text-align:center;opacity:0.5">No employee found.</div>';
+      }
+    } catch(e) {
+      console.error("Search error:", e);
+      overlay.innerHTML = '<div style="padding:20px;text-align:center;color:var(--danger)">Service unavailable.</div>';
+    }
+  }, 400);
 }
 
 
