@@ -2924,6 +2924,16 @@ async function handleChatSearch(q) {
   }, 400);
 }
 
+// Close search results when clicking outside
+window.addEventListener('click', (e) => {
+  const overlay = document.getElementById('search-results');
+  const searchBox = document.querySelector('.search-box');
+  if (overlay && !overlay.contains(e.target) && !searchBox.contains(e.target)) {
+    overlay.style.display = 'none';
+  }
+});
+
+
 
 
 
