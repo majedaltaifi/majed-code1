@@ -989,26 +989,48 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
               <div class="hs-desc">Direct line to NIT Management for all inquiries.</div>
             </div>
           </button>
-          <div id="support-dot" style="display:none;position:absolute;width:14px;height:14px;background:var(--danger);border-radius:50%;border:3px solid var(--bg-card);box-shadow:0 0 15px rgba(255,82,82,0.6);z-index:2"></div>
-        </div>
-
-        <div id="hub-default-view">
-          <div class="hub-section">
-            <div class="hub-section-label" data-t="homeRecent">RECENT MESSAGES</div>
-            <div id="chats-list"></div>
-          </div>
-        </div>
-
-        <div id="hub-search-view" style="display:none">
-          <div class="hub-section">
-            <div class="hub-section-label">ALL EMPLOYEES</div>
-            <div id="employees-list"></div>
-          </div>
+      <div class="header">
+        <div class="header-left">
+          <h1 class="header-title" data-t="chatTitle"></h1>
+          <div class="header-subtitle" data-t="chatDesc"></div>
         </div>
       </div>
+      <div class="search-wrap" style="padding:0 20px;margin-bottom:15px">
+        <div class="search-input-box" style="position:relative">
+          <input type="text" id="chats-search" class="text-input" data-t-placeholder="searchPlaceholder" style="padding-left:40px" oninput="searchGlobalUsers(this.value)">
+          <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;opacity:0.4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+      </div>
+      
+      <div id="search-results-cloud" class="list" style="padding:0 20px; display:none; margin-bottom:20px">
+        <div class="section-label" style="font-size:0.75rem;opacity:0.5;margin-bottom:8px">SEARCH RESULTS</div>
+        <div id="search-cloud-list"></div>
+      </div>
+
+      <div class="section-label" style="padding:0 20px;font-size:0.75rem;opacity:0.5;margin-bottom:8px">RECENT ACTIVITY</div>
+      <div class="list" id="chats-list" style="padding:0 20px"></div>
     </div>
 
-
+    <!-- ADMIN DASHBOARD TAB -->
+    <div class="tab-pane" id="tab-admin-dashboard">
+      <div class="header" style="margin-bottom:20px">
+        <div class="header-left">
+          <h1 class="header-title">Royal Admin Control</h1>
+          <div class="header-subtitle">Monitoring Field Communications</div>
+        </div>
+      </div>
+      <div class="admin-stats" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 20px;margin-bottom:30px">
+        <div class="stat-card" style="background:var(--glass);padding:20px;border-radius:20px;border:1px solid var(--glass-border);text-align:center">
+          <div class="stat-val" id="stat-total-chats" style="font-size:1.8rem;font-weight:700;color:var(--primary)">0</div>
+          <div class="stat-label" style="font-size:0.75rem;opacity:0.6;margin-top:4px">TOTAL ROOMS</div>
+        </div>
+        <div class="stat-card" style="background:var(--glass);padding:20px;border-radius:20px;border:1px solid var(--glass-border);text-align:center">
+          <div class="stat-val" id="stat-all-users" style="font-size:1.8rem;font-weight:700;color:var(--success)">0</div>
+          <div class="stat-label" style="font-size:0.75rem;opacity:0.6;margin-top:4px">REGISTERED USERS</div>
+        </div>
+      </div>
+      <div class="list" id="admin-chats-list" style="padding:0 20px"></div>
+    </div>
 
     <!-- MORE TAB -->
     <div class="tab-pane" id="tab-more">
@@ -1080,14 +1102,19 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       <span class="dot" id="chats-dot"></span>
     </button>
     <button class="nav-btn" data-tab="more" onclick="switchTab('more')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       <span class="nav-lbl" data-t="tabMore"></span>
+    </button>
+    <button class="nav-btn admin-only" data-tab="admin-dashboard" onclick="switchTab('admin-dashboard')" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <span class="nav-lbl">Admin</span>
     </button>
   </nav>
 
 </div>
 
-<!-- ══════════ SHEETS ══════════ -->
+<!-- ══════════════════════════════════════════
+   SHEETS ══════════════════════════════════ -->
 
 <!-- FORM SHEET (single scrollable page) -->
 <div class="sheet" id="sheet-form">
@@ -2129,21 +2156,35 @@ function syncChats() {
   if (!currentUser || currentUser.guest) return;
   if (unsubChats) unsubChats();
   const myID = String(currentUser.empNo);
+  const isAdmin = (myID === '3734' || currentUser.role === 'admin');
   
-  unsubChats = db.collection('conversations')
-    .where('participants', 'array-contains', myID)
-    .onSnapshot(snap => {
-      const chats = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      saveChats(chats);
-      renderChats();
-      
-      let totalUnread = 0;
-      chats.forEach(c => {
-        totalUnread += (c.unread_counts && c.unread_counts[myID]) || 0;
+  if (isAdmin) {
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'flex');
+    unsubChats = db.collection('conversations')
+      .orderBy('updated_at', 'desc')
+      .onSnapshot(snap => {
+        const chats = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        saveChats(chats);
+        renderChats();
+        updateAdminStats(chats.length);
       });
-      const dot = document.getElementById('chats-dot');
-      if(dot) dot.style.display = totalUnread > 0 ? 'block' : 'none';
-    }, err => console.warn("Chat sync error:", err));
+  } else {
+    unsubChats = db.collection('conversations')
+      .where('participants', 'array-contains', myID)
+      .onSnapshot(snap => {
+        const chats = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        saveChats(chats);
+        renderChats();
+      });
+  }
+}
+
+async function updateAdminStats(count) {
+  const tot = document.getElementById('stat-total-chats');
+  if(tot) tot.textContent = count;
+  const usersSnap = await db.collection('users').get();
+  const uCount = document.getElementById('stat-all-users');
+  if(uCount) uCount.textContent = usersSnap.size;
 }
 
 function syncReports() {
@@ -2266,7 +2307,19 @@ async function doLogin(){
     }
     try {
       await firebase.auth().signInWithEmailAndPassword(email, pwd);
-      handleSuccessLogin(rec, empNo);
+      
+      // Profile Sync for Discovery
+      const userProfile = {
+        empNo: empNo,
+        name: rec.name || rec['Employee Name - English'] || 'User ' + empNo,
+        name_lower: (rec.name || rec['Employee Name - English'] || '').toLowerCase(),
+        role: (empNo === '3734' || (rec.role && rec.role === 'admin')) ? 'admin' : 'user',
+        lastSeen: new Date().toISOString()
+      };
+      await db.collection('users').doc(empNo).set(userProfile, { merge: true });
+      
+      saveUser(userProfile);
+      enterMainApp();
     } catch(authErr) {
       if(authErr.code === 'auth/user-not-found' && pwd === dbPwd && pwd.length >= 4) {
         await firebase.auth().createUserWithEmailAndPassword(email, pwd);
@@ -2277,11 +2330,78 @@ async function doLogin(){
       errBox.classList.add('show');
     }
   } catch(e) {
-    errBox.textContent = "Error: " + e.message; errBox.classList.add('show');
+    console.error("Login Err:", e);
+    errBox.textContent = "Connection error. Please try again.";
+    errBox.classList.add('show'); btn.disabled = false; btn.innerHTML = en.loginSubmit;
   } finally {
     btn.disabled = false;
     btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> ${t.loginSubmit || en.loginSubmit}`;
   }
+}
+
+let searchDebounce = null;
+async function searchGlobalUsers(val) {
+  const q = (val || '').trim().toLowerCase();
+  const resultsBox = document.getElementById('search-results-cloud');
+  const resultsList = document.getElementById('search-cloud-list');
+  
+  if (q.length < 2) {
+    resultsBox.style.display = 'none';
+    return;
+  }
+
+  resultsBox.style.display = 'block';
+  resultsList.innerHTML = '<div style="padding:15px;text-align:center;opacity:0.6;font-size:0.8rem">Searching Nebula...</div>';
+  
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(async () => {
+    try {
+      const snap = await db.collection('users')
+        .where('name_lower', '>=', q)
+        .where('name_lower', '<=', q + '\uf8ff')
+        .limit(6)
+        .get();
+      
+      const users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const myID = String(currentUser.empNo);
+      
+      // Filter out self
+      const filtered = users.filter(u => String(u.empNo) !== myID);
+      
+      if (filtered.length === 0) {
+        resultsList.innerHTML = '<div style="padding:15px;text-align:center;opacity:0.5;font-size:0.8rem">No employees found in cloud.</div>';
+      } else {
+        resultsList.innerHTML = filtered.map(u => `
+          <div class="list-item" onclick="openChatWithUser('${u.empNo}', '${u.name.replace(/'/g, "\\'")}')" style="background:rgba(59,130,246,0.04); border:1px solid rgba(59,130,246,0.1); margin-bottom:8px">
+            <div class="list-avatar" style="background:var(--primary); color:#fff">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="list-body">
+              <div class="list-top">
+                <div class="list-title" style="color:var(--primary); font-weight:700">${u.name}</div>
+                <div class="badge" style="background:var(--primary); color:#fff; font-size:0.6rem; padding:2px 6px; border-radius:4px">NIT FIELD</div>
+              </div>
+              <div class="list-preview" style="opacity:0.7">Employee ID: ${u.empNo} • Start a new chat</div>
+            </div>
+          </div>
+        `).join('');
+      }
+    } catch (e) {
+      console.error("Cloud search error:", e);
+      resultsList.innerHTML = '<div style="padding:15px;text-align:center;color:var(--danger)">Discovery error.</div>';
+    }
+  }, 400);
+}
+
+function filterHub() {
+  const q = document.getElementById('chats-search').value.toLowerCase();
+  const list = document.getElementById('chats-list');
+  if(!list) return;
+  const items = list.querySelectorAll('.list-item');
+  items.forEach(it => {
+    const txt = it.textContent.toLowerCase();
+    it.style.display = txt.includes(q) ? 'flex' : 'none';
+  });
 }
 
 function handleSuccessLogin(rec, empNo){
