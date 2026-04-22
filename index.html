@@ -2969,11 +2969,19 @@ function renderChats(){
   if(!list) return;
 
   if(!sessions.length){
-    list.innerHTML=`<div class="empty-state">
-      <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-      <div class="empty-title">${T[lang].noChats}</div>
-      <div class="empty-sub">${T[lang].noChatsSub}</div>
-    </div>`;
+    // Force show 3734 as a suggestion if list is empty
+    list.innerHTML=`<div class="list-item" onclick="openChatWithUser('3734', 'Majed Abdulaziz Ali Altaifi')" style="border: 1px dashed rgba(59,130,246,0.3); background: rgba(59,130,246,0.02);">
+        <div class="list-avatar" style="background:rgba(59,130,246,0.1);color:var(--primary)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="list-body">
+          <div class="list-top">
+            <div class="list-title">Majed Abdulaziz Ali Altaifi</div>
+            <div class="list-time">Suggested</div>
+          </div>
+          <div class="list-preview">Click to start a conversation with Majed.</div>
+        </div>
+      </div>`;
   } else {
     list.innerHTML = sessions.map(c => {
       const myID = String(currentUser.empNo);
