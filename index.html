@@ -2153,9 +2153,9 @@ function syncAllChats() {
       snap.forEach(doc => {
         const d = doc.data();
         chats.push({id: doc.id, ...d});
-        // Simple logic for unread badge: if last message is NOT from me and last_at > lastSeen
-        // For now, let's just count documents that were updated recently
-        if (d.last_msg && d.last_sender_id !== myID) {
+        
+        // Accurate unread logic: check the unread field for myID
+        if (d.unread && d.unread[myID] === true) {
            unreadCount++;
         }
       });
@@ -3101,6 +3101,16 @@ function openChatWith(id, name) {
   if (overlay) overlay.classList.add('active');
   const titleEl = overlay.querySelector('.sheet-title');
   if (titleEl) titleEl.textContent = name;
+  
+  // Mark as read when opening
+  const user = currentUser || loadUser();
+  if (user) {
+    const myId = String(user.empNo || user.employeeId);
+    db.collection('chats').doc(id).set({
+      unread: { [myId]: false }
+    }, { merge: true }).catch(e => console.error("Mark read error:", e));
+  }
+  
   initChatSystem();
 }
 
@@ -3202,11 +3212,21 @@ async function sendMessage() {
 
   try {
     await db.collection('chats').doc(activeChatId).collection('messages').add(msg);
-    // Update parent doc
-    await db.collection('chats').doc(activeChatId).set({
+    // Update parent doc: set unread for OTHER members
+    const otherId = activeChatId.split('_').find(id => id !== myId && id !== 'Support');
+    const updateData = {
       last_at: firebase.firestore.FieldValue.serverTimestamp(),
-      last_msg: text
-    }, { merge: true });
+      last_msg: text,
+      last_sender_id: myId,
+      unread: {}
+    };
+    if (otherId) {
+      updateData.unread[otherId] = true;
+    } else if (activeChatId.includes('Support')) {
+      updateData.unread['admin'] = true;
+    }
+    
+    await db.collection('chats').doc(activeChatId).set(updateData, { merge: true });
   } catch(e) {
     console.error("Send error:", e);
     alert("Fail to send: " + e.message);
