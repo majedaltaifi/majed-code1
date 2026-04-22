@@ -122,8 +122,8 @@ body{font-family:var(--font-ar);font-weight:500;color:var(--text);min-height:100
 .app-header .h-btn svg{width:18px;height:18px}
 
 /* ── TAB CONTENT ── */
-.tab-content{flex:1;overflow-y:auto;overflow-x:hidden;padding:0 16px 26px;width:100%;position:relative}
-.tab-pane{display:none;width:100%}
+.tab-content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:0 16px 80px;width:100%;position:relative}
+.tab-pane{display:none;width:100%;min-height:101%}
 .tab-pane.active{display:block;animation:fadeUp .4s var(--ease) both}
 .tab-pane.active > *{animation:fadeUp .5s var(--ease) both}
 .tab-pane.active > *:nth-child(1){animation-delay:.03s}
@@ -2579,7 +2579,8 @@ function switchTab(tab){
 
   if(tab==='home'){updateStats();applyPersonalization();renderStatsDashboard()}
   if(tab==='more'){renderProfileCard();updateLogoutBtn()}
-  window.scrollTo({top:0,behavior:'smooth'});
+  const content = document.querySelector('.tab-content');
+  if(content) content.scrollTop = 0;
   if(navigator.vibrate)navigator.vibrate(8);
 }
 
