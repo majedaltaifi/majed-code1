@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
@@ -2969,7 +2969,11 @@ function doTrackByRef(){
    ══════════════════════════════════════════ */
 
 function renderChats() {
-  const sessions = loadChats().sort((a,b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
+  const sessions = loadChats().sort((a,b) => {
+    const timeA = new Date(a.last_message_at || a.updated_at || 0);
+    const timeB = new Date(b.last_message_at || b.updated_at || 0);
+    return timeB - timeA;
+  });
   const list = document.getElementById('chats-list');
   if(!list) return;
 
@@ -2985,9 +2989,13 @@ function renderChats() {
     const myID = String(currentUser.empNo);
     const otherId = (s.participants || []).find(p => String(p) !== myID) || 'admin';
     const otherName = (otherId === 'admin') ? 'Management Support' : (s.names ? s.names[otherId] : (s.other_name || 'User ' + otherId));
-    const rawPreview = s.last_msg || s.last_message || '';
-    const preview = rawPreview ? (String(s.last_sender) === myID ? 'You: ' + rawPreview : rawPreview) : 'No messages yet';
-    const time = s.updated_at ? formatRelativeTime(new Date(s.updated_at)) : '';
+    
+    // Robust preview logic checking multiple possible field names
+    const rawPreview = s.last_msg || s.last_message || s.lastMessage || '';
+    const preview = rawPreview ? (String(s.last_sender) === myID ? (lang === 'ar' ? 'أنت: ' : 'You: ') + rawPreview : rawPreview) : (lang === 'ar' ? 'لا توجد رسائل' : 'No messages yet');
+    
+    const timeField = s.last_message_at || s.updated_at;
+    const time = timeField ? formatRelativeTime(new Date(timeField)) : '';
     const unread = (s.unread_counts && s.unread_counts[myID]) || 0;
     const isOtherAdmin = (otherId === 'admin' || otherId === '3734');
 
@@ -3081,7 +3089,9 @@ async function openChatWithUser(targetID, targetName) {
     names: { [myID]: (currentUser.name || 'User'), [finalTID]: targetName },
     other_name: targetName,
     type: isSupport ? 'support' : 'direct',
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
+    last_msg: '',
+    last_sender: ''
   };
 
   try {
@@ -3138,7 +3148,7 @@ function renderChatMessages(chat) {
     const d = new Date(m.at || Date.now());
     const time = d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
     return `<div class="msg ${m.type}">${escapeHtml(m.text)}<div class="msg-time">${time}</div></div>`;
-  }).join('') : '<div style="padding:100px 20px; text-align:center; opacity:0.2; font-weight:700">NO MESSAGES</div>';
+  }).join('') : `<div style="padding:100px 20px; text-align:center; opacity:0.2; font-weight:700">${lang === 'ar' ? 'لا توجد رسائل' : 'NO MESSAGES'}</div>`;
   box.scrollTop = box.scrollHeight;
 }
 
@@ -3153,8 +3163,10 @@ async function sendChat() {
   try {
     const ref = db.collection('chat_sessions').doc(currentChatId);
     const updateObj = { 
-      updated_at: now, 
+      updated_at: now,
+      last_message_at: now,
       last_msg: txt, 
+      last_message: txt, // Double-writing for compatibility
       last_sender: myID
     };
     const parts = currentChatId.includes('support') ? [myID, 'admin'] : currentChatId.replace('chat_','').split('_');
