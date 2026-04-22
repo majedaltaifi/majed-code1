@@ -1446,7 +1446,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script>
-  const APP_VERSION='3.35';
+  const APP_VERSION='3.36';
   let __refreshing=false;
   
   function showUpdateBanner(msg){
@@ -1461,7 +1461,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.35').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.36').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
@@ -2165,7 +2165,7 @@ let lang='ar',currentTab='home',selectedType='',selectedSeverity='',
     isAnonymous=true,isOngoing=false,uploadedFiles=[],deferredPrompt=null,
     currentChatId=null,selectedEnv='',selectedSubIssue='',selectedDetail='',selectedFrequency='';
 
-const LS_LANG='nit_lang',LS_REPORTS='nit_reports',LS_CHATS='nit_chats',LS_NOTIFS='nit_notifs',LS_SUPPORT='nit_support',LS_USER='nit_user',CACHE_NAME='nit-cache-v3.35';
+const LS_LANG='nit_lang',LS_REPORTS='nit_reports',LS_CHATS='nit_chats',LS_NOTIFS='nit_notifs',LS_SUPPORT='nit_support',LS_USER='nit_user',CACHE_NAME='nit-cache-v3.36';
 
 let currentUser=null,employeesDb=null,empLookupDebounce=null;
 
@@ -2970,22 +2970,32 @@ function renderChats(){
   } else {
     list.innerHTML = sessions.map(c => {
       const myID = String(currentUser.empNo);
-      const otherId = c.participants.find(p => String(p) !== myID);
+      
+      // Support both participants array and members map
+      let otherId = 'admin';
+      if (c.participants && Array.isArray(c.participants)) {
+        otherId = c.participants.find(p => String(p) !== myID) || 'admin';
+      } else if (c.members) {
+        otherId = Object.keys(c.members).find(k => k !== myID) || 'admin';
+      } else if (c.target_id && String(c.target_id) !== myID) {
+        otherId = c.target_id;
+      }
       
       let otherName = 'User ' + otherId;
       if (otherId === 'admin') {
-        otherName = T[lang].integrityTeam;
+        otherName = (T[lang].integrityTeam) || 'Management Support';
       } else if (c.names && c.names[otherId]) {
         otherName = c.names[otherId];
       } else if (c.other_name && String(c.target_id) !== myID) {
         otherName = c.other_name;
       }
 
-      const preview = c.last_message || T[lang].chatWelcome;
+      // Support both last_msg and last_message field names
+      const preview = c.last_msg || c.last_message || T[lang].chatWelcome || 'New conversation';
       const timeStr = c.updated_at ? formatRelativeTime(new Date(c.updated_at)) : '';
       const unread = (c.unread_counts && c.unread_counts[myID]) || 0;
       
-      return `<div class="list-item" onclick="openChat('${c.id}', '${otherName}')" style="position:relative">
+      return `<div class="list-item" onclick="openChat('${c.id}', '${otherName.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')" style="position:relative">
         ${unread > 0 ? `<div style="position:absolute;top:15px;right:15px;width:10px;height:10px;background:var(--danger);border-radius:50%;border:2px solid white"></div>` : ''}
         <div class="list-avatar" style="background:rgba(59,130,246,0.1);color:var(--primary)">
           ${otherId === 'admin' ? 
@@ -3197,13 +3207,14 @@ async function sendChat(){
   const sessionRef = db.collection('conversations_v3').doc(currentChatId);
   
   try {
-    const update = {
+    // Write all field variants for max compatibility
+    await sessionRef.set({
        updated_at: now,
        last_msg: txt,
+       last_message: txt,
        last_sender: myID,
        [`members.${myID}`]: true
-    };
-    await sessionRef.set(update, {merge:true});
+    }, {merge:true});
 
     await sessionRef.collection('messages').add({
       sender_id: myID,
