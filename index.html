@@ -1446,7 +1446,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script>
-  const APP_VERSION='3.27';
+  const APP_VERSION='3.28';
   let __refreshing=false;
   
   function showUpdateBanner(msg){
@@ -1461,7 +1461,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.27').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.28').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
@@ -2119,38 +2119,31 @@ function syncChats() {
   const myIDStr = String(currentUser.empNo);
   const myIDNum = Number(currentUser.empNo);
   
-  // Listen to both string and number variants if possible, or just merge results
+  const handleUpdate = (snap) => {
+    let chats = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+    saveChats(chats);
+    renderChats();
+    
+    let totalUnread = 0;
+    let adminUnread = 0;
+    chats.forEach(c => {
+      const unread = (c.unread_counts && (c.unread_counts[myIDStr] || c.unread_counts[myIDNum])) || 0;
+      totalUnread += unread;
+      if (c.id === 'direct_' + myIDStr || c.id === 'direct_' + myIDNum) adminUnread = unread;
+    });
+    const dot = document.getElementById('chats-dot');
+    if(dot) dot.style.display = totalUnread > 0 ? 'block' : 'none';
+    const sDot = document.getElementById('support-dot');
+    if(sDot) sDot.style.display = adminUnread > 0 ? 'block' : 'none';
+  };
+
+  // Immediate fetch to avoid empty state
+  db.collection('chat_sessions').where('participants', 'array-contains', myIDStr).get().then(handleUpdate);
+
+  // Real-time listener
   unsubChats = db.collection('chat_sessions')
     .where('participants', 'array-contains', myIDStr)
-    .onSnapshot(snap => {
-      let chats = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
-      
-      // Also check for numeric if different (just in case)
-      if(!isNaN(myIDNum) && myIDNum != myIDStr) {
-         db.collection('chat_sessions').where('participants', 'array-contains', myIDNum).get().then(s2 => {
-            s2.docs.forEach(d => {
-               if(!chats.find(c => c.id === d.id)) chats.push({id: d.id, ...d.data()});
-            });
-            saveChats(chats);
-            renderChats();
-         });
-      } else {
-        saveChats(chats);
-        renderChats();
-      }
-      
-      let totalUnread = 0;
-      let adminUnread = 0;
-      chats.forEach(c => {
-        const unread = (c.unread_counts && (c.unread_counts[myIDStr] || c.unread_counts[myIDNum])) || 0;
-        totalUnread += unread;
-        if (c.id === 'direct_' + myIDStr || c.id === 'direct_' + myIDNum) adminUnread = unread;
-      });
-      const dot = document.getElementById('chats-dot');
-      if(dot) dot.style.display = totalUnread > 0 ? 'block' : 'none';
-      const sDot = document.getElementById('support-dot');
-      if(sDot) sDot.style.display = adminUnread > 0 ? 'block' : 'none';
-    }, err => console.error("Chat Sync Error:", err));
+    .onSnapshot(handleUpdate, err => console.error("Chat Sync Error:", err));
 }
 
 function syncReports() {
