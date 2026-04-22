@@ -415,35 +415,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 .tl-title{font-size:.88rem;font-weight:700;margin-bottom:2px}
 .tl-date{font-size:.74rem;color:var(--text-muted)}
 
-/* ── CHAT CONVERSATION ── */
-.chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden;padding:0}
-.chat-messages{flex:1;overflow-y:auto;padding:14px 14px 14px;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch}
-.chat-messages::-webkit-scrollbar{width:4px}
-.chat-messages::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
-.msg{max-width:78%;padding:10px 14px;border-radius:16px;font-size:.88rem;line-height:1.5;word-wrap:break-word}
-.msg.bot{animation:slideInL .35s var(--ease) both}
-.msg.user{animation:slideInR .35s var(--ease) both}
-.msg.bot{align-self:flex-start;background:rgba(255,255,255,.07);border-bottom-left-radius:4px}
-[dir="rtl"] .msg.bot{border-bottom-left-radius:16px;border-bottom-right-radius:4px}
-.msg.user{align-self:flex-end;background:linear-gradient(135deg,var(--nit-blue),var(--nit-dark));border-bottom-right-radius:4px;color:#fff}
-[dir="rtl"] .msg.user{border-bottom-right-radius:16px;border-bottom-left-radius:4px}
-.msg-time{font-size:.64rem;color:var(--text-muted);margin-top:3px;opacity:.7}
-.typing-bubble{align-self:flex-start;background:rgba(255,255,255,.07);padding:12px 16px;border-radius:16px;border-bottom-left-radius:4px;display:flex;gap:4px}
-[dir="rtl"] .typing-bubble{border-bottom-left-radius:16px;border-bottom-right-radius:4px}
-.typing-bubble span{width:6px;height:6px;background:var(--text-muted);border-radius:50%;animation:typing 1.2s ease-in-out infinite}
-.typing-bubble span:nth-child(2){animation-delay:.2s}
-.typing-bubble span:nth-child(3){animation-delay:.4s}
-@keyframes typing{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
-.quick-replies{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 8px}
-.quick-reply{padding:6px 12px;background:var(--glass);border:1px solid var(--glass-border);border-radius:18px;font-size:.76rem;color:var(--turquoise);cursor:pointer;font-family:inherit;transition:all .2s}
-.quick-reply:active{transform:scale(.95);background:rgba(128,209,233,.1)}
-.chat-input-bar{padding:10px 12px calc(var(--sa-b) + 12px);background:rgba(8,9,34,.92);backdrop-filter:blur(20px);border-top:1px solid var(--glass-border);display:flex;gap:8px;align-items:center;flex-shrink:0}
-.chat-input-bar .text-input{flex:1;border-radius:22px;padding:10px 16px}
-.chat-send{width:40px;height:40px;border-radius:50%;background:var(--turquoise);border:none;color:var(--nit-dark);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s;flex-shrink:0}
-.chat-send:disabled{opacity:.4;background:var(--glass);color:var(--text-muted)}
-.chat-send:active:not(:disabled){transform:scale(.92)}
-.chat-send svg{width:18px;height:18px}
-[dir="rtl"] .chat-send svg{transform:scaleX(-1)}
+
 
 /* ── CONFETTI ── */
 .confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:9998;overflow:hidden}
@@ -600,77 +572,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 .env-card.selected .e-icon{background:rgba(128,209,233,.22);transform:scale(1.08)}
 .env-card .e-label{font-size:.78rem;font-weight:600}
 
-/* ── BRANDED CHAT SYSTEM STYLES ── */
-.chat-hub { display: flex; flex-direction: column; height: 100%; position: relative; z-index: 1; }
-.chat-search-wrap { 
-  padding: 16px; background: rgba(8, 9, 34, 0.4); backdrop-filter: blur(20px); 
-  -webkit-backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 15; 
-  border-bottom: 1px solid var(--glass-border); 
-}
-.search-input-box { 
-  display: flex; align-items: center; gap: 10px; background: var(--glass); border-radius: 18px; 
-  padding: 12px 16px; border: 1px solid var(--glass-border); transition: all 0.3s var(--ease); 
-}
-.search-input-box:focus-within { border-color: var(--turquoise); box-shadow: 0 0 15px var(--turq-glow); background: rgba(255,255,255,0.08); }
-.search-input-box input { background: none; border: none; color: var(--text); font-size: 0.95rem; width: 100%; font-family: inherit; outline: none; }
-.search-input-box input::placeholder { color: var(--text-muted); }
-.search-input-box svg { width: 18px; color: var(--turquoise); opacity: 0.7; }
 
-.chat-scroll-area { flex: 1; overflow-y: auto; padding: 16px; padding-bottom: 120px; }
-.pinned-section { margin-bottom: 24px; }
-.pinned-label { font-size: 0.72rem; font-weight: 850; color: var(--turquoise); letter-spacing: 1.5px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
-
-.chat-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 24px; padding: 18px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: all 0.3s var(--ease); position: relative; overflow: hidden; margin-bottom: 10px; }
-.chat-card:active { transform: scale(0.97); background: var(--glass-hover); }
-.chat-card.pinned { background: linear-gradient(135deg, rgba(46, 49, 146, 0.4), rgba(128, 209, 233, 0.1)); border-color: rgba(128,209,233,0.3); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
-
-.chat-avatar { width: 54px; height: 54px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-weight: 950; font-size: 1.3rem; background: var(--surface-2); color: var(--turquoise); flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05); }
-.chat-card.pinned .chat-avatar { background: linear-gradient(135deg, var(--turquoise), var(--nit-blue)); color: white; box-shadow: 0 4px 12px var(--turq-glow); border: none; }
-
-.chat-info { flex: 1; min-width: 0; }
-.chat-name-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-.chat-name { font-weight: 800; font-size: 1.05rem; color: var(--text); }
-.chat-time { font-size: 0.68rem; font-weight: 600; color: var(--text-dim); font-family: var(--font-en); }
-.chat-msg-preview { font-size: 0.82rem; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; opacity: 0.7; }
-
-/* Branded Message Screen */
-#sheet-chat .sheet-body { background: var(--bg); display: flex; flex-direction: column; padding: 0; position: relative; }
-.msg-container { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; background: radial-gradient(circle at top right, rgba(128,209,233,0.03), transparent); }
-.msg-row { display: flex; flex-direction: column; width: 100%; margin-bottom: 4px; }
-.msg-row.me { align-items: flex-end; }
-.msg-row.them { align-items: flex-start; }
-.msg-sender-label { font-size: 0.65rem; font-weight: 900; color: var(--turquoise); opacity: 0.8; margin-bottom: 4px; padding: 0 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-
-.msg-bubble { max-width: 85%; padding: 12px 18px; border-radius: 22px; font-size: 0.95rem; line-height: 1.5; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.2s; position: relative; }
-.msg-bubble.me { background: linear-gradient(135deg, var(--nit-blue), var(--nit-dark)); color: white; border: 1px solid rgba(128,209,233,0.25); border-bottom-right-radius: 4px; }
-.msg-bubble.them { background: var(--glass); color: var(--text); border: 1px solid var(--glass-border); border-bottom-left-radius: 4px; }
-.msg-time { font-size: 0.6rem; opacity: 0.5; margin-top: 6px; text-align: right; font-family: var(--font-en); font-weight: 600; }
-
-.chat-input-bar { padding: 14px 16px; background: rgba(8, 9, 34, 0.7); backdrop-filter: blur(30px); border-top: 1px solid var(--glass-border); display: flex; gap: 12px; align-items: center; padding-bottom: calc(14px + var(--sa-b)); }
-.chat-input-field { flex: 1; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 24px; padding: 12px 20px; color: var(--text); font-family: inherit; font-size: 0.95rem; outline: none; transition: 0.3s var(--ease); }
-.chat-input-field:focus { border-color: var(--turquoise); background: rgba(255,255,255,0.08); box-shadow: 0 0 10px var(--turq-glow); }
-.chat-send-circle { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--turquoise), var(--nit-blue)); color: white; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; box-shadow: 0 5px 15px var(--turq-glow); transition: 0.3s var(--ease); }
-.chat-send-circle:active { transform: scale(0.9); opacity: 0.8; }
-
-.support-btn-glass { 
-  display: flex; align-items: center; gap: 14px; padding: 14px 18px; 
-  background: var(--glass); border: 1px solid var(--glass-border); 
-  border-radius: 18px; cursor: pointer; margin-top: 15px; 
-  transition: all 0.3s var(--ease);
-}
-.support-btn-glass:active { transform: scale(0.97); background: var(--glass-hover); }
-.support-icon { 
-  width: 44px; height: 44px; border-radius: 14px; 
-  background: linear-gradient(135deg, var(--nit-blue), var(--nit-dark)); 
-  display: flex; align-items: center; justify-content: center; color: var(--turquoise);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-}
-.support-icon svg { width: 22px; height: 22px; }
-.support-text-wrap { flex: 1; }
-.support-title { font-size: 0.85rem; font-weight: 900; color: #fff; letter-spacing: 0.8px; }
-.support-sub { font-size: 0.7rem; color: var(--text-dim); margin-top: 1px; }
-.support-arrow { color: var(--turquoise); opacity: 0.6; }
-[dir="rtl"] .support-arrow { transform: scaleX(-1); }
 
 .freq-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .freq-btn{padding:10px 4px;border:1.5px solid transparent;border-radius:var(--r);text-align:center;cursor:pointer;transition:all .25s;font-size:.75rem;font-weight:700;background:rgba(255,255,255,.04);color:var(--text-dim)}
@@ -689,10 +591,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 .tl-event-meta{font-size:.72rem;color:var(--text-muted)}
 
 /* ── NOTIFICATIONS LIST ── */
-.chat-del-bubble{position:absolute;top:-8px;right:-8px;width:24px;height:24px;border-radius:50%;background:var(--danger);color:#fff;border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;z-index:10;box-shadow:0 4px 10px rgba(0,0,0,0.3);cursor:pointer}
-.chat-del-bubble svg{width:12px;height:12px}
-.manage-active{animation:shake 0.3s infinite;border-color:var(--danger) !important}
-@keyframes shake{0%{transform:rotate(0.5deg)}50%{transform:rotate(-0.5deg)}100%{transform:rotate(0.5deg)}}
+
 .notif-item{display:flex;align-items:stretch;gap:12px;padding:14px;background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--r);margin-bottom:8px;transition:all .25s;cursor:pointer;text-align:start;color:var(--text);font-family:inherit;width:100%}
 .notif-item:hover{border-color:var(--glass-border-hover)}
 .notif-item:active{transform:scale(.98)}
@@ -704,6 +603,69 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 .notif-title{font-size:.88rem;font-weight:700;line-height:1.25}
 .notif-time{font-size:.68rem;color:var(--text-muted);font-family:var(--font-en);flex-shrink:0}
 .notif-desc{font-size:.77rem;color:var(--text-dim);line-height:1.45}
+
+
+/* ── NEW PREMIUM CHAT STYLES ── */
+.chat-hub { display: flex; flex-direction: column; height: 100%; animation: fadeIn 0.4s ease; }
+.search-container { padding: 20px 16px; background: rgba(8,9,34,0.3); border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 20; }
+.search-box { 
+  display: flex; align-items: center; gap: 12px; background: var(--glass); border: 1.5px solid var(--glass-border); 
+  border-radius: 20px; padding: 12px 18px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.search-box:focus-within { border-color: var(--turquoise); box-shadow: 0 0 20px var(--turq-glow); transform: translateY(-1px); }
+.search-box input { flex: 1; background: none; border: none; color: #fff; font-size: 0.95rem; font-family: inherit; outline: none; }
+.search-box svg { width: 20px; height: 20px; color: var(--turquoise); opacity: 0.8; }
+
+.search-results-overlay { 
+  position: absolute; top: 100%; left: 0; right: 0; background: var(--bg); border: 1px solid var(--glass-border); 
+  box-shadow: 0 15px 40px rgba(0,0,0,0.5); z-index: 100; max-height: 400px; overflow-y: auto; display: none; margin: 5px 16px; border-radius: 18px; 
+}
+.search-item { padding: 14px 18px; display: flex; align-items: center; gap: 14px; cursor: pointer; border-bottom: 1px solid var(--glass-border); transition: 0.2s; }
+.search-item:last-child { border-bottom: none; }
+.search-item:active { background: var(--glass-hover); }
+.search-avatar { width: 44px; height: 44px; border-radius: 12px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--turquoise); font-size: 1.1rem; }
+.search-info { flex: 1; }
+.search-name { font-size: 0.95rem; font-weight: 700; color: #fff; }
+.search-meta { font-size: 0.75rem; color: var(--text-dim); }
+
+.chat-list { flex: 1; overflow-y: auto; padding: 10px 16px 120px; }
+.conversation-card { 
+  background: var(--glass); border: 1px solid var(--glass-border); border-radius: 22px; padding: 16px; 
+  display: flex; align-items: center; gap: 16px; margin-bottom: 12px; cursor: pointer; transition: all 0.3s var(--ease);
+}
+.conversation-card:active { transform: scale(0.98); background: var(--glass-hover); }
+.conversation-avatar { width: 56px; height: 56px; border-radius: 18px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-weight: 950; font-size: 1.4rem; color: var(--turquoise); position: relative; }
+.conversation-card.unread .conversation-avatar::after { content: ''; position: absolute; top: -2px; right: -2px; width: 14px; height: 14px; background: var(--danger); border: 2.5px solid var(--bg); border-radius: 50%; }
+.conversation-body { flex: 1; min-width: 0; }
+.conv-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.conv-name { font-weight: 800; font-size: 1.05rem; color: #fff; }
+.conv-time { font-size: 0.68rem; color: var(--text-dim); font-family: var(--font-en); }
+.conv-preview { font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.8; }
+.conversation-card.unread .conv-preview { color: #fff; font-weight: 600; opacity: 1; }
+
+#sheet-chat .sheet-body { background: var(--bg); padding: 0; display: flex; flex-direction: column; }
+.messages-viewport { flex: 1; overflow-y: auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 12px; }
+.msg-bubble { 
+  max-width: 82%; padding: 12px 18px; border-radius: 22px; font-size: 0.95rem; line-height: 1.5; 
+  position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+}
+.msg-bubble.me { align-self: flex-end; background: linear-gradient(135deg, var(--nit-blue), var(--nit-dark)); border: 1px solid rgba(128,209,233,0.3); color: #fff; border-bottom-right-radius: 4px; }
+.msg-bubble.them { align-self: flex-start; background: var(--glass); border: 1px solid var(--glass-border); color: #fff; border-bottom-left-radius: 4px; }
+.msg-time-tag { font-size: 0.6rem; opacity: 0.5; margin-top: 5px; text-align: right; display: block; }
+
+.chat-footer { 
+  padding: 16px; background: rgba(8,9,34,0.8); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); 
+  border-top: 1px solid var(--glass-border); display: flex; gap: 12px; align-items: center; 
+  padding-bottom: calc(16px + var(--sa-b)); 
+}
+.chat-input { flex: 1; background: var(--glass); border: 1.5px solid var(--glass-border); border-radius: 22px; padding: 12px 20px; color: #fff; font-size: 0.95rem; outline: none; transition: 0.3s; }
+.chat-input:focus { border-color: var(--turquoise); background: rgba(255,255,255,0.08); }
+.send-btn { 
+  width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--turquoise), var(--nit-blue)); 
+  border: none; color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; 
+  box-shadow: 0 5px 15px var(--turq-glow); transition: 0.3s; 
+}
+.send-btn:active { transform: scale(0.9); }
 
 /* ── INFO CARDS (company/sites) ── */
 .info-row{display:flex;align-items:center;gap:12px;padding:14px;background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--r);margin-bottom:8px;transition:all .25s;cursor:pointer;text-align:start;color:var(--text);font-family:inherit;width:100%}
@@ -986,17 +948,13 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
           <div class="action-info"><div class="action-title" data-t="hubReport"></div><div class="action-desc" data-t="hubReportDesc"></div></div>
           <span class="action-arrow">›</span>
         </button>
-        <button class="action-card" onclick="startNewChat()">
-          <div class="action-icon a-chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-          <div class="action-info"><div class="action-title" data-t="hubChat"></div><div class="action-desc" data-t="hubChatDesc"></div></div>
-          <span class="action-arrow">›</span>
-        </button>
+
         <button class="action-card" onclick="openTrackByRef()">
           <div class="action-icon a-track"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
           <div class="action-info"><div class="action-title" data-t="hubTrack"></div><div class="action-desc" data-t="hubTrackDesc"></div></div>
           <span class="action-arrow">›</span>
         </button>
-        <button class="action-card" onclick="openSupport()">
+        <button class="action-card" onclick="openTechSupport()">
           <div class="action-icon" style="color:#a78bfa;background:linear-gradient(135deg,rgba(167,139,250,.18),rgba(139,92,246,.28));box-shadow:inset 0 0 0 1px rgba(167,139,250,.2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
           <div class="action-info"><div class="action-title" data-t="hubSupport">SUPPORT</div><div class="action-desc" data-t="hubSupportDesc"></div></div>
           <span class="action-arrow">›</span>
@@ -1023,31 +981,18 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       <div id="reports-list"></div>
     </div>
 
+<!-- CHATS TAB REMOVED -->
     <div class="tab-pane" id="tab-chats">
       <div class="chat-hub">
-        <div class="chat-search-wrap">
-          <div class="search-input-box">
+        <div class="search-container">
+          <div class="search-box">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" id="chat-search" placeholder="Search by name or phone..." oninput="performDatabaseSearch()">
+            <input type="text" id="chat-global-search" placeholder="Search employee name or ID..." oninput="handleChatSearch(this.value)">
           </div>
-          <div class="support-btn-glass" onclick="openSupportChat()" style="margin-top:12px">
-            <div class="support-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            </div>
-            <div class="support-text-wrap">
-              <div class="support-title">MANAGEMENT SUPPORT</div>
-              <div class="support-sub">Open secure line</div>
-            </div>
-            <div class="support-arrow">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </div>
-          </div>
+          <div id="search-results" class="search-results-overlay"></div>
         </div>
-
-        <div class="chat-scroll-area">
-          <div id="chat-list-container">
-            <!-- Chat list or search results -->
-          </div>
+        <div class="chat-list" id="active-conversations">
+          <!-- Active chats will appear here -->
         </div>
       </div>
     </div>
@@ -1115,15 +1060,15 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
       <span class="nav-lbl" data-t="tabReports"></span>
     </button>
-    <button class="nav-fab" onclick="openForm()" aria-label="New Report">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    </button>
     <button class="nav-btn" data-tab="chats" onclick="switchTab('chats')" style="position:relative">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       <span class="nav-lbl" data-t="tabChats"></span>
-      <span class="dot" id="chats-dot"></span>
-      <span id="chat-tab-badge" style="display:none;position:absolute;top:4px;right:12px;background:var(--danger);color:#fff;font-size:0.55rem;font-weight:900;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;border:2px solid var(--bg)"></span>
+      <span id="chat-badge" class="dot" style="display:none"></span>
     </button>
+    <button class="nav-fab" onclick="openForm()" aria-label="New Report">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
+
     <button class="nav-btn" data-tab="more" onclick="switchTab('more')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/></svg>
       <span class="nav-lbl" data-t="tabMore"></span>
@@ -1334,24 +1279,25 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   </div>
 </div>
 
+<!-- CHAT SHEET REMOVED -->
 <div class="sheet" id="sheet-chat">
   <div class="sheet-header">
     <button class="sheet-back" onclick="closeChatRoom()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
     <div class="sheet-title-wrap">
-      <div class="sheet-title" id="chat-title-name">Chat</div>
-      <div class="sheet-subtitle" id="chat-sub-label">Online Status</div>
+      <div class="sheet-title" id="active-chat-name">Chat</div>
+      <div class="sheet-subtitle" id="active-chat-status">Secured Room</div>
     </div>
   </div>
   <div class="sheet-body">
-    <div class="msg-container" id="msg-container">
-      <!-- Messages appear here -->
+    <div class="messages-viewport" id="messages-list">
+      <!-- Real-time messages -->
     </div>
-    <div class="chat-input-bar">
-      <input type="text" class="chat-input-field" id="msg-input" placeholder="Type message..." onkeydown="if(event.key==='Enter')sendNewMessage()">
-      <button class="chat-send-circle" id="send-msg-btn" onclick="sendNewMessage()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><line x1="22" y1="2" x2="11" y2="13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+    <div class="chat-footer">
+      <input type="text" class="chat-input" id="chat-msg-input" placeholder="Aa" onkeydown="if(event.key==='Enter')sendMessage()">
+      <button class="send-btn" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><line x1="22" y1="2" x2="11" y2="13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
       </button>
     </div>
   </div>
@@ -1369,14 +1315,14 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   </div>
   <div class="sheet-body">
     <div class="lang-grid">
-      <button class="lang-btn" onclick="pickLang('en')"><span class="flag">🇸🇦</span>العربية</button>
-      <button class="lang-btn" onclick="pickLang('en')"><span class="flag">🇬🇧</span>English</button>
-      <button class="lang-btn" onclick="pickLang('ur')"><span class="flag">🇵🇰</span>اردو</button>
-      <button class="lang-btn" onclick="pickLang('hi')"><span class="flag">🇮🇳</span>हिन्दी</button>
-      <button class="lang-btn" onclick="pickLang('tl')"><span class="flag">🇵🇭</span>Filipino</button>
-      <button class="lang-btn" onclick="pickLang('sw')"><span class="flag">🇰🇪</span>Kiswahili</button>
-      <button class="lang-btn" onclick="pickLang('tr')"><span class="flag">🇹🇷</span>Türkçe</button>
-      <button class="lang-btn" onclick="pickLang('id')"><span class="flag">🇮🇩</span>Bahasa</button>
+      <button class="lang-btn" onclick="setLang('ar')"><span class="flag">🇸🇦</span>العربية</button>
+      <button class="lang-btn" onclick="setLang('en')"><span class="flag">🇬🇧</span>English</button>
+      <button class="lang-btn" onclick="setLang('ur')"><span class="flag">🇵🇰</span>اردو</button>
+      <button class="lang-btn" onclick="setLang('hi')"><span class="flag">🇮🇳</span>हिन्दी</button>
+      <button class="lang-btn" onclick="setLang('tl')"><span class="flag">🇵🇭</span>Filipino</button>
+      <button class="lang-btn" onclick="setLang('sw')"><span class="flag">🇰🇪</span>Kiswahili</button>
+      <button class="lang-btn" onclick="setLang('tr')"><span class="flag">🇹🇷</span>Türkçe</button>
+      <button class="lang-btn" onclick="setLang('id')"><span class="flag">🇮🇩</span>Bahasa</button>
     </div>
   </div>
 </div>
@@ -2197,7 +2143,7 @@ function syncReports() {
    ══════════════════════════════════════════ */
 let lang='en',currentTab='home',selectedType='',selectedSeverity='',
     isAnonymous=true,isOngoing=false,uploadedFiles=[],deferredPrompt=null,
-    currentChatId=null,selectedEnv='',selectedSubIssue='',selectedDetail='',selectedFrequency='';
+    selectedEnv='',selectedSubIssue='',selectedDetail='',selectedFrequency='';
 
 const LS_LANG='nit_lang',LS_REPORTS='nit_reports',LS_CHATS='nit_chats',LS_NOTIFS='nit_notifs',LS_SUPPORT='nit_support',LS_USER='nit_user',CACHE_NAME='nit-cache';
 
@@ -2207,8 +2153,7 @@ function loadUser(){try{return JSON.parse(localStorage.getItem(LS_USER)||'null')
 function saveUser(u){if(u)localStorage.setItem(LS_USER,JSON.stringify(u));else localStorage.removeItem(LS_USER);currentUser=u}
 function loadReports(){try{return JSON.parse(localStorage.getItem(LS_REPORTS)||'[]')}catch(e){return[]}}
 function saveReports(r){localStorage.setItem(LS_REPORTS,JSON.stringify(r))}
-function loadChats(){try{return JSON.parse(localStorage.getItem(LS_CHATS)||'[]')}catch(e){return[]}}
-function saveChats(c){localStorage.setItem(LS_CHATS,JSON.stringify(c))}
+
 function loadNotifs(){try{return JSON.parse(localStorage.getItem(LS_NOTIFS)||'[]')}catch(e){return[]}}
 function saveNotifs(n){localStorage.setItem(LS_NOTIFS,JSON.stringify(n))}
 
@@ -2232,17 +2177,18 @@ function setLang(l){
   enterMainApp();
 }
 
-function enterMainApp(){
-  document.getElementById('screen-login').classList.remove('show');
-  document.getElementById('screen-lang').classList.remove('show');
-  document.getElementById('main-app').classList.add('show');
-  seedNotifsIfFirstTime(); switchTab('home'); applyPersonalization();
-  syncBroadcasts(); initChatSystem(); syncReports();
-  // Double-tap render to catch any early data
-  setTimeout(() => { updateStats(); renderReports(); }, 500);
-  setTimeout(() => { updateStats(); renderReports(); }, 2000);
-  renderProfileCard(); updateLogoutBtn();
-}
+  function enterMainApp(){
+    document.getElementById('screen-login').classList.remove('show');
+    document.getElementById('screen-lang').classList.remove('show');
+    document.getElementById('main-app').classList.add('show');
+    seedNotifsIfFirstTime(); switchTab('home'); applyPersonalization();
+    syncBroadcasts(); syncReports();
+    initChatSystem();
+    // Double-tap render to catch any early data
+    setTimeout(() => { updateStats(); renderReports(); }, 500);
+    setTimeout(() => { updateStats(); renderReports(); }, 2000);
+    renderProfileCard(); updateLogoutBtn();
+  }
 
 // switchTab and toggleChatManage defined below with full logic
 
@@ -2528,7 +2474,7 @@ function switchTab(tab){
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
   updateHeader();
   if(tab==='reports')renderReports();
-  if(tab==='chats'){ renderChatHub(); }
+
   if(tab==='home'){updateStats();applyPersonalization();renderStatsDashboard()}
   if(tab==='more'){renderProfileCard();updateLogoutBtn()}
   window.scrollTo({top:0,behavior:'smooth'});
@@ -2987,369 +2933,263 @@ function doTrackByRef(){
 }
 
 /* ══════════════════════════════════════════
-   CHAT ENGINE v3 — CLEAN REBUILD
+   NEW PREMIUM CHAT ENGINE
    ══════════════════════════════════════════ */
-let allUsers = [];
 let activeChats = [];
 let chatUnsub = null;
 let msgUnsub = null;
-let activeChatId = null;
-let nameCache = {};      // { odId: { name, role } }
-let unreadMap = {};       // { chatId: true/false }
+let currentChatId = null;
+let employeeCache = {}; // { id: { name, empNo } }
 
-function getMyID() {
-  return String(currentUser.empNo).trim();
-}
+function getMyID() { return String(currentUser.empNo).trim(); }
 
-// ─── INIT ───────────────────────────────
-async function initChatSystem() {
-  if (!currentUser) return;
-  const myID = getMyID();
-  try {
-    if (!firebase.auth().currentUser) {
-      await firebase.auth().signInAnonymously();
-    }
-  } catch (e) { console.warn('Auth:', e.message); }
+// ─── SEARCH LOGIC ───────────────────────
+let searchDebounce = null;
+async function handleChatSearch(q) {
+  const overlay = document.getElementById('search-results');
+  const val = q.trim();
+  if (val.length < 2) { overlay.style.display = 'none'; return; }
 
-  // Load unread state from localStorage
-  try { unreadMap = JSON.parse(localStorage.getItem('chat_unread_' + myID) || '{}'); } catch(e) {}
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(async () => {
+    overlay.innerHTML = '<div style="padding:20px;text-align:center;opacity:0.5">Searching...</div>';
+    overlay.style.display = 'block';
 
-  startChatSync();
-}
-
-// ─── REAL-TIME SYNC ─────────────────────
-function startChatSync() {
-  const myID = getMyID();
-  if (chatUnsub) chatUnsub();
-
-  chatUnsub = db.collection('chats')
-    .where('participants', 'array-contains', myID)
-    .onSnapshot(async snap => {
-      activeChats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-      // Detect unread: any chat where lastSenderId != me
-      snap.docChanges().forEach(change => {
-        if (change.type === 'modified') {
-          const d = change.doc.data();
-          const cid = change.doc.id;
-          if (d.lastSenderId && d.lastSenderId !== myID && cid !== activeChatId) {
-            unreadMap[cid] = true;
-            saveUnread();
-          }
-        }
-      });
-
-      // Fetch missing names
-      const missing = [];
-      activeChats.forEach(c => {
-        (c.participants || []).forEach(pid => {
-          if (pid !== myID && pid !== 'admin' && !nameCache[pid]) missing.push(pid);
-        });
-      });
-      if (missing.length > 0) {
-        const unique = [...new Set(missing)];
-        for (let i = 0; i < unique.length; i += 10) {
-          const batch = unique.slice(i, i + 10);
-          try {
-            const snap = await db.collection('employees')
-              .where(firebase.firestore.FieldPath.documentId(), 'in', batch).get();
-            snap.forEach(doc => {
-              const d = doc.data();
-              nameCache[doc.id] = {
-                name: d.name || d['Employee Name - English'] || 'User ' + doc.id,
-                role: d.role || 'user'
-              };
-            });
-          } catch(e) {}
-          // Fill missing as fallback
-          batch.forEach(id => {
-            if (!nameCache[id]) nameCache[id] = { name: 'User ' + id, role: 'user' };
-          });
-        }
-      }
-
-      renderChatHub();
-    }, err => {
-      console.error('Chat sync error:', err);
-    });
-}
-
-function saveUnread() {
-  try { localStorage.setItem('chat_unread_' + getMyID(), JSON.stringify(unreadMap)); } catch(e) {}
-  updateChatBadge();
-}
-
-function updateChatBadge() {
-  const count = Object.values(unreadMap).filter(Boolean).length;
-  const badge = document.getElementById('chat-tab-badge');
-  if (badge) {
-    badge.style.display = count > 0 ? 'flex' : 'none';
-    badge.textContent = count;
-  }
-}
-
-// ─── SEARCH ─────────────────────────────
-let searchTimer = null;
-function performDatabaseSearch() {
-  const q = (document.getElementById('chat-search')?.value || '').trim();
-  const list = document.getElementById('chat-list-container');
-  if (!q || q.length < 2) { renderChatHub(); return; }
-
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(async () => {
-    list.innerHTML = '<div style="padding:40px;text-align:center;opacity:0.3">Searching...</div>';
-    const myID = getMyID();
-    let results = [];
     try {
-      // Search by name prefix
-      const nameQ = q.charAt(0).toUpperCase() + q.slice(1).toLowerCase();
+      let results = [];
+      const myID = getMyID();
+      
+      // 1. Search by Name (startAt/endAt)
+      const nameQ = val.charAt(0).toUpperCase() + val.slice(1);
       const s1 = await db.collection('employees')
         .orderBy('name').startAt(nameQ).endAt(nameQ + '\uf8ff')
-        .limit(15).get();
-      results = s1.docs.map(d => ({
-        userId: d.id,
-        name: d.data().name || d.data()['Employee Name - English'] || 'User',
-        role: d.data().role || 'user'
-      })).filter(u => u.userId !== myID);
+        .limit(10).get();
+      s1.forEach(doc => { if(doc.id !== myID) results.push({ id: doc.id, ...doc.data() }); });
 
-      // If no results, try by document ID (employee number)
-      if (results.length === 0) {
-        const s2 = await db.collection('employees').doc(q).get();
-        if (s2.exists) {
-          results = [{
-            userId: s2.id,
-            name: s2.data().name || s2.data()['Employee Name - English'] || 'User',
-            role: s2.data().role || 'user'
-          }].filter(u => u.userId !== myID);
+      // 2. Search by Employee ID (direct doc get)
+      if (results.length < 5) {
+        const s2 = await db.collection('employees').doc(val).get();
+        if (s2.exists && s2.id !== myID) {
+          if (!results.find(r => r.id === s2.id)) results.push({ id: s2.id, ...s2.data() });
         }
       }
-    } catch (e) { console.error('Search error:', e); }
 
-    if (results.length === 0) {
-      list.innerHTML = '<div style="padding:40px;text-align:center;opacity:0.3">No results found.</div>';
-    } else {
-      list.innerHTML = results.map(u => {
-        // Cache names we find
-        nameCache[u.userId] = { name: u.name, role: u.role };
-        const chat = activeChats.find(c => c.participants?.includes(u.userId));
-        return buildChatCard(u.userId, u.name, u.role, chat);
-      }).join('');
+      if (results.length === 0) {
+        overlay.innerHTML = '<div style="padding:20px;text-align:center;opacity:0.5">No employees found.</div>';
+      } else {
+        overlay.innerHTML = results.map(u => {
+          const name = u.name || u['Employee Name - English'] || 'User';
+          const initial = name.charAt(0).toUpperCase();
+          return `
+            <div class="search-item" onclick="startChatWith('${u.id}', '${name.replace(/'/g,"\\'")}')">
+              <div class="search-avatar">${initial}</div>
+              <div class="search-info">
+                <div class="search-name">${name}</div>
+                <div class="search-meta">ID: ${u.id} ${u.department ? ' • ' + u.department : ''}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    } catch(e) {
+      console.error("Search Error:", e);
+      overlay.innerHTML = '<div style="padding:20px;text-align:center;color:var(--danger)">Search service unavailable</div>';
     }
-  }, 350);
+  }, 400);
 }
 
-// ─── RENDER CHAT LIST ───────────────────
-function renderChatHub() {
-  const list = document.getElementById('chat-list-container');
-  if (!list) return;
-  const q = (document.getElementById('chat-search')?.value || '').trim();
-  if (q.length >= 2) return; // Search is active, don't override
-
+// ─── CHAT MANAGEMENT ───────────────────
+async function startChatWith(targetId, targetName) {
+  document.getElementById('search-results').style.display = 'none';
+  document.getElementById('chat-global-search').value = '';
+  
   const myID = getMyID();
-
-  if (activeChats.length === 0) {
-    list.innerHTML = '<div style="padding:60px 20px;text-align:center;opacity:0.3;font-size:0.85rem;">Search for an employee to start chatting.</div>';
-    updateChatBadge();
-    return;
+  const chatId = [myID, targetId].sort().join('_');
+  
+  // Clear unread mark
+  const unreadCount = parseInt(localStorage.getItem('unread_' + chatId) || '0');
+  if(unreadCount > 0) {
+    localStorage.setItem('unread_' + chatId, '0');
+    updateGlobalChatBadge();
   }
 
-  // Sort by updatedAt desc client-side to avoid composite index
-  const sortedChats = [...activeChats].sort((a,b) => {
-    const timeA = a.updatedAt?.toDate ? a.updatedAt.toDate() : new Date(a.updatedAt || 0);
-    const timeB = b.updatedAt?.toDate ? b.updatedAt.toDate() : new Date(b.updatedAt || 0);
-    return timeB - timeA;
-  });
-
-  let html = '';
-  sortedChats.forEach(chat => {
-    const otherId = (chat.participants || []).find(p => p !== myID);
-    if (!otherId) return;
-    const info = otherId === 'admin'
-      ? { name: 'Management Support', role: 'admin' }
-      : (nameCache[otherId] || { name: 'User ' + otherId, role: 'user' });
-    html += buildChatCard(otherId, info.name, info.role, chat);
-  });
-
-  list.innerHTML = html || '<div style="padding:60px 20px;text-align:center;opacity:0.3;font-size:0.85rem;">Search for an employee to start chatting.</div>';
-  updateChatBadge();
-}
-
-function buildChatCard(userId, name, role, chat) {
-  const initial = (name || '?').charAt(0).toUpperCase();
-  const myID = getMyID();
-  let preview = '';
-  if (chat) {
-    const raw = chat.lastMessage || '';
-    if (raw) {
-      preview = (chat.lastSenderId === myID ? 'You: ' : '') + raw;
-    }
-  }
-  const time = (chat?.updatedAt) 
-    ? formatRelativeTime(chat.updatedAt.toDate ? chat.updatedAt.toDate() : new Date(chat.updatedAt)) 
-    : '';
-  const isAdmin = role === 'admin';
-  const chatId = chat ? chat.id : null;
-  const hasUnread = chatId && unreadMap[chatId];
-  const safeName = (name || '').replace(/'/g, "\\'");
-
-  return `
-    <div class="chat-card ${isAdmin ? 'pinned' : ''}" onclick="startChat('${userId}', '${safeName}')">
-      ${hasUnread ? '<div class="unread-dot"></div>' : ''}
-      <div class="chat-avatar ${isAdmin ? 'admin' : ''}">${initial}</div>
-      <div class="chat-info">
-        <div class="chat-name-row">
-          <div class="chat-name">${name}${isAdmin ? ' <span style="font-size:0.6rem;color:var(--turquoise);margin-inline-start:5px">● ADMIN</span>' : ''}</div>
-          <div class="chat-time">${time}</div>
-        </div>
-        ${preview ? '<div class="chat-msg-preview">' + escapeHtml(preview) + '</div>' : ''}
-      </div>
-    </div>
-  `;
-}
-
-// ─── START / OPEN CHAT ──────────────────
-async function startChat(targetId, targetName) {
-  if (!currentUser) { toast('Please log in first.'); return; }
-  const myID = getMyID();
-  const tid = String(targetId).trim();
-  const chatId = [myID, tid].sort().join('_');
-
-  // Clear unread for this chat
-  delete unreadMap[chatId];
-  saveUnread();
-
-  // Open UI immediately
   openChatRoom(chatId, targetName);
 
-  // Ensure chat doc exists
+  // Initialize chat document if missing
   try {
     const ref = db.collection('chats').doc(chatId);
-    const doc = await ref.get();
-    if (!doc.exists) {
+    const snap = await ref.get();
+    if (!snap.exists) {
       await ref.set({
-        chatId: chatId,
-        participants: [myID, tid],
+        chatId,
+        participants: [myID, targetId],
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        lastMessage: '',
-        lastSenderId: ''
+        lastMsg: '',
+        lastSender: ''
       });
     }
-  } catch (e) { console.error('startChat error:', e); }
+  } catch(e) { console.error("Init Chat:", e); }
 }
 
 function openChatRoom(chatId, name) {
-  activeChatId = chatId;
-  document.getElementById('chat-title-name').textContent = name;
-  document.getElementById('msg-container').innerHTML = '<div style="padding:40px;text-align:center;opacity:0.2">Loading...</div>';
+  currentChatId = chatId;
+  document.getElementById('active-chat-name').textContent = name;
+  document.getElementById('messages-list').innerHTML = '<div style="padding:100px;text-align:center;opacity:0.2">Loading secured line...</div>';
   openSheet('sheet-chat');
 
-  // Clear unread
-  delete unreadMap[chatId];
-  saveUnread();
-
-  // Listen to messages
   if (msgUnsub) msgUnsub();
   msgUnsub = db.collection('chats').doc(chatId).collection('messages')
-    .orderBy('timestamp', 'asc')
+    .orderBy('at', 'asc')
     .onSnapshot(snap => {
-      const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const msgs = snap.docs.map(doc => doc.data());
       renderMessages(msgs);
-    }, err => {
-      console.error('Message listener error:', err);
-      document.getElementById('msg-container').innerHTML = '<div style="padding:40px;text-align:center;color:var(--danger)">Connection error. Please retry.</div>';
     });
 }
 
 function renderMessages(msgs) {
-  const container = document.getElementById('msg-container');
+  const container = document.getElementById('messages-list');
   const myID = getMyID();
-  if (!container) return;
-
   if (msgs.length === 0) {
-    container.innerHTML = '<div style="padding:80px 20px;text-align:center;opacity:0.15;font-weight:700;font-size:0.9rem">Send a message to start the conversation</div>';
+    container.innerHTML = '<div style="padding:80px 20px;text-align:center;opacity:0.15;font-weight:700">Start a conversation</div>';
     return;
   }
-
   container.innerHTML = msgs.map(m => {
-    const isMe = String(m.senderId) === myID;
-    const time = m.timestamp
-      ? new Date(m.timestamp.toDate ? m.timestamp.toDate() : m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      : '';
+    const isMe = String(m.sender) === myID;
+    const time = m.at ? new Date(m.at.toDate ? m.at.toDate() : m.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
     return `
-      <div class="msg-row ${isMe ? 'me' : 'them'}">
-        <div class="msg-bubble ${isMe ? 'me' : 'them'}">
-          ${escapeHtml(m.text)}
-          <div class="msg-time">${time}</div>
-        </div>
+      <div class="msg-bubble ${isMe ? 'me' : 'them'}">
+        ${escapeHtml(m.text)}
+        <span class="msg-time-tag">${time}</span>
       </div>
     `;
   }).join('');
   container.scrollTop = container.scrollHeight;
 }
 
-// ─── SEND MESSAGE ───────────────────────
-async function sendNewMessage() {
-  const inp = document.getElementById('msg-input');
-  const text = (inp?.value || '').trim();
-  if (!text || !activeChatId) return;
+async function sendMessage() {
+  const inp = document.getElementById('chat-msg-input');
+  const text = inp.value.trim();
+  if (!text || !currentChatId) return;
 
   const myID = getMyID();
   inp.value = '';
-  inp.focus();
-
+  
   try {
-    const ref = db.collection('chats').doc(activeChatId);
     const ts = firebase.firestore.FieldValue.serverTimestamp();
-    await ref.collection('messages').add({
-      senderId: myID,
+    const chatRef = db.collection('chats').doc(currentChatId);
+    
+    await chatRef.collection('messages').add({
+      sender: myID,
       text: text,
-      timestamp: ts
+      at: ts
     });
-    await ref.set({
-      lastMessage: text,
-      lastSenderId: myID,
+
+    await chatRef.update({
+      lastMsg: text,
+      lastSender: myID,
       updatedAt: ts
-    }, { merge: true });
-  } catch (e) {
-    console.error('Send error:', e);
-    toast('Message failed: ' + e.message);
+    });
+  } catch(e) {
+    toast("Failed to send: " + e.message);
   }
 }
 
-// ─── CLOSE CHAT ─────────────────────────
 function closeChatRoom() {
   if (msgUnsub) msgUnsub();
   msgUnsub = null;
-  activeChatId = null;
+  currentChatId = null;
   closeSheet('sheet-chat');
 }
 
-// ─── SUPPORT CHAT ───────────────────────
-async function openSupportChat() {
-  if (!currentUser) { toast('Please log in first.'); return; }
+// ─── BACKGROUND SYNC ────────────────────
+function initChatSystem() {
+  if (!currentUser) return;
+  
+  if (chatUnsub) chatUnsub();
   const myID = getMyID();
-  const chatId = 'chat_support_' + myID;
 
-  openChatRoom(chatId, 'Management Support');
-
-  try {
-    const ref = db.collection('chats').doc(chatId);
-    const doc = await ref.get();
-    if (!doc.exists) {
-      await ref.set({
-        chatId: chatId,
-        participants: [myID, 'admin'],
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        lastMessage: '',
-        lastSenderId: '',
-        type: 'support'
+  chatUnsub = db.collection('chats')
+    .where('participants', 'array-contains', myID)
+    .onSnapshot(async snap => {
+      activeChats = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      // Update badge if any chat was updated by other
+      snap.docChanges().forEach(change => {
+        if (change.type === 'modified') {
+          const d = change.doc.data();
+          if (d.lastSender && d.lastSender !== myID && change.doc.id !== currentChatId) {
+            localStorage.setItem('unread_' + change.doc.id, '1');
+          }
+        }
       });
-    }
-  } catch (e) { console.error('Support chat error:', e); }
+
+      renderChatList();
+      updateGlobalChatBadge();
+    });
 }
 
-function filterChatSelection() {}
-function syncUsers() {}
+async function renderChatList() {
+  const container = document.getElementById('active-conversations');
+  if (!container) return;
+  const myID = getMyID();
+
+  if (activeChats.length === 0) {
+    container.innerHTML = '<div style="padding:60px 20px;text-align:center;opacity:0.3;font-size:0.9rem">Search for a colleague above to begin.</div>';
+    return;
+  }
+
+  // Sort by updatedAt desc
+  const sorted = [...activeChats].sort((a,b) => (b.updatedAt?.seconds||0) - (a.updatedAt?.seconds||0));
+
+  let html = '';
+  for (const chat of sorted) {
+    const otherId = chat.participants.find(p => p !== myID);
+    if (!otherId) continue;
+    
+    let info = employeeCache[otherId];
+    if (!info) {
+      try {
+        const doc = await db.collection('employees').doc(otherId).get();
+        if (doc.exists) {
+          const d = doc.data();
+          info = { name: d.name || d['Employee Name - English'] || 'User', empNo: otherId };
+          employeeCache[otherId] = info;
+        } else {
+          info = { name: 'User ' + otherId, empNo: otherId };
+        }
+      } catch(e) { info = { name: 'User ' + otherId, empNo: otherId }; }
+    }
+
+    const unread = localStorage.getItem('unread_' + chat.id) === '1';
+    const initial = info.name.charAt(0).toUpperCase();
+    const time = chat.updatedAt ? formatRelativeTime(new Date(chat.updatedAt.seconds * 1000)) : '';
+
+    html += `
+      <div class="conversation-card ${unread ? 'unread' : ''}" onclick="startChatWith('${otherId}', '${info.name.replace(/'/g,"\\'")}')">
+        <div class="conversation-avatar">${initial}</div>
+        <div class="conversation-body">
+          <div class="conv-top">
+            <div class="conv-name">${info.name}</div>
+            <div class="conv-time">${time}</div>
+          </div>
+          <div class="conv-preview">${chat.lastSender === myID ? 'You: ' : ''}${escapeHtml(chat.lastMsg || '')}</div>
+        </div>
+      </div>
+    `;
+  }
+  container.innerHTML = html;
+}
+
+function updateGlobalChatBadge() {
+  let hasAny = false;
+  for (let i = 0; i < localStorage.length; i++) {
+    if (localStorage.key(i).startsWith('unread_') && localStorage.getItem(localStorage.key(i)) === '1') {
+      hasAny = true; break;
+    }
+  }
+  const badge = document.getElementById('chat-badge');
+  if (badge) badge.style.display = hasAny ? 'block' : 'none';
+}
 
 
 
