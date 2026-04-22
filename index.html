@@ -795,31 +795,9 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 /* ── CHAT BUBBLES ── */
 .msg { max-width: 80%; padding: 12px 16px; border-radius: 18px; font-size: 0.92rem; line-height: 1.5; position: relative; animation: msgIn 0.3s var(--ease) both; }
 @keyframes msgIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.msg.me { align-self: flex-start; background: linear-gradient(135deg, var(--nit-blue), var(--nit-dark)); color: #fff; border-bottom-left-radius: 4px; border: 1px solid rgba(255,255,255,0.05); }
-.msg.them { align-self: flex-end; background: var(--surface-2); color: #fff; border-bottom-right-radius: 4px; border: 1px solid var(--glass-border); }
+.msg.me { align-self: flex-end; background: linear-gradient(135deg, var(--nit-blue), var(--nit-dark)); color: #fff; border-bottom-left-radius: 4px; border: 1px solid rgba(255,255,255,0.05); }
+.msg.them { align-self: flex-start; background: var(--surface-2); color: #fff; border-bottom-right-radius: 4px; border: 1px solid var(--glass-border); }
 </style>
-<!-- Error Logger for Debugging -->
-<script>
-window.addEventListener('error', function(e) {
-  const errDiv = document.createElement('div');
-  errDiv.style.position = 'fixed';
-  errDiv.style.top = '0px'; errDiv.style.left = '0px'; errDiv.style.right = '0px';
-  errDiv.style.background = 'red'; errDiv.style.color = 'white'; errDiv.style.padding = '10px';
-  errDiv.style.zIndex = '999999'; errDiv.style.fontSize = '11px';
-  errDiv.innerText = '[v6.96] ERR: ' + e.message + ' @ ' + e.lineno;
-  document.body.appendChild(errDiv);
-});
-window.addEventListener('unhandledrejection', function(e) {
-  const errDiv = document.createElement('div');
-  errDiv.style.position = 'fixed';
-  errDiv.style.top = '40px'; errDiv.style.left = '0px'; errDiv.style.right = '0px';
-  errDiv.style.background = 'orange'; errDiv.style.color = 'black'; errDiv.style.padding = '10px';
-  errDiv.style.zIndex = '999999'; errDiv.style.fontSize = '11px';
-  errDiv.innerText = '[v6.96] Promise: ' + (e.reason ? e.reason.message : 'Unknown');
-  document.body.appendChild(errDiv);
-});
-</script>
-
 </head>
 <body>
 
@@ -3048,13 +3026,7 @@ function initChatSystem() {
       
       const msgs = [];
       snap.forEach(doc => msgs.push(doc.data()));
-      
-      // DEBUG INJECTION
-      if(msgs.length === 0) {
-        msgsDiv.innerHTML = '<div style="color:yellow;text-align:center;padding:20px;font-size:12px;">DEBUG: onSnapshot fired but returned 0 documents! Path: ' + chatId + '</div>';
-        return;
-      }
-      
+
       // Sort locally to handle offline or pending server timestamps gracefully
       msgs.sort((a, b) => {
         const ta = (a.timestamp && typeof a.timestamp.toMillis === 'function') ? a.timestamp.toMillis() : Date.now();
@@ -3083,7 +3055,7 @@ function initChatSystem() {
         fragment.appendChild(msgDiv);
       });
       
-      msgsDiv.innerHTML = '<div class="msg me" style="background: #0f0!important; color:#000!important; width:100px; height:30px;">BOT TEST</div>';
+      msgsDiv.innerHTML = '';
       msgsDiv.appendChild(fragment);
       msgsDiv.scrollTop = msgsDiv.scrollHeight;
     }, err => {
