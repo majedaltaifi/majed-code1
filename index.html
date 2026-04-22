@@ -798,6 +798,28 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 .msg.me { align-self: flex-start; background: linear-gradient(135deg, var(--nit-blue), var(--nit-dark)); color: #fff; border-bottom-left-radius: 4px; border: 1px solid rgba(255,255,255,0.05); }
 .msg.them { align-self: flex-end; background: var(--surface-2); color: #fff; border-bottom-right-radius: 4px; border: 1px solid var(--glass-border); }
 </style>
+<!-- Error Logger for Debugging -->
+<script>
+window.addEventListener('error', function(e) {
+  const errDiv = document.createElement('div');
+  errDiv.style.position = 'fixed';
+  errDiv.style.top = '10px'; errDiv.style.left = '10px'; errDiv.style.right = '10px';
+  errDiv.style.background = 'red'; errDiv.style.color = 'white'; errDiv.style.padding = '10px';
+  errDiv.style.zIndex = '999999'; errDiv.style.fontSize = '12px';
+  errDiv.innerText = 'JS Error: ' + e.message + ' at ' + e.filename + ':' + e.lineno;
+  document.body.appendChild(errDiv);
+});
+window.addEventListener('unhandledrejection', function(e) {
+  const errDiv = document.createElement('div');
+  errDiv.style.position = 'fixed';
+  errDiv.style.top = '50px'; errDiv.style.left = '10px'; errDiv.style.right = '10px';
+  errDiv.style.background = 'orange'; errDiv.style.color = 'black'; errDiv.style.padding = '10px';
+  errDiv.style.zIndex = '999999'; errDiv.style.fontSize = '12px';
+  errDiv.innerText = 'Promise Error: ' + (e.reason ? e.reason.message : 'Unknown');
+  document.body.appendChild(errDiv);
+});
+</script>
+
 </head>
 <body>
 
@@ -2995,6 +3017,8 @@ window.addEventListener('click', (e) => {
 function openChatScreen() {
   const el = document.getElementById('screen-chat');
   if(el) el.classList.add('active');
+  console.log("Chat screen opened, forcing re-init.");
+  initChatSystem();
 }
 function closeChatScreen() {
   const el = document.getElementById('screen-chat');
@@ -3021,6 +3045,12 @@ function initChatSystem() {
       
       const msgs = [];
       snap.forEach(doc => msgs.push(doc.data()));
+      
+      // DEBUG INJECTION
+      if(msgs.length === 0) {
+        msgsDiv.innerHTML = '<div style="color:yellow;text-align:center;padding:20px;font-size:12px;">DEBUG: onSnapshot fired but returned 0 documents! Path: ' + chatId + '</div>';
+        return;
+      }
       
       // Sort locally to handle offline or pending server timestamps gracefully
       msgs.sort((a, b) => {
@@ -3050,14 +3080,12 @@ function initChatSystem() {
         fragment.appendChild(msgDiv);
       });
       
-      msgsDiv.innerHTML = '';
+      msgsDiv.innerHTML = '<div class="msg me" style="background: #0f0!important; color:#000!important; width:100px; height:30px;">BOT TEST</div>';
       msgsDiv.appendChild(fragment);
       msgsDiv.scrollTop = msgsDiv.scrollHeight;
     }, err => {
       console.error("Chat sync error:", err);
-      if (err.code === 'failed-precondition') {
-        alert("Chat index building in progress. Please wait a minute.");
-      }
+      alert("Chat sync error: " + err.message);
     });
 }
 
