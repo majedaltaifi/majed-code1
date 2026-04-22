@@ -1446,7 +1446,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script>
-  const APP_VERSION='3.33';
+  const APP_VERSION='3.34';
   let __refreshing=false;
   
   function showUpdateBanner(msg){
@@ -1461,7 +1461,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.33').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.34').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
@@ -2165,7 +2165,7 @@ let lang='ar',currentTab='home',selectedType='',selectedSeverity='',
     isAnonymous=true,isOngoing=false,uploadedFiles=[],deferredPrompt=null,
     currentChatId=null,selectedEnv='',selectedSubIssue='',selectedDetail='',selectedFrequency='';
 
-const CACHE_NAME = 'nit-cache-v3.32',LS_REPORTS='nit_reports',LS_CHATS='nit_chats',LS_NOTIFS='nit_notifs',LS_SUPPORT='nit_support',LS_USER='nit_user';
+const LS_LANG='nit_lang',LS_REPORTS='nit_reports',LS_CHATS='nit_chats',LS_NOTIFS='nit_notifs',LS_SUPPORT='nit_support',LS_USER='nit_user',CACHE_NAME='nit-cache-v3.34';
 
 let currentUser=null,employeesDb=null,empLookupDebounce=null;
 
