@@ -803,19 +803,19 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 window.addEventListener('error', function(e) {
   const errDiv = document.createElement('div');
   errDiv.style.position = 'fixed';
-  errDiv.style.top = '10px'; errDiv.style.left = '10px'; errDiv.style.right = '10px';
+  errDiv.style.top = '0px'; errDiv.style.left = '0px'; errDiv.style.right = '0px';
   errDiv.style.background = 'red'; errDiv.style.color = 'white'; errDiv.style.padding = '10px';
-  errDiv.style.zIndex = '999999'; errDiv.style.fontSize = '12px';
-  errDiv.innerText = 'JS Error: ' + e.message + ' at ' + e.filename + ':' + e.lineno;
+  errDiv.style.zIndex = '999999'; errDiv.style.fontSize = '11px';
+  errDiv.innerText = '[v6.95] ERR: ' + e.message + ' @ ' + e.lineno;
   document.body.appendChild(errDiv);
 });
 window.addEventListener('unhandledrejection', function(e) {
   const errDiv = document.createElement('div');
   errDiv.style.position = 'fixed';
-  errDiv.style.top = '50px'; errDiv.style.left = '10px'; errDiv.style.right = '10px';
+  errDiv.style.top = '40px'; errDiv.style.left = '0px'; errDiv.style.right = '0px';
   errDiv.style.background = 'orange'; errDiv.style.color = 'black'; errDiv.style.padding = '10px';
-  errDiv.style.zIndex = '999999'; errDiv.style.fontSize = '12px';
-  errDiv.innerText = 'Promise Error: ' + (e.reason ? e.reason.message : 'Unknown');
+  errDiv.style.zIndex = '999999'; errDiv.style.fontSize = '11px';
+  errDiv.innerText = '[v6.95] Promise: ' + (e.reason ? e.reason.message : 'Unknown');
   document.body.appendChild(errDiv);
 });
 </script>
@@ -2191,6 +2191,8 @@ function saveReports(r){localStorage.setItem(LS_REPORTS,JSON.stringify(r))}
 
 function loadNotifs(){try{return JSON.parse(localStorage.getItem(LS_NOTIFS)||'[]')}catch(e){return[]}}
 function saveNotifs(n){localStorage.setItem(LS_NOTIFS,JSON.stringify(n))}
+function loadSupport(){try{return JSON.parse(localStorage.getItem(LS_SUPPORT)||'[]')}catch(e){return[]}}
+function saveSupport(s){localStorage.setItem(LS_SUPPORT,JSON.stringify(s))}
 
 /* ══════════════════════════════════════════
    INIT & AUTH
