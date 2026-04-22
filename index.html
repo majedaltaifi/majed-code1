@@ -466,13 +466,13 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 .login-guest-btn:hover{color:var(--turquoise)}
 
 /* Profile card in More tab */
-.profile-card{display:flex;align-items:center;gap:14px;padding:18px;background:linear-gradient(135deg,rgba(46,49,146,.55),rgba(26,28,94,.65));border:1px solid rgba(128,209,233,.2);border-radius:var(--r-lg);margin-bottom:16px;position:relative;overflow:hidden}
-.profile-card::before{content:'';position:absolute;inset-inline-end:-30px;top:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(128,209,233,.22),transparent 70%);pointer-events:none}
-.profile-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--turquoise),var(--nit-blue));display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.3rem;font-weight:700;flex-shrink:0;box-shadow:0 4px 14px rgba(128,209,233,.3);position:relative;z-index:1;text-transform:uppercase}
+.profile-card{display:flex;align-items:center;gap:18px;padding:22px;background:linear-gradient(135deg,rgba(46,49,146,0.7),rgba(26,28,94,0.8));border:1px solid rgba(128,209,233,0.3);border-radius:var(--r-xl);margin-bottom:16px;position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.2)}
+.profile-card::before{content:'';position:absolute;inset-inline-end:-20px;top:-20px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(128,209,233,0.15),transparent 70%);pointer-events:none}
+.profile-avatar{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--turquoise),var(--nit-blue));display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.5rem;font-weight:800;flex-shrink:0;box-shadow:0 8px 20px rgba(128,209,233,0.4);position:relative;z-index:1;text-transform:uppercase;border:2px solid rgba(255,255,255,0.1)}
 .profile-info{flex:1;min-width:0;position:relative;z-index:1}
-.profile-name{font-size:1.05rem;font-weight:700;line-height:1.2;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.profile-meta{font-size:.75rem;color:var(--text-dim);line-height:1.4}
-.profile-badge{display:inline-block;padding:2px 8px;border-radius:8px;background:rgba(128,209,233,.15);color:var(--turquoise);font-size:.65rem;font-weight:700;margin-top:4px;font-family:var(--font-en)}
+.profile-name{font-size:1.15rem;font-weight:800;line-height:1.2;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile-meta{font-size:.8rem;color:var(--text-dim);line-height:1.4;opacity:0.8}
+.profile-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:10px;background:rgba(128,209,233,0.2);color:var(--turquoise);font-size:.7rem;font-weight:800;margin-top:8px;font-family:var(--font-en);border:1px solid rgba(128,209,233,0.3)}
 
 /* ── BROADCASTS — vertical stacked card ── */
 .broadcasts-wrap{margin-bottom:18px}
@@ -2138,15 +2138,32 @@ function syncAllChats() {
     .where('members', 'array-contains', myID)
     .onSnapshot(snap => {
       const container = document.getElementById('chats-list-container');
+      const badge = document.getElementById('chat-badge');
       if (!container) return;
+      
+      let unreadCount = 0;
       
       if (snap.empty) {
         container.innerHTML = '<div style="padding:20px;text-align:center;opacity:0.4;">No messages yet.</div>';
+        if (badge) badge.style.display = 'none';
         return;
       }
       
       const chats = [];
-      snap.forEach(doc => chats.push({id: doc.id, ...doc.data()}));
+      snap.forEach(doc => {
+        const d = doc.data();
+        chats.push({id: doc.id, ...d});
+        // Simple logic for unread badge: if last message is NOT from me and last_at > lastSeen
+        // For now, let's just count documents that were updated recently
+        if (d.last_msg && d.last_sender_id !== myID) {
+           unreadCount++;
+        }
+      });
+      
+      if (badge) {
+        badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+        badge.textContent = unreadCount > 0 ? unreadCount : '';
+      }
       
       // Client-side sort to avoid index requirements for now
       chats.sort((a,b) => {
@@ -2567,8 +2584,19 @@ function switchTab(tab){
 }
 
 function updateHeader(){
-  const titles={home:{t:T[lang].tabHome,s:T[lang].hubSub},reports:{t:T[lang].tabReports,s:''},chats:{t:T[lang].tabChats,s:''},more:{t:T[lang].tabMore,s:''}};
+  const t = T[lang];
+  const titles={
+    home:{t:t.tabHome,s:t.hubSub},
+    reports:{t:t.tabReports,s:''},
+    chats:{t:t.tabChats,s:''},
+    more:{t:t.tabMore,s:''}
+  };
   const h=titles[currentTab];
+  const header = document.querySelector('.app-header');
+  if (header) {
+    // Premium feel: only show full header on Home/Reports, hide subtitle on More/Chats for cleaner look
+    header.style.minHeight = (currentTab==='more' || currentTab==='chats') ? 'calc(50px + var(--sa-t))' : 'calc(var(--header-h) + var(--sa-t))';
+  }
   document.getElementById('header-title').textContent=h.t;
   document.getElementById('header-subtitle').textContent=h.s;
 }
