@@ -991,6 +991,12 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     </button>
 
+    <button class="nav-btn" data-tab="chats" onclick="switchTab('chats')" style="position:relative">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span class="nav-lbl" data-t="tabChats">Chat</span>
+      <span id="chat-badge" class="dot" style="display:none"></span>
+    </button>
+
     <button class="nav-btn" data-tab="more" onclick="switchTab('more')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/></svg>
       <span class="nav-lbl" data-t="tabMore"></span>
