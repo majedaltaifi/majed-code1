@@ -36,8 +36,8 @@
   --font-en:'Futura PT',system-ui,sans-serif;
   --ease:cubic-bezier(.4,0,.2,1);
 }
-html,body{height:100%;margin:0;padding:0;overflow:hidden;background:var(--bg);-webkit-text-size-adjust:100%}
-body{font-family:var(--font-ar);font-weight:500;color:var(--text);min-height:100%;width:100%;position:fixed;top:0;left:0;-webkit-font-smoothing:antialiased;line-height:1.5;overscroll-behavior-y:none}
+html,body{margin:0;padding:0;background:var(--bg);-webkit-text-size-adjust:100%}
+body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size:16px;text-align:start;width:100%;min-height:100dvh;scrollbar-width:none;-webkit-font-smoothing:antialiased;line-height:1.5}
 [dir="ltr"] body{font-family:var(--font-en)}
 
 /* ── BG ── */
@@ -101,7 +101,7 @@ body{font-family:var(--font-ar);font-weight:500;color:var(--text);min-height:100
 [dir="rtl"] .install-cta .cta-arrow{transform:scaleX(-1)}
 
 /* ══════════ MAIN APP SHELL ══════════ */
-#main-app{display:none;height:100dvh;width:100%;max-width:480px;margin:0 auto;flex-direction:column;position:relative;z-index:1;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.02)}
+#main-app{display:none;width:100%;min-height:100dvh;flex-direction:column;position:relative;z-index:1;background:var(--bg)}
 #main-app.show{display:flex;animation:appIn .55s var(--ease) both}
 @keyframes appIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
@@ -112,7 +112,7 @@ body{font-family:var(--font-ar);font-weight:500;color:var(--text);min-height:100
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 
 /* ── APP HEADER ── */
-.app-header{position:relative;z-index:20;background:rgba(8,9,34,.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--glass-border);padding:calc(var(--sa-t) + 12px) 16px 12px;display:flex;align-items:center;gap:12px;min-height:calc(var(--header-h) + var(--sa-t))}
+.app-header{position:sticky;top:0;z-index:100;background:rgba(8,9,34,.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--glass-border);padding:calc(var(--sa-t) + 12px) 16px 12px;display:flex;align-items:center;gap:12px;min-height:calc(var(--header-h) + var(--sa-t))}
 .app-header .logo-small{height:26px;filter:brightness(0) invert(1);opacity:.85;flex-shrink:0}
 .app-header .header-title{flex:1;overflow:hidden;text-align:start}
 .app-header .h-t{font-size:1.02rem;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -122,9 +122,8 @@ body{font-family:var(--font-ar);font-weight:500;color:var(--text);min-height:100
 .app-header .h-btn svg{width:18px;height:18px}
 
 /* ── TAB CONTENT ── */
-.tab-content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:14px 16px 26px;width:100%;position:relative;scrollbar-width:none}
-.tab-content::-webkit-scrollbar{display:none}
-.tab-pane{display:none}
+.tab-content{flex:1;width:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 16px 140px;position:relative}
+.tab-pane{display:none;width:100%;min-height:101%}
 .tab-pane.active{display:block;animation:fadeUp .4s var(--ease) both}
 .tab-pane.active > *{animation:fadeUp .5s var(--ease) both}
 .tab-pane.active > *:nth-child(1){animation-delay:.03s}
@@ -241,7 +240,7 @@ body{font-family:var(--font-ar);font-weight:500;color:var(--text);min-height:100
 .about-block .logo-sm{height:24px;filter:brightness(0) invert(1);opacity:.5;margin-bottom:8px}
 
 /* ══════════ BOTTOM NAV ══════════ */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;margin:0 auto;width:100%;max-width:480px;z-index:500;background:rgba(8,9,34,.98);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-top:1px solid var(--glass-border);display:flex;justify-content:space-around;align-items:center;padding:4px 4px var(--sa-b);height:calc(var(--nav-h) + var(--sa-b));transition:transform .3s var(--ease);will-change:transform}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;margin:0 auto;width:100%;max-width:480px;z-index:1000;background:rgba(8,9,34,.98);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-top:1px solid var(--glass-border);display:flex;justify-content:space-around;align-items:center;padding:4px 4px var(--sa-b);height:calc(var(--nav-h) + var(--sa-b));transition:transform .3s var(--ease);will-change:transform}
 .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 4px;border:none;background:none;cursor:pointer;color:var(--text-muted);font-family:inherit;transition:color .25s;min-width:0;position:relative}
 .nav-btn svg{width:22px;height:22px;transition:transform .3s cubic-bezier(.5,1.6,.4,1),filter .3s}
 .nav-btn .nav-lbl{font-size:.68rem;font-weight:600;white-space:nowrap;transition:opacity .25s}
@@ -444,7 +443,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 .qr-label{font-size:.72rem;color:#1a1c5e;font-family:var(--font-en);font-weight:700;letter-spacing:1px}
 
 /* ── LOGIN SCREEN ── */
-#screen-login{position:fixed;inset:0;z-index:60;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;padding-top:calc(var(--sa-t) + 20px);background:linear-gradient(160deg,var(--bg) 0%,var(--bg2) 55%,var(--nit-dark) 100%);overflow-y:auto}
+#screen-login{position:fixed;inset:0;z-index:9000;display:none;flex-direction:column;align-items:center;padding:20px;padding-top:calc(var(--sa-t) + 30px);background:linear-gradient(160deg,var(--bg) 0%,var(--bg2) 55%,var(--nit-dark) 100%);overflow-y:auto;-webkit-overflow-scrolling:touch}
 #screen-login.show{display:flex;animation:fadeUp .4s var(--ease) both}
 #screen-login .login-box{width:100%;max-width:420px}
 #screen-login .logo-wrap{display:flex;justify-content:center;margin-bottom:20px}
