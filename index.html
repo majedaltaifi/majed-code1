@@ -1026,6 +1026,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input type="text" id="chat-search" placeholder="Search by name or phone..." oninput="performDatabaseSearch()">
           </div>
+          <div id="debug-chat-status" style="font-size: 0.6rem; color: var(--turquoise); opacity: 0.4; margin-top: 5px; text-align: center; font-family: var(--font-en);"></div>
           
       <div class="support-btn-glass" onclick="openSupportChat()">
         <div class="support-icon">
@@ -2999,60 +3000,79 @@ let operativeCache = {}; // Cache for employee names to prevent flickering
 
 async function initChatSystem() {
   if (!currentUser) return;
-  const myID = String(currentUser.empNo);
+  const myID = String(currentUser.empNo).trim();
   
-  // 1. Ensure user exists in 'users' collection as per request
   try {
-    const userRef = db.collection('users').doc(myID);
-    const userDoc = await userRef.get();
-    if (!userDoc.exists) {
-      await userRef.set({
-        userId: myID,
-        name: currentUser.name || 'Operative ' + myID,
-        phoneNumber: currentUser.phone || 'N/A',
-        role: currentUser.role || 'user',
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
+    // 1. Ensure Firebase Auth is active (required for most Firestore rules)
+    if (!firebase.auth().currentUser) {
+      await firebase.auth().signInAnonymously();
+      console.log("Chat system: Anonymous sign-in success.");
     }
-  } catch (e) { console.warn("User sync fail:", e); }
+    
+    // 2. Ensure profile exists in 'employees' (for search) and 'users' (for global list)
+    const prof = {
+      userId: myID,
+      name: currentUser.name || 'Operative ' + myID,
+      phoneNumber: currentUser.phone || 'N/A',
+      role: currentUser.role || 'user',
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    await db.collection('employees').doc(myID).set(prof, { merge: true });
+    await db.collection('users').doc(myID).set(prof, { merge: true });
+    
+  } catch (e) { 
+    console.error("Init Chat System Error:", e); 
+  }
 
-  // 2. Start Syncing
-  syncUsers();
+  // 3. Start Syncing
   syncActiveChats();
 }
 
 async function syncActiveChats() {
   const myID = String(currentUser.empNo).trim();
   if (chatUnsub) chatUnsub();
-  console.log("Syncing chats for user:", myID);
+  
+  const statusEl = document.getElementById('debug-chat-status');
+  if (statusEl) statusEl.textContent = "Syncing for ID: " + myID;
+
   chatUnsub = db.collection('chats')
     .where('participants', 'array-contains', myID)
     .onSnapshot(async snap => {
       activeChats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      console.log("Active chats found:", activeChats.length);
+      if (statusEl) statusEl.textContent = `ID: ${myID} | Active: ${activeChats.length}`;
       
-      // Ensure we have name data for everyone before rendering
-      const pending = [];
+      // Map names immediately
+      const missing = [];
       activeChats.forEach(chat => {
         const otherId = (chat.participants || []).find(p => p !== myID);
         if (otherId && !operativeCache[otherId]) {
-          pending.push(db.collection('employees').doc(otherId).get().then(doc => {
-            if (doc.exists) {
-              operativeCache[otherId] = {
-                userId: otherId,
-                name: doc.data().name || doc.data()['Employee Name - English'] || 'Operator ' + otherId,
-                role: doc.data().role || 'user'
-              };
-            } else {
-              operativeCache[otherId] = { userId: otherId, name: 'User ' + otherId };
-            }
-          }));
+          missing.push(otherId);
         }
       });
       
-      if (pending.length > 0) await Promise.all(pending);
+      if (missing.length > 0) {
+        const batches = [];
+        for (let i = 0; i < missing.length; i += 10) {
+          const chunk = missing.slice(i, i + 10);
+          batches.push(db.collection('employees').where(firebase.firestore.FieldPath.documentId(), 'in', chunk).get());
+        }
+        const results = await Promise.all(batches);
+        results.forEach(res => {
+          res.forEach(doc => {
+            operativeCache[doc.id] = {
+              userId: doc.id,
+              name: doc.data().name || doc.data()['Employee Name - English'] || 'Operator ' + doc.id,
+              role: doc.data().role || 'user'
+            };
+          });
+        });
+      }
+      
       renderChatHub();
-    }, err => console.error("Chat Sync Error:", err));
+    }, err => {
+      console.error("Chat Sync Error:", err);
+      if (statusEl) statusEl.textContent = "Sync Failed: " + err.message;
+    });
 }
 
 function syncUsers() {
