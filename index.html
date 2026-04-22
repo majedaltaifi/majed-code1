@@ -2989,9 +2989,10 @@ function initChatSystem() {
   const myId = user.empNo || user.employeeId;
   if (!myId) return;
 
-  console.log("Chat setup for:", myId);
+  const chatId = `${myId}_Support`;
+  console.log("Chat setup for:", myId, "document:", chatId);
 
-  chatUnsub = db.collection('chats').doc(String(myId)).collection('messages')
+  chatUnsub = db.collection('chats').doc(chatId).collection('messages')
     .orderBy('timestamp', 'asc')
     .onSnapshot(snap => {
       console.log("Chat snapshot received, docs:", snap.size);
@@ -3028,10 +3029,11 @@ async function sendMessage() {
   if (!user) { alert("Session error. Please login again."); return; }
   
   const myId = user.empNo || user.employeeId;
+  const chatId = `${myId}_Support`;
   const text = input.value.trim();
   if (!text || !myId) return;
 
-  console.log("Sending message as:", myId);
+  console.log("Sending message as:", myId, "to:", chatId);
 
   const msg = {
     text: text,
@@ -3041,10 +3043,12 @@ async function sendMessage() {
   };
 
   try {
-    await db.collection('chats').doc(String(myId)).collection('messages').add(msg);
-    await db.collection('chats').doc(String(myId)).set({
+    await db.collection('chats').doc(chatId).collection('messages').add(msg);
+    await db.collection('chats').doc(chatId).set({
       senderName: user.name || "User",
       lastMessage: text,
+      lastSenderId: String(myId),
+      participants: [String(myId), 'admin'],
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     }, {merge: true});
 
