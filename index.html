@@ -1446,7 +1446,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script>
-  const APP_VERSION='3.36';
+  const APP_VERSION='3.37';
   let __refreshing=false;
   
   function showUpdateBanner(msg){
@@ -1461,7 +1461,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.36').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.37').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
@@ -2113,28 +2113,51 @@ function syncBroadcasts() {
   }, err => console.error("Broadcast Sync Error:", err));
 }
 
+let unsubChatsV3 = null, unsubChatsLegacy = null;
+
 function syncChats() {
   if (!currentUser || currentUser.guest) return;
-  if (unsubChats) unsubChats();
+  // Unsubscribe previous listeners
+  if (unsubChats) { unsubChats(); unsubChats = null; }
+  if (unsubChatsV3) { unsubChatsV3(); unsubChatsV3 = null; }
+  if (unsubChatsLegacy) { unsubChatsLegacy(); unsubChatsLegacy = null; }
+
   const myID = String(currentUser.empNo);
-  
-  const handleUpdate = (snap) => {
-    const chats = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
-    saveChats(chats);
+  let chatsV3 = [], chatsLegacy = [];
+
+  const mergeAndRender = () => {
+    // Deduplicate by id, prefer v3 entries
+    const allMap = new Map();
+    chatsLegacy.forEach(c => allMap.set(c.id, c));
+    chatsV3.forEach(c => allMap.set(c.id, c));
+    const merged = Array.from(allMap.values()).sort(
+      (a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0)
+    );
+    saveChats(merged);
     renderChats();
-    
     let totalUnread = 0;
-    chats.forEach(c => {
+    merged.forEach(c => {
       totalUnread += (c.unread_counts && c.unread_counts[myID]) || 0;
     });
     const dot = document.getElementById('chats-dot');
-    if(dot) dot.style.display = totalUnread > 0 ? 'block' : 'none';
+    if (dot) dot.style.display = totalUnread > 0 ? 'block' : 'none';
   };
 
-  // V3 ENGINE: Mapping based query
-  unsubChats = db.collection('conversations_v3')
+  // Listen to conversations_v3 (new engine)
+  unsubChatsV3 = db.collection('conversations_v3')
     .where('members.' + myID, '==', true)
-    .onSnapshot(handleUpdate, err => console.warn("Sync Error", err));
+    .onSnapshot(snap => {
+      chatsV3 = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      mergeAndRender();
+    }, err => console.warn('V3 sync error:', err));
+
+  // Also listen to chat_sessions (legacy) for old conversations
+  unsubChatsLegacy = db.collection('chat_sessions')
+    .where('participants', 'array-contains', myID)
+    .onSnapshot(snap => {
+      chatsLegacy = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      mergeAndRender();
+    }, err => console.warn('Legacy sync error:', err));
 }
 
 function syncReports() {
@@ -2165,7 +2188,7 @@ let lang='ar',currentTab='home',selectedType='',selectedSeverity='',
     isAnonymous=true,isOngoing=false,uploadedFiles=[],deferredPrompt=null,
     currentChatId=null,selectedEnv='',selectedSubIssue='',selectedDetail='',selectedFrequency='';
 
-const LS_LANG='nit_lang',LS_REPORTS='nit_reports',LS_CHATS='nit_chats',LS_NOTIFS='nit_notifs',LS_SUPPORT='nit_support',LS_USER='nit_user',CACHE_NAME='nit-cache-v3.36';
+const LS_LANG='nit_lang',LS_REPORTS='nit_reports',LS_CHATS='nit_chats',LS_NOTIFS='nit_notifs',LS_SUPPORT='nit_support',LS_USER='nit_user',CACHE_NAME='nit-cache-v3.37';
 
 let currentUser=null,employeesDb=null,empLookupDebounce=null;
 
@@ -3127,21 +3150,68 @@ async function openChatWithUser(targetEmpNo, targetName) {
   const myID = String(currentUser.empNo);
   const tID = String(targetEmpNo);
   if(myID === tID) return toast("Cannot chat with yourself.");
-  let roomId = (tID === 'admin' || tID === 'support') ? 'v3_support_' + myID : 'v3_' + [myID, tID].sort().join('_');
+
+  const isSupport = (tID === 'admin' || tID === 'support');
   
+  // Close search
+  if(document.getElementById('chats-search')) document.getElementById('chats-search').value = '';
+
   try {
-    await db.collection('conversations_v3').doc(roomId).set({
-      members: { [myID]: true, [tID]: true },
-      participants: [myID, tID],
-      names: { [myID]: (currentUser.name || 'User'), [tID]: targetName },
+    // 1. Check if an existing conversation already exists (in any collection)
+    let existingId = null;
+    let existingCollection = null;
+
+    if (isSupport) {
+      // Check v3 support room
+      const v3Id = 'v3_support_' + myID;
+      const v3Doc = await db.collection('conversations_v3').doc(v3Id).get();
+      if (v3Doc.exists) { existingId = v3Id; existingCollection = 'conversations_v3'; }
+      
+      if (!existingId) {
+        // Check legacy support room
+        const legacyId = 'direct_' + myID;
+        const legacyDoc = await db.collection('chat_sessions').doc(legacyId).get();
+        if (legacyDoc.exists) { existingId = legacyId; existingCollection = 'chat_sessions'; }
+      }
+    } else {
+      // Check v3 direct room
+      const v3Id = 'v3_' + [myID, tID].sort().join('_');
+      const v3Doc = await db.collection('conversations_v3').doc(v3Id).get();
+      if (v3Doc.exists) { existingId = v3Id; existingCollection = 'conversations_v3'; }
+      
+      if (!existingId) {
+        // Check legacy direct room (both sort orders)
+        const legacyId1 = [myID, tID].sort().join('_');
+        const legacyDoc1 = await db.collection('chat_sessions').doc(legacyId1).get();
+        if (legacyDoc1.exists) { existingId = legacyId1; existingCollection = 'chat_sessions'; }
+      }
+    }
+
+    if (existingId) {
+      // Found existing — just open it
+      filterHub();
+      openChat(existingId, targetName);
+      return;
+    }
+
+    // 2. No existing conversation — create new one in conversations_v3
+    const newRoomId = isSupport ? 'v3_support_' + myID : 'v3_' + [myID, tID].sort().join('_');
+    const tIDFinal = isSupport ? 'admin' : tID;
+
+    await db.collection('conversations_v3').doc(newRoomId).set({
+      members: { [myID]: true, [tIDFinal]: true },
+      participants: [myID, tIDFinal],
+      names: { [myID]: (currentUser.name || 'User'), [tIDFinal]: targetName },
       other_name: targetName,
-      target_id: tID,
-      type: (tID === 'admin' || tID === 'support') ? 'support' : 'direct',
+      target_id: tIDFinal,
+      type: isSupport ? 'support' : 'direct',
       updated_at: new Date().toISOString()
-    }, {merge:true});
-    if(document.getElementById('chats-search')) document.getElementById('chats-search').value = '';
-    filterHub(); openChat(roomId, targetName);
-  } catch(e) { console.error("Create chat error", e); }
+    }, {merge: true});
+
+    filterHub();
+    openChat(newRoomId, targetName);
+
+  } catch(e) { console.error('Create chat error', e); toast('Connection Error'); }
 }
 
 
@@ -3152,15 +3222,19 @@ async function openChat(id, optName){
   const t = T[lang];
   document.querySelector('#sheet-chat .sheet-title').textContent = optName || t.chatName;
   
+  // Determine collection based on room ID
+  const isV3 = id.startsWith('v3_');
+  const colName = isV3 ? 'conversations_v3' : 'chat_sessions';
+  
   // Clear unreads
   const up = {}; up[`unread_counts.${myID}`] = 0;
-  db.collection('conversations_v3').doc(id).update(up).catch(()=>{});
+  db.collection(colName).doc(id).update(up).catch(()=>{});
 
   renderChatMessages({messages:[]});
   openSheet('sheet-chat');
   
   if(unsubMsgs) unsubMsgs();
-  unsubMsgs = db.collection('conversations_v3').doc(id).collection('messages')
+  unsubMsgs = db.collection(colName).doc(id).collection('messages')
     .orderBy('created_at', 'asc')
     .onSnapshot(snap => {
       const msgs = snap.docs.map(d => ({
@@ -3204,17 +3278,19 @@ async function sendChat(){
   inp.value = ''; inp.disabled = true;
   
   const now = new Date().toISOString();
-  const sessionRef = db.collection('conversations_v3').doc(currentChatId);
+  // Route to the correct collection
+  const isV3 = currentChatId.startsWith('v3_');
+  const colName = isV3 ? 'conversations_v3' : 'chat_sessions';
+  const sessionRef = db.collection(colName).doc(currentChatId);
   
   try {
-    // Write all field variants for max compatibility
-    await sessionRef.set({
+    const sessionUpdate = {
        updated_at: now,
        last_msg: txt,
-       last_message: txt,
-       last_sender: myID,
-       [`members.${myID}`]: true
-    }, {merge:true});
+       last_message: txt
+    };
+    if (isV3) sessionUpdate[`members.${myID}`] = true;
+    await sessionRef.set(sessionUpdate, {merge:true});
 
     await sessionRef.collection('messages').add({
       sender_id: myID,
