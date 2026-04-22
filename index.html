@@ -112,7 +112,7 @@ body{font-family:var(--font-ar);font-weight:500;color:var(--text);min-height:100
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 
 /* ── APP HEADER ── */
-.app-header{position:absolute;top:0;left:0;right:0;z-index:20;background:rgba(8,9,34,.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--glass-border);padding:calc(var(--sa-t) + 8px) 16px 8px;display:flex;align-items:center;gap:12px;height:calc(var(--header-h) + var(--sa-t))}
+.app-header{position:relative;z-index:20;background:rgba(8,9,34,.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--glass-border);padding:calc(var(--sa-t) + 12px) 16px 12px;display:flex;align-items:center;gap:12px;min-height:calc(var(--header-h) + var(--sa-t))}
 .app-header .logo-small{height:26px;filter:brightness(0) invert(1);opacity:.85;flex-shrink:0}
 .app-header .header-title{flex:1;overflow:hidden;text-align:start}
 .app-header .h-t{font-size:1.02rem;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -122,8 +122,9 @@ body{font-family:var(--font-ar);font-weight:500;color:var(--text);min-height:100
 .app-header .h-btn svg{width:18px;height:18px}
 
 /* ── TAB CONTENT ── */
-.tab-content{position:absolute;top:calc(var(--header-h) + var(--sa-t));bottom:calc(var(--nav-h) + var(--sa-b));left:0;right:0;overflow-y:scroll;-webkit-overflow-scrolling:touch;padding:8px 16px 40px;width:100%;touch-action:pan-y}
-.tab-pane{display:none;width:100%;min-height:calc(100% + 5px);padding-bottom:40px}
+.tab-content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:14px 16px 26px;width:100%;position:relative;scrollbar-width:none}
+.tab-content::-webkit-scrollbar{display:none}
+.tab-pane{display:none}
 .tab-pane.active{display:block;animation:fadeUp .4s var(--ease) both}
 .tab-pane.active > *{animation:fadeUp .5s var(--ease) both}
 .tab-pane.active > *:nth-child(1){animation-delay:.03s}
@@ -240,7 +241,7 @@ body{font-family:var(--font-ar);font-weight:500;color:var(--text);min-height:100
 .about-block .logo-sm{height:24px;filter:brightness(0) invert(1);opacity:.5;margin-bottom:8px}
 
 /* ══════════ BOTTOM NAV ══════════ */
-.bottom-nav{position:absolute;bottom:0;left:0;right:0;margin:0 auto;width:100%;max-width:480px;z-index:500;background:rgba(8,9,34,.98);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-top:1px solid var(--glass-border);display:flex;justify-content:space-around;align-items:center;padding:4px 4px var(--sa-b);height:calc(var(--nav-h) + var(--sa-b));transition:transform .3s var(--ease);will-change:transform}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;margin:0 auto;width:100%;max-width:480px;z-index:500;background:rgba(8,9,34,.98);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-top:1px solid var(--glass-border);display:flex;justify-content:space-around;align-items:center;padding:4px 4px var(--sa-b);height:calc(var(--nav-h) + var(--sa-b));transition:transform .3s var(--ease);will-change:transform}
 .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 4px;border:none;background:none;cursor:pointer;color:var(--text-muted);font-family:inherit;transition:color .25s;min-width:0;position:relative}
 .nav-btn svg{width:22px;height:22px;transition:transform .3s cubic-bezier(.5,1.6,.4,1),filter .3s}
 .nav-btn .nav-lbl{font-size:.68rem;font-weight:600;white-space:nowrap;transition:opacity .25s}
@@ -996,9 +997,9 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
     </div>
 
     <!-- MORE TAB -->
-    <div class="tab-pane" id="tab-more" style="margin-top:0; padding-top:2px;">
-      <div id="profile-card-wrap" style="margin-top:0;"></div>
-      <div class="section-label" style="margin-top: 8px;" data-t="moreSettings"></div>
+    <div class="tab-pane" id="tab-more">
+      <div id="profile-card-wrap"></div>
+      <div class="section-label" data-t="moreSettings"></div>
       <div class="settings-list">
         <button class="setting-item" onclick="openLangPicker()">
           <div class="setting-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
