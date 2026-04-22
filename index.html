@@ -3204,9 +3204,19 @@ async function sendChat() {
 
   try {
     const ref = db.collection('conversations').doc(currentChatId);
-    await ref.set({ updated_at: now, last_msg: txt, last_sender: myID }, { merge: true });
+    const updateObj = { updated_at: now, last_msg: txt, last_sender: myID };
+    await ref.set(updateObj, { merge: true });
     await ref.collection('messages').add({ sender_id: myID, text: txt, created_at: now });
     
+    // Instant Local Update for UI
+    const local = loadChats();
+    const idx = local.findIndex(x => x.id === currentChatId);
+    if(idx > -1) {
+      local[idx] = { ...local[idx], ...updateObj };
+      saveChats(local);
+      renderChats();
+    }
+
     // Update unread counts
     const doc = await ref.get();
     const parts = doc.data().participants || [];
