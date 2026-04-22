@@ -112,7 +112,7 @@ body{font-family:var(--font-ar);font-weight:500;color:var(--text);min-height:100
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 
 /* ── APP HEADER ── */
-.app-header{position:relative;top:0;z-index:20;background:rgba(8,9,34,.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--glass-border);padding:calc(var(--sa-t) + 12px) 16px 12px;display:flex;align-items:center;gap:12px;min-height:calc(var(--header-h) + var(--sa-t))}
+.app-header{position:relative;top:0;z-index:20;background:rgba(8,9,34,.88);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--glass-border);padding:calc(var(--sa-t) + 8px) 16px 8px;display:flex;align-items:center;gap:12px;min-height:auto}
 .app-header .logo-small{height:26px;filter:brightness(0) invert(1);opacity:.85;flex-shrink:0}
 .app-header .header-title{flex:1;overflow:hidden;text-align:start}
 .app-header .h-t{font-size:1.02rem;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -122,9 +122,8 @@ body{font-family:var(--font-ar);font-weight:500;color:var(--text);min-height:100
 .app-header .h-btn svg{width:18px;height:18px}
 
 /* ── TAB CONTENT ── */
-.tab-content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:4px 16px 26px;width:100%;position:relative;scrollbar-width:none}
-.tab-content::-webkit-scrollbar{display:none}
-.tab-pane{display:none}
+.tab-content{flex:1;overflow-y:auto;overflow-x:hidden;padding:0 16px 26px;width:100%;position:relative}
+.tab-pane{display:none;width:100%}
 .tab-pane.active{display:block;animation:fadeUp .4s var(--ease) both}
 .tab-pane.active > *{animation:fadeUp .5s var(--ease) both}
 .tab-pane.active > *:nth-child(1){animation-delay:.03s}
@@ -997,9 +996,9 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
     </div>
 
     <!-- MORE TAB -->
-    <div class="tab-pane" id="tab-more" style="justify-content: flex-start; padding-top: 4px;">
-      <div id="profile-card-wrap"></div>
-      <div class="section-label" style="margin-top: 10px;" data-t="moreSettings"></div>
+    <div class="tab-pane" id="tab-more" style="margin-top:0; padding-top:2px;">
+      <div id="profile-card-wrap" style="margin-top:0;"></div>
+      <div class="section-label" style="margin-top: 8px;" data-t="moreSettings"></div>
       <div class="settings-list">
         <button class="setting-item" onclick="openLangPicker()">
           <div class="setting-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
