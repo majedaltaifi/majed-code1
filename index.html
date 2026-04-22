@@ -3146,24 +3146,35 @@ function renderChatCard(user, chat, isPinned) {
 }
 
 async function startChat(targetUserId, targetName) {
+  if (!currentUser) {
+    alert("Please log in first to start a chat.");
+    return;
+  }
+  
   const myID = String(currentUser.empNo);
   const chatId = [myID, String(targetUserId)].sort().join('_');
   
-  // Ensure chat document exists
-  const chatRef = db.collection('chats').doc(chatId);
-  const chatDoc = await chatRef.get();
+  console.log("Starting chat with:", targetUserId, "Room ID:", chatId);
   
-  if (!chatDoc.exists) {
-    await chatRef.set({
-      chatId: chatId,
-      participants: [myID, String(targetUserId)],
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      lastMessage: '',
-      lastSenderId: ''
-    });
-  }
-
+  // Show the sheet immediately for better UX
   openChatRoom(chatId, targetName);
+  
+  try {
+    const chatRef = db.collection('chats').doc(chatId);
+    const chatDoc = await chatRef.get();
+    
+    if (!chatDoc.exists) {
+      await chatRef.set({
+        chatId: chatId,
+        participants: [myID, String(targetUserId)],
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        lastMessage: '',
+        lastSenderId: ''
+      });
+    }
+  } catch (e) {
+    console.error("Chat Init Error:", e);
+  }
 }
 
 function openChatRoom(id, name) {
@@ -3247,26 +3258,35 @@ function closeChatRoom() {
 }
 
 async function openSupportChat() {
-  if (!currentUser) return;
+  if (!currentUser) {
+    alert("Log in required for support.");
+    return;
+  }
   const myID = String(currentUser.empNo);
   const chatId = "chat_support_" + myID;
   
-  // Ensure chat document exists in 'chats' collection
-  const chatRef = db.collection('chats').doc(chatId);
-  const chatDoc = await chatRef.get();
+  console.log("Opening Support channel for:", myID);
   
-  if (!chatDoc.exists) {
-    await chatRef.set({
-      chatId: chatId,
-      participants: [myID, 'admin'],
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      lastMessage: 'Established support link',
-      lastSenderId: myID,
-      type: 'support'
-    });
-  }
-
+  // Pivot to room immediately
   openChatRoom(chatId, "Management Support");
+  
+  try {
+    const chatRef = db.collection('chats').doc(chatId);
+    const chatDoc = await chatRef.get();
+    
+    if (!chatDoc.exists) {
+      await chatRef.set({
+        chatId: chatId,
+        participants: [myID, 'admin'],
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        lastMessage: 'Established support link',
+        lastSenderId: myID,
+        type: 'support'
+      });
+    }
+  } catch (e) {
+    console.error("Support Channel Error:", e);
+  }
 }
 
 function filterChatSelection() {
