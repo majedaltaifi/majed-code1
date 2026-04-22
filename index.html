@@ -3132,22 +3132,21 @@ async function openChatWithUser(targetEmpNo, targetName) {
     const roomId = isSupport ? 'chat_support_' + myID : 'chat_' + [myID, tID].sort().join('_');
     const tIDFinal = isSupport ? 'admin' : tID;
 
-    // Check if exists
-    const doc = await db.collection('conversations').doc(roomId).get();
-    if (!doc.exists) {
-      await db.collection('conversations').doc(roomId).set({
-        participants: [myID, tIDFinal],
-        names: { [myID]: (currentUser.name || 'User'), [tIDFinal]: targetName },
-        other_name: targetName,
-        target_id: tIDFinal,
-        type: isSupport ? 'support' : 'direct',
-        updated_at: new Date().toISOString()
-      });
-    }
+    await db.collection('conversations').doc(roomId).set({
+      participants: [myID, tIDFinal],
+      names: { [myID]: (currentUser.name || 'User'), [tIDFinal]: targetName },
+      other_name: targetName,
+      target_id: tIDFinal,
+      type: isSupport ? 'support' : 'direct',
+      updated_at: new Date().toISOString()
+    }, { merge: true });
 
     filterHub();
     openChat(roomId, targetName);
-  } catch(e) { console.error('Chat open error', e); toast('Connection Error'); }
+  } catch(e) { 
+    console.error('Chat open error', e); 
+    toast(e.message.includes('permission') ? 'Firebase Permission Error' : 'Connection Error'); 
+  }
 }
 
 
