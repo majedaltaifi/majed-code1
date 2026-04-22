@@ -41,12 +41,10 @@ body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size
 [dir="ltr"] body{font-family:var(--font-en)}
 
 /* ── BG ── */
-.bg-layer{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
-.bg-grad{position:absolute;inset:0;background:linear-gradient(160deg,var(--bg) 0%,var(--bg2) 55%,var(--nit-dark) 100%)}
-.bg-orb{position:absolute;border-radius:50%;filter:blur(110px);opacity:.1;animation:orbF 25s ease-in-out infinite alternate}
-.bg-orb:nth-child(2){width:500px;height:500px;background:var(--turquoise);top:-180px;right:-120px}
-.bg-orb:nth-child(3){width:400px;height:400px;background:var(--nit-blue);bottom:-120px;left:-80px;animation-delay:-8s}
-@keyframes orbF{0%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,-40px) scale(1.12)}100%{transform:translate(-20px,30px) scale(.92)}}
+.bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none}
+.bg-grad{position:absolute;inset:0;background:radial-gradient(circle at 10% 10%,#1a1c5e 0,#080922 100%)}
+.bg-grad::before{content:'';position:absolute;inset:0;background:url('https://www.transparenttextures.com/patterns/dark-matter.png');opacity:.08}
+.bg-grad::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 85% 85%,rgba(128,209,233,0.06),transparent 45%)}
 
 /* ── SPLASH ── */
 #splash{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,var(--bg),var(--nit-dark),var(--nit-blue));transition:opacity .6s ease,visibility .6s ease;overflow:hidden}
