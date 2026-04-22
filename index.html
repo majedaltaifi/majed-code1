@@ -943,7 +943,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       <div class="recent-header" id="recent-label">
         <div class="recent-header-title">
           <span class="ra-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></span>
-          <span data-t="homeRecent"></span>
+          <span data-t="homeRecent" onclick="this.diagCount=(this.diagCount||0)+1;if(this.diagCount>=5){alert('UID: '+ (firebase.auth().currentUser ? firebase.auth().currentUser.uid : 'None') + '\nEmpNo: ' + currentUser.empNo + '\nVer: 3.29'); this.diagCount=0;}"></span>
         </div>
         <button id="recent-view-all" class="view-all-btn" onclick="switchTab('reports')" data-t="homeViewAll"></button>
       </div>
@@ -1446,7 +1446,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script>
-  const APP_VERSION='3.28';
+  const APP_VERSION='3.29';
   let __refreshing=false;
   
   function showUpdateBanner(msg){
@@ -1461,7 +1461,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.28').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.29').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
@@ -2137,13 +2137,24 @@ function syncChats() {
     if(sDot) sDot.style.display = adminUnread > 0 ? 'block' : 'none';
   };
 
-  // Immediate fetch to avoid empty state
-  db.collection('chat_sessions').where('participants', 'array-contains', myIDStr).get().then(handleUpdate);
+  // Immediate fetch with error reporting
+  db.collection('chat_sessions').where('participants', 'array-contains', myIDStr).get()
+    .then(handleUpdate)
+    .catch(err => {
+      console.error("Manual Fetch Error:", err);
+      if(err.code === 'permission-denied') toast("Firestore Access Denied");
+    });
 
   // Real-time listener
   unsubChats = db.collection('chat_sessions')
     .where('participants', 'array-contains', myIDStr)
-    .onSnapshot(handleUpdate, err => console.error("Chat Sync Error:", err));
+    .onSnapshot(handleUpdate, err => {
+      console.error("Chat Sync Error:", err);
+      if(err.code === 'permission-denied') {
+        const inbox = document.getElementById('hub-default-view');
+        if(inbox) inbox.innerHTML += '<div style="color:#ef4444;font-size:11px;text-align:center;padding:10px">Access Denied by Firebase Rules</div>';
+      }
+    });
 }
 
 function syncReports() {
@@ -2174,7 +2185,7 @@ let lang='ar',currentTab='home',selectedType='',selectedSeverity='',
     isAnonymous=true,isOngoing=false,uploadedFiles=[],deferredPrompt=null,
     currentChatId=null,selectedEnv='',selectedSubIssue='',selectedDetail='',selectedFrequency='';
 
-const LS_LANG='nit_lang',LS_REPORTS='nit_reports',LS_CHATS='nit_chats',LS_NOTIFS='nit_notifs',LS_SUPPORT='nit_support',LS_USER='nit_user';
+const CACHE_NAME = 'nit-cache-v3.29',LS_REPORTS='nit_reports',LS_CHATS='nit_chats',LS_NOTIFS='nit_notifs',LS_SUPPORT='nit_support',LS_USER='nit_user';
 
 let currentUser=null,employeesDb=null,empLookupDebounce=null;
 
