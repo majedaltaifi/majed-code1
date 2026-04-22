@@ -2993,19 +2993,39 @@ function initChatSystem() {
   console.log("Chat setup for:", myId, "document:", chatId);
 
   chatUnsub = db.collection('chats').doc(chatId).collection('messages')
-    .orderBy('timestamp', 'asc')
     .onSnapshot(snap => {
       console.log("Chat snapshot received, docs:", snap.size);
       const msgsDiv = document.getElementById('chat-msgs');
       if (!msgsDiv) return;
       
+      const msgs = [];
+      snap.forEach(doc => msgs.push(doc.data()));
+      
+      // Sort locally to handle offline null timestamps gracefully
+      msgs.sort((a, b) => {
+        const ta = a.timestamp ? (a.timestamp.toMillis ? a.timestamp.toMillis() : 0) : Date.now();
+        const tb = b.timestamp ? (b.timestamp.toMillis ? b.timestamp.toMillis() : 0) : Date.now();
+        return ta - tb;
+      });
+
       const fragment = document.createDocumentFragment();
-      snap.forEach(doc => {
-        const m = doc.data();
+      msgs.forEach(m => {
         const isMe = String(m.senderId) === String(myId);
         const msgDiv = document.createElement('div');
         msgDiv.className = `msg ${isMe ? 'me' : 'them'}`;
-        msgDiv.textContent = m.text;
+        
+        // Sender name added here for clarity, as requested 
+        const nameDiv = document.createElement('div');
+        nameDiv.style.fontSize = '0.7rem';
+        nameDiv.style.opacity = '0.7';
+        nameDiv.style.marginBottom = '2px';
+        nameDiv.textContent = m.senderName || (isMe ? 'You' : 'Support');
+        
+        const textDiv = document.createElement('div');
+        textDiv.textContent = m.text;
+        
+        msgDiv.appendChild(nameDiv);
+        msgDiv.appendChild(textDiv);
         fragment.appendChild(msgDiv);
       });
       
