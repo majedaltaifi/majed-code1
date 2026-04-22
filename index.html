@@ -873,7 +873,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
         <span data-t="loginSubmit"></span>
       </button>
-      <div class="version-tag">Version 3.19 — Stable Recovery</div>
+      <div class="version-tag">Version 3.20 — Stable Recovery</div>
     </div>
   </div>
 </div>
@@ -888,8 +888,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       <div class="h-t" id="header-title">—</div>
       <div class="h-s" id="header-subtitle">—</div>
     </div>
-    <div class="header-actions" style="display:flex;align-items:center;gap:8px">
-
+    <div class="header-actions">
       <button class="h-btn bell-btn" onclick="openNotifications()" id="header-bell-btn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span class="dot"></span>
@@ -948,34 +947,25 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       </div>
 
       <div class="recent-header" id="recent-label">
-        <div class="recent-header-title">
-          <span class="ra-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></span>
-          <span data-t="homeRecent"></span>
+        <div class="rh-t-group">
+          <div class="rh-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <div class="rh-lbl" data-t="homeRecent">RECENT ACTIVITY</div>
         </div>
-        <button id="recent-view-all" class="view-all-btn" onclick="switchTab('reports')" data-t="homeViewAll"></button>
+        <button class="btn-ghost rh-btn" onclick="switchTab('reports')"><span data-t="homeViewAll">View All</span> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button>
       </div>
-      <div id="recent-reports"></div>
-      <div id="stats-dashboard"></div>
+      <div id="home-recent-reports"></div>
     </div>
 
     <!-- REPORTS TAB -->
     <div class="tab-pane" id="tab-reports">
-      <div class="search-bar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="reports-search" data-t-placeholder="searchReports" oninput="renderReports()" dir="ltr">
-      </div>
-      <div id="reports-list"></div>
-    </div>
-
-    <!-- CHATS TAB -->
-    <div class="tab-pane" id="tab-chats">
-      <div class="chat-hub-header">
-        <h2 class="chat-hub-title">CHAT HUB</h2>
-        <div class="search-bar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="chats-search" data-t-placeholder="searchChats" oninput="filterHub()">
+      <div class="header">
+        <div class="header-left">
+          <h1 class="header-title" data-t="tabReports"></h1>
+          <div class="header-subtitle" data-t="reportsDesc"></div>
         </div>
       </div>
+      <div class="list" id="reports-list"></div>
+    </div>
 
     <!-- CHATS TAB -->
     <div class="tab-pane" id="tab-chats">
@@ -1037,7 +1027,6 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 
     <!-- MORE TAB -->
     <div class="tab-pane" id="tab-more">
-
       <div id="profile-card-wrap"></div>
       <div class="section-label" data-t="moreSettings"></div>
       <div class="settings-list">
@@ -1081,10 +1070,9 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       <div class="about-block">
         <img class="logo-sm" src="assets/logo.png" alt="NIT">
         <div>Nesma Reports</div>
-        <div>v3.15</div>
+        <div>v3.20</div>
       </div>
     </div>
-
   </div>
 
   <!-- BOTTOM NAV -->
