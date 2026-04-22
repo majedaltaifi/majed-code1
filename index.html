@@ -3086,8 +3086,8 @@ function renderChatHub() {
   const myID = String(currentUser.empNo);
   
   // 1. Pinned Admin Section (Always Visible)
-  const supportChatId = "chat_support_" + myID;
-  const supportChat = activeChats.find(c => c.id === supportChatId);
+  const supportChat = activeChats.find(c => c.participants.includes(myID) && c.participants.includes('admin'));
+  
   if (adminWrap) {
     const adminData = { userId: 'admin', name: 'Management Support', role: 'admin' };
     adminWrap.innerHTML = renderChatCard(adminData, supportChat, true);
@@ -3124,7 +3124,11 @@ function renderChatHub() {
 function renderChatCard(user, chat, isPinned) {
   const initial = (user.name || '?').charAt(0).toUpperCase();
   const rawLastMsg = chat ? (chat.lastMessage || chat.last_message || '') : '';
-  const lastMsg = rawLastMsg ? (chat.lastSenderId === String(currentUser.empNo) ? 'You: ' + rawLastMsg : rawLastMsg) : 'No messages yet';
+  let lastMsg = 'No messages yet';
+  if (rawLastMsg) {
+    const isMe = chat.lastSenderId === String(currentUser.empNo) || chat.last_senderId === String(currentUser.empNo);
+    lastMsg = isMe ? 'You: ' + rawLastMsg : rawLastMsg;
+  }
   const time = (chat && chat.updatedAt) ? formatRelativeTime(chat.updatedAt.toDate ? chat.updatedAt.toDate() : new Date(chat.updatedAt)) : '';
   
   return `
@@ -3248,6 +3252,8 @@ async function sendNewMessage() {
     }, { merge: true });
     
     console.log("Transmission successful.");
+    // Force a local UI update to show the message preview instantly
+    renderChatHub();
   } catch (e) {
     console.error("Transmission Error:", e);
     toast("Transmission failed: " + e.message);
