@@ -183,7 +183,9 @@ body{font-family:var(--font-ar);font-weight:500;color:var(--text);min-height:100
 
 /* ── LIST ITEMS (reports + chats) ── */
 .list{display:flex;flex-direction:column;gap:8px}
-.list-item{display:flex;align-items:center;gap:12px;padding:14px;background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--r);cursor:pointer;transition:all .25s var(--ease);text-align:start;width:100%;color:var(--text);font-family:inherit;animation:slideInR .4s var(--ease) both}
+.list-item{display:flex;align-items:center;gap:16px;padding:18px;background:var(--glass);border:1px solid var(--glass-border);border-radius:20px;cursor:pointer;transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);text-align:start;width:100%;color:var(--text);margin-bottom:12px;box-shadow:0 4px 15px rgba(0,0,0,0.05);animation:slideInR .4s var(--ease) both;position:relative}
+.list-item:hover{transform:translateY(-2px);border-color:var(--primary);background:rgba(59,130,246,0.05);box-shadow:0 8px 25px rgba(0,0,0,0.15)}
+.unread-dot{position:absolute;top:15px;right:15px;width:12px;height:12px;background:var(--danger);border-radius:50%;border:2px solid var(--bg-card);box-shadow:0 0 10px rgba(255,82,82,0.4);z-index:2}
 [dir="ltr"] .list-item{animation:slideInL .4s var(--ease) both}
 .list-item:nth-child(1){animation-delay:.04s}
 .list-item:nth-child(2){animation-delay:.08s}
@@ -2963,71 +2965,44 @@ function doTrackByRef(){
    CHATS TAB (FIRESTORE CONNECTED)
    ══════════════════════════════════════════ */
 
-function renderChats(){
-  let sessions = loadChats().sort((a,b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
+function renderChats() {
+  const sessions = loadChats().sort((a,b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
   const list = document.getElementById('chats-list');
   if(!list) return;
 
-  if(!sessions.length){
-    // Force show 3734 as a suggestion if list is empty
-    list.innerHTML=`<div class="list-item" onclick="openChatWithUser('3734', 'Majed Abdulaziz Ali Altaifi')" style="border: 1px dashed rgba(59,130,246,0.3); background: rgba(59,130,246,0.02);">
-        <div class="list-avatar" style="background:rgba(59,130,246,0.1);color:var(--primary)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        </div>
-        <div class="list-body">
-          <div class="list-top">
-            <div class="list-title">Majed Abdulaziz Ali Altaifi</div>
-            <div class="list-time">Suggested</div>
-          </div>
-          <div class="list-preview">Click to start a conversation with Majed.</div>
-        </div>
-      </div>`;
-  } else {
-    list.innerHTML = sessions.map(c => {
-      const myID = String(currentUser.empNo);
-      
-      // Support both participants array and members map
-      let otherId = 'admin';
-      if (c.participants && Array.isArray(c.participants)) {
-        otherId = c.participants.find(p => String(p) !== myID) || 'admin';
-      } else if (c.members) {
-        otherId = Object.keys(c.members).find(k => k !== myID) || 'admin';
-      } else if (c.target_id && String(c.target_id) !== myID) {
-        otherId = c.target_id;
-      }
-      
-      let otherName = 'User ' + otherId;
-      if (otherId === 'admin') {
-        otherName = (T[lang].integrityTeam) || 'Management Support';
-      } else if (c.names && c.names[otherId]) {
-        otherName = c.names[otherId];
-      } else if (c.other_name && String(c.target_id) !== myID) {
-        otherName = c.other_name;
-      }
-
-      // Support both last_msg and last_message field names
-      const preview = c.last_msg || c.last_message || T[lang].chatWelcome || 'New conversation';
-      const timeStr = c.updated_at ? formatRelativeTime(new Date(c.updated_at)) : '';
-      const unread = (c.unread_counts && c.unread_counts[myID]) || 0;
-      
-      return `<div class="list-item" onclick="openChat('${c.id}', '${otherName.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')" style="position:relative">
-        ${unread > 0 ? `<div style="position:absolute;top:15px;right:15px;width:10px;height:10px;background:var(--danger);border-radius:50%;border:2px solid white"></div>` : ''}
-        <div class="list-avatar" style="background:rgba(59,130,246,0.1);color:var(--primary)">
-          ${otherId === 'admin' ? 
-            `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>` : 
-            `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`
-          }
-        </div>
-        <div class="list-body">
-          <div class="list-top">
-            <div class="list-title">${otherName}</div>
-            <div class="list-time">${timeStr}</div>
-          </div>
-          <div class="list-preview">${escapeHtml(preview.slice(0,80))}</div>
-        </div>
-      </div>`;
-    }).join('');
+  if(!sessions.length) {
+    list.innerHTML = `<div class="list-item" onclick="openChatWithUser('3734', 'Majed Abdulaziz Ali Altaifi')" style="border: 2px dashed var(--primary-light); background: rgba(59,130,246,0.02);">
+      <div class="list-avatar" style="background:rgba(59,130,246,0.1);color:var(--primary)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+      <div class="list-body">
+        <div class="list-top"><div class="list-title">Majed Abdulaziz Ali Altaifi</div><div class="list-time">Suggested</div></div>
+        <div class="list-preview">Click here to start a direct chat with Majed.</div>
+      </div>
+    </div>`;
+    return;
   }
+
+  list.innerHTML = sessions.map(s => {
+    const myID = String(currentUser.empNo);
+    const otherId = (s.participants || []).find(p => String(p) !== myID) || 'admin';
+    const otherName = (otherId === 'admin') ? 'Management Support' : (s.names ? s.names[otherId] : (s.other_name || 'User ' + otherId));
+    const preview = s.last_msg || s.last_message || 'No messages yet';
+    const time = s.updated_at ? formatRelativeTime(new Date(s.updated_at)) : '';
+    const unread = (s.unread_counts && s.unread_counts[myID]) || 0;
+
+    return `<div class="list-item" onclick="openChat('${s.id}', '${otherName.replace(/'/g, "\'")}')">
+      ${unread > 0 ? `<div class="unread-dot"></div>` : ''}
+      <div class="list-avatar" style="background:rgba(59,130,246,0.1);color:var(--primary)">
+        ${otherId === 'admin' ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'}
+      </div>
+      <div class="list-body">
+        <div class="list-top">
+          <div class="list-title" style="font-weight:700">${otherName}</div>
+          <div class="list-time">${time}</div>
+        </div>
+        <div class="list-preview">${escapeHtml(String(preview).slice(0,80))}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function startNewChat() {
@@ -3136,101 +3111,89 @@ async function filterHub() {
   }
 }
 
-async function openChatWithUser(targetEmpNo, targetName) {
-  if(!currentUser || currentUser.guest) return toast(T[lang].moreLoginNow);
+async function openChatWithUser(targetID, targetName) {
+  if(!currentUser || currentUser.guest) return toast('Please login to chat');
   const myID = String(currentUser.empNo);
-  const tID = String(targetEmpNo);
+  const tID = String(targetID);
   if(myID === tID) return toast("Cannot chat with yourself.");
-
+  
   const isSupport = (tID === 'admin' || tID === 'support');
-  if(document.getElementById('chats-search')) document.getElementById('chats-search').value = '';
+  const finalTID = isSupport ? 'admin' : tID;
+  const roomId = isSupport ? 'chat_support_' + myID : 'chat_' + [myID, finalTID].sort().join('_');
+  
+  const chatData = {
+    id: roomId,
+    participants: [myID, finalTID],
+    names: { [myID]: (currentUser.name || 'User'), [finalTID]: targetName },
+    other_name: targetName,
+    type: isSupport ? 'support' : 'direct',
+    updated_at: new Date().toISOString()
+  };
 
   try {
-    const roomId = isSupport ? 'chat_support_' + myID : 'chat_' + [myID, tID].sort().join('_');
-    const tIDFinal = isSupport ? 'admin' : tID;
-
-    const chatData = {
-      id: roomId,
-      participants: [myID, tIDFinal],
-      names: { [myID]: (currentUser.name || 'User'), [tIDFinal]: targetName },
-      other_name: targetName,
-      target_id: tIDFinal,
-      type: isSupport ? 'support' : 'direct',
-      updated_at: new Date().toISOString()
-    };
-
-    // Save to Firestore
     await db.collection('conversations').doc(roomId).set(chatData, { merge: true });
-
-    // Update Local for Instant Feedback
-    const local = loadChats();
-    const idx = local.findIndex(x => x.id === roomId);
-    if(idx > -1) local[idx] = { ...local[idx], ...chatData };
-    else local.push(chatData);
-    saveChats(local);
+    // Local Sync
+    const chats = loadChats();
+    const idx = chats.findIndex(x => x.id === roomId);
+    if(idx > -1) chats[idx] = { ...chats[idx], ...chatData }; else chats.push(chatData);
+    saveChats(chats);
     renderChats();
 
+    if(document.getElementById('chats-search')) document.getElementById('chats-search').value = '';
     filterHub();
     openChat(roomId, targetName);
-  } catch(e) { 
-    console.error('Chat open error', e); 
-    toast(e.message.includes('permission') ? 'Firebase Permission Error' : 'Connection Error'); 
-  }
+  } catch(e) { console.error('Chat error', e); toast('Connection error'); }
 }
 
+async function openSupport() {
+  await openChatWithUser('admin', 'Management Support');
+}
 
-async function openChat(id, optName){
-  if(!currentUser || currentUser.guest) return;
-  const myID = String(currentUser.empNo);
+async function openChat(id, name) {
+  if(!currentUser) return;
   currentChatId = id;
-  const t = T[lang];
-  document.querySelector('#sheet-chat .sheet-title').textContent = optName || t.chatName;
+  const myID = String(currentUser.empNo);
+  const sheet = document.getElementById('sheet-chat');
+  sheet.querySelector('.sheet-title').textContent = name;
   
   // Clear unreads
   const up = {}; up[`unread_counts.${myID}`] = 0;
   db.collection('conversations').doc(id).update(up).catch(()=>{});
 
-  renderChatMessages({messages:[]});
   openSheet('sheet-chat');
-  
+  renderChatMessages({ messages: [] });
+
   if(unsubMsgs) unsubMsgs();
   unsubMsgs = db.collection('conversations').doc(id).collection('messages')
     .orderBy('created_at', 'asc')
     .onSnapshot(snap => {
       const msgs = snap.docs.map(d => ({
         text: d.data().text,
-        type: String(d.data().sender_id) === String(myID) ? 'user' : 'bot',
+        type: String(d.data().sender_id) === myID ? 'user' : 'bot',
         at: d.data().created_at
       }));
-      renderChatMessages({messages: msgs});
-      const m = document.getElementById('chat-messages');
-      if(m) m.scrollTop = m.scrollHeight;
+      renderChatMessages({ messages: msgs });
     });
 }
 
-function closeChat(){
+function closeChat() {
   if(unsubMsgs) { unsubMsgs(); unsubMsgs = null; }
   closeSheet('sheet-chat');
-  renderChats();updateStats();
+  renderChats();
 }
 
-function renderChatMessages(chat){
-  const box=document.getElementById('chat-messages');
+function renderChatMessages(chat) {
+  const box = document.getElementById('chat-messages');
   if(!box) return;
-  box.innerHTML=chat.messages.map(m=>{
-    const d=new Date(m.at || Date.now());
-    const hh=d.getHours().toString().padStart(2,'0'),mm=d.getMinutes().toString().padStart(2,'0');
-    return `<div class="msg ${m.type}">${escapeHtml(m.text)}<div class="msg-time">${hh}:${mm}</div></div>`
+  box.innerHTML = chat.messages.map(m => {
+    const d = new Date(m.at || Date.now());
+    const time = d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    return `<div class="msg ${m.type}">${escapeHtml(m.text)}<div class="msg-time">${time}</div></div>`;
   }).join('');
-  box.scrollTop=box.scrollHeight;
-  
-  const qr=document.getElementById('quick-replies');
-  if(chat.messages.length<=1){
-    qr.innerHTML=(T[lang].quickReplies||[]).map(q=>`<button class="quick-reply" onclick="sendQuick(this,${JSON.stringify(q).replace(/"/g,'&quot;')})">${q}</button>`).join('');
-  }else{qr.innerHTML=''}
+  box.scrollTop = box.scrollHeight;
 }
 
-async function sendChat(){
+async function sendChat() {
   const inp = document.getElementById('chat-input');
   const txt = inp.value.trim();
   if(!txt || !currentChatId) return;
@@ -3239,41 +3202,26 @@ async function sendChat(){
   inp.value = ''; inp.disabled = true;
 
   try {
-    const sessionRef = db.collection('conversations').doc(currentChatId);
-    await sessionRef.set({
-       updated_at: now,
-       last_msg: txt,
-       last_message: txt,
-       last_sender: myID
-    }, {merge:true});
-
-    await sessionRef.collection('messages').add({
-      sender_id: myID,
-      sender_name: currentUser.name || 'User',
-      text: txt,
-      created_at: now
-    });
+    const ref = db.collection('conversations').doc(currentChatId);
+    await ref.set({ updated_at: now, last_msg: txt, last_sender: myID }, { merge: true });
+    await ref.collection('messages').add({ sender_id: myID, text: txt, created_at: now });
     
-    // Increment unreads for others
-    const doc = await sessionRef.get();
+    // Update unread counts
+    const doc = await ref.get();
     const parts = doc.data().participants || [];
     const updates = {};
-    parts.forEach(p => {
-      if(String(p) !== myID) {
-        updates[`unread_counts.${p}`] = firebase.firestore.FieldValue.increment(1);
-      }
-    });
-    if(Object.keys(updates).length) await sessionRef.update(updates);
-
+    parts.forEach(p => { if(String(p) !== myID) updates[`unread_counts.${p}`] = firebase.firestore.FieldValue.increment(1); });
+    if(Object.keys(updates).length) await ref.update(updates);
   } catch(e) { console.error("Send error", e); }
   inp.disabled = false; inp.focus();
 }
 
-function sendQuick(btn,txt){
-  if(btn)btn.remove();
+function sendQuick(btn, txt) {
+  if(btn) btn.remove();
   const inp = document.getElementById('chat-input');
   if(inp) { inp.value = txt; sendChat(); }
 }
+
 
 
 /* ══════════════════════════════════════════
