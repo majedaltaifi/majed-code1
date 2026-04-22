@@ -3039,7 +3039,7 @@ async function sendMessage() {
     if (msgsDiv) msgsDiv.scrollTop = msgsDiv.scrollHeight;
   } catch(e) {
     console.error("Chat send error:", e);
-    alert("Send failed. Check connection.");
+    alert("Send failed: " + e.message);
   }
 }
 
