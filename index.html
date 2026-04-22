@@ -993,6 +993,25 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
           </div>
           <div class="support-label">Support</div>
         </div>
+
+        <!-- Support Chat List Item -->
+        <div class="section-label" style="margin-top:20px;">Messages</div>
+        <div id="chats-list" class="list">
+          <!-- Dynamically populated or static 'Support' row -->
+          <div class="list-item" onclick="openChatScreen()">
+            <div class="list-avatar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-10.6 8.38 8.38 0 0 1 3.9.9"/><path d="M11.8 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/><path d="M13.5 14L18 18.5"/><path d="M18 13.5L13.5 18"/></svg>
+            </div>
+            <div class="list-body">
+              <div class="list-top">
+                <span class="list-title">Support</span>
+                <span class="list-time" id="support-last-time"></span>
+              </div>
+              <div class="list-preview" id="support-last-msg">Start a conversation...</div>
+            </div>
+            <div class="unread-dot" id="support-unread-dot" style="display:none;"></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -2119,7 +2138,7 @@ function tr(key){const l=I18N[key];if(!l)return key;return l[lang]||l.en||key}
    SYNC ENGINE (FIRESTORE)
    ══════════════════════════════════════════ */
 let broadcastsDb=[];
-let unsubBroadcasts = null, unsubReports = null, unsubChats = null, unsubMsgs = null, activeRoom = null;
+let unsubBroadcasts = null, unsubReports = null, unsubChats = null, unsubMsgs = null, unsubSupportPreview = null, activeRoom = null;
 
 function syncBroadcasts() {
   if (unsubBroadcasts) unsubBroadcasts();
@@ -2127,6 +2146,30 @@ function syncBroadcasts() {
     broadcastsDb = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
     renderBroadcasts();
   }, err => console.error("Broadcast Sync Error:", err));
+}
+
+function syncSupportPreview() {
+  if (!currentUser || currentUser.guest) return;
+  if (unsubSupportPreview) unsubSupportPreview();
+  const chatId = 'support_' + currentUser.empNo;
+  unsubSupportPreview = db.collection('chats').doc(chatId).collection('messages')
+    .orderBy('timestamp', 'desc')
+    .limit(1)
+    .onSnapshot(snap => {
+      const msgEl = document.getElementById('support-last-msg');
+      const timeEl = document.getElementById('support-last-time');
+      if (!snap.empty) {
+        const last = snap.docs[0].data();
+        if (msgEl) msgEl.textContent = last.text || '...';
+        if (timeEl && last.timestamp) {
+          try {
+            timeEl.textContent = formatRelativeTime(last.timestamp.toDate());
+          } catch(e) { 
+            timeEl.textContent = 'Just now';
+          }
+        }
+      }
+    });
 }
 
 
@@ -2198,7 +2241,7 @@ function setLang(l){
     document.getElementById('screen-lang').classList.remove('show');
     document.getElementById('main-app').classList.add('show');
     seedNotifsIfFirstTime(); switchTab('home'); applyPersonalization();
-    syncBroadcasts(); syncReports();
+    syncBroadcasts(); syncReports(); syncSupportPreview();
     // Double-tap render to catch any early data
     setTimeout(() => { updateStats(); renderReports(); }, 500);
     setTimeout(() => { updateStats(); renderReports(); }, 2000);
