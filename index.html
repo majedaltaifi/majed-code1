@@ -3010,7 +3010,7 @@ async function handleChatSearch(q) {
         const u = doc.data();
         const name = u.name || u['Employee Name - English'] || 'User';
         overlay.innerHTML = `
-          <div class="search-item" onclick="overlay.style.display='none'">
+          <div class="search-item" onclick="document.getElementById('search-results').style.display='none'; openChatWithPersonal('${doc.id}', '${name}')">
             <div class="search-avatar">${name.charAt(0).toUpperCase()}</div>
             <div class="search-info">
               <div class="search-name">${name}</div>
@@ -3039,44 +3039,68 @@ window.addEventListener('click', (e) => {
 
 // ─── CHAT ENGINE ─────────────────────────
 
-function openChatScreen() {
-  const el = document.getElementById('screen-chat');
-  if(el) el.classList.add('active');
-  console.log("Chat screen opened, forcing re-init.");
+let activeChatId = null;
+let activeChatName = 'Support';
+
+function openChatWith(id, name) {
+  activeChatId = id;
+  activeChatName = name;
+  const overlay = document.getElementById('screen-chat');
+  if (overlay) overlay.classList.add('active');
+  const titleEl = overlay.querySelector('.sheet-title');
+  if (titleEl) titleEl.textContent = name;
   initChatSystem();
 }
+
+function openChatWithPersonal(otherId, otherName) {
+  const user = currentUser || loadUser();
+  if (!user) return;
+  const myId = String(user.empNo || user.employeeId);
+  const chatId = [myId, String(otherId)].sort().join('_');
+  
+  // Initialize the chat document to track members
+  db.collection('chats').doc(chatId).set({
+    members: [myId, String(otherId)],
+    memberNames: {
+      [myId]: user.name,
+      [otherId]: otherName
+    },
+    last_at: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
+  
+  openChatWith(chatId, otherName);
+}
+
+function openChatScreen() {
+  const user = currentUser || loadUser();
+  if (!user) return;
+  const myId = String(user.empNo || user.employeeId);
+  openChatWith(`${myId}_Support`, 'Support');
+}
+
 function closeChatScreen() {
   const el = document.getElementById('screen-chat');
   if(el) el.classList.remove('active');
+  if (chatUnsub) { chatUnsub(); chatUnsub = null; }
+  activeChatId = null;
 }
 
 let chatUnsub = null;
 function initChatSystem() {
+  if (!activeChatId) return;
   const user = currentUser || loadUser();
   if (!user) return;
   if (chatUnsub) chatUnsub();
 
-  const myId = user.empNo || user.employeeId;
-  if (!myId) return;
-
-  const chatId = `${myId}_Support`;
-  console.log("Chat setup for:", myId, "document:", chatId);
-
-  chatUnsub = db.collection('chats').doc(chatId).collection('messages')
+  const myId = String(user.empNo || user.employeeId);
+  chatUnsub = db.collection('chats').doc(activeChatId).collection('messages')
+    .orderBy('timestamp', 'asc')
     .onSnapshot(snap => {
-      console.log("Chat snapshot received, docs:", snap.size);
       const msgsDiv = document.getElementById('chat-msgs');
       if (!msgsDiv) return;
       
       const msgs = [];
       snap.forEach(doc => msgs.push(doc.data()));
-
-      // Sort locally to handle offline or pending server timestamps gracefully
-      msgs.sort((a, b) => {
-        const ta = (a.timestamp && typeof a.timestamp.toMillis === 'function') ? a.timestamp.toMillis() : Date.now();
-        const tb = (b.timestamp && typeof b.timestamp.toMillis === 'function') ? b.timestamp.toMillis() : Date.now();
-        return ta - tb;
-      });
 
       const fragment = document.createDocumentFragment();
       msgs.forEach(m => {
@@ -3084,12 +3108,11 @@ function initChatSystem() {
         const msgDiv = document.createElement('div');
         msgDiv.className = `msg ${isMe ? 'me' : 'them'}`;
         
-        // Sender name added here for clarity, as requested 
         const nameDiv = document.createElement('div');
         nameDiv.style.fontSize = '0.7rem';
         nameDiv.style.opacity = '0.7';
         nameDiv.style.marginBottom = '2px';
-        nameDiv.textContent = m.senderName || (isMe ? 'You' : 'Support');
+        nameDiv.textContent = m.senderName || (isMe ? 'You' : activeChatName);
         
         const textDiv = document.createElement('div');
         textDiv.textContent = m.text;
@@ -3104,49 +3127,37 @@ function initChatSystem() {
       msgsDiv.scrollTop = msgsDiv.scrollHeight;
     }, err => {
       console.error("Chat sync error:", err);
-      alert("Chat sync error: " + err.message);
     });
 }
 
 async function sendMessage() {
-  console.log("sendMessage called");
   const input = document.getElementById('chat-input');
-  if (!input) return;
+  if (!input || !input.value.trim() || !activeChatId) return;
   
   const user = currentUser || loadUser();
   if (!user) { alert("Session error. Please login again."); return; }
   
-  const myId = user.empNo || user.employeeId;
-  const chatId = `${myId}_Support`;
+  const myId = String(user.empNo || user.employeeId);
   const text = input.value.trim();
-  if (!text || !myId) return;
-
-  console.log("Sending message as:", myId, "to:", chatId);
+  input.value = '';
 
   const msg = {
-    text: text,
-    senderId: String(myId),
-    senderName: user.name || "User",
+    text,
+    senderId: myId,
+    senderName: user.name,
     timestamp: firebase.firestore.FieldValue.serverTimestamp()
   };
 
   try {
-    await db.collection('chats').doc(chatId).collection('messages').add(msg);
-    await db.collection('chats').doc(chatId).set({
-      senderName: user.name || "User",
-      lastMessage: text,
-      lastSenderId: String(myId),
-      participants: [String(myId), 'admin'],
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }, {merge: true});
-
-    input.value = '';
-    input.focus();
-    const msgsDiv = document.getElementById('chat-msgs');
-    if (msgsDiv) msgsDiv.scrollTop = msgsDiv.scrollHeight;
+    await db.collection('chats').doc(activeChatId).collection('messages').add(msg);
+    // Update parent doc
+    await db.collection('chats').doc(activeChatId).set({
+      last_at: firebase.firestore.FieldValue.serverTimestamp(),
+      last_msg: text
+    }, { merge: true });
   } catch(e) {
-    console.error("Chat send error:", e);
-    alert("Send failed: " + e.message);
+    console.error("Send error:", e);
+    alert("Fail to send: " + e.message);
   }
 }
 
