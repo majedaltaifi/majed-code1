@@ -3021,15 +3021,38 @@ async function initChatSystem() {
   syncActiveChats();
 }
 
-function syncActiveChats() {
-  const myID = String(currentUser.empNo);
+async function syncActiveChats() {
+  const myID = String(currentUser.empNo).trim();
   if (chatUnsub) chatUnsub();
+  console.log("Syncing chats for user:", myID);
   chatUnsub = db.collection('chats')
     .where('participants', 'array-contains', myID)
-    .onSnapshot(snap => {
+    .onSnapshot(async snap => {
       activeChats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      console.log("Active chats found:", activeChats.length);
+      
+      // Ensure we have name data for everyone before rendering
+      const pending = [];
+      activeChats.forEach(chat => {
+        const otherId = (chat.participants || []).find(p => p !== myID);
+        if (otherId && !operativeCache[otherId]) {
+          pending.push(db.collection('employees').doc(otherId).get().then(doc => {
+            if (doc.exists) {
+              operativeCache[otherId] = {
+                userId: otherId,
+                name: doc.data().name || doc.data()['Employee Name - English'] || 'Operator ' + otherId,
+                role: doc.data().role || 'user'
+              };
+            } else {
+              operativeCache[otherId] = { userId: otherId, name: 'User ' + otherId };
+            }
+          }));
+        }
+      });
+      
+      if (pending.length > 0) await Promise.all(pending);
       renderChatHub();
-    });
+    }, err => console.error("Chat Sync Error:", err));
 }
 
 function syncUsers() {
@@ -3092,56 +3115,35 @@ function renderChatHub() {
   const searchQuery = (document.getElementById('chat-search')?.value || '').trim();
   if (!hubList) return;
 
-  const myID = String(currentUser.empNo);
+  const myID = String(currentUser.empNo).trim();
   
-  // 1. Pinned Admin Section (Always Visible)
-  const supportChat = activeChats.find(c => c.participants.includes(myID) && c.participants.includes('admin'));
+  // 1. Pinned Admin Support Card
+  const supportChat = activeChats.find(c => (c.participants || []).includes('admin'));
   if (adminWrap) {
     const adminData = { userId: 'admin', name: 'Management Support', role: 'admin' };
     adminWrap.innerHTML = renderChatCard(adminData, supportChat, true);
   }
 
-  // 2. Active Conversations List (Default View)
+  // 2. Active Conversations (Only if not searching)
   if (!searchQuery) {
     if (activeChats.length === 0) {
-      hubList.innerHTML = '<div style="padding:40px; text-align:center; opacity:0.2">Start a new search to begin chatting.</div>';
+      hubList.innerHTML = '<div style="padding:60px 20px; text-align:center; opacity:0.3; font-size:0.85rem;">Start a new search to begin chatting.</div>';
       return;
     }
 
-    // Sort by updated time
+    // Sort by recent activity
     const sorted = [...activeChats].sort((a,b) => {
-      const ta = a.updatedAt?.toDate ? a.updatedAt.toDate() : new Date(a.updatedAt || 0);
-      const tb = b.updatedAt?.toDate ? b.updatedAt.toDate() : new Date(b.updatedAt || 0);
-      return tb - ta;
+      const timeA = a.updatedAt?.toDate ? a.updatedAt.toDate() : new Date(a.updatedAt || 0);
+      const timeB = b.updatedAt?.toDate ? b.updatedAt.toDate() : new Date(b.updatedAt || 0);
+      return timeB - timeA;
     });
 
-    const renderAll = async () => {
-      const cards = await Promise.all(sorted.map(async chat => {
-        const otherId = chat.participants.find(p => p !== myID);
-        if (!otherId) return '';
-        
-        // Use cache or fetch
-        if (!operativeCache[otherId]) {
-          try {
-            const doc = await db.collection('employees').doc(otherId).get();
-            if (doc.exists) {
-              operativeCache[otherId] = {
-                userId: otherId,
-                name: doc.data().name || doc.data()['Employee Name - English'] || 'Operator ' + otherId,
-                role: doc.data().role || 'user'
-              };
-            } else {
-              operativeCache[otherId] = { userId: otherId, name: 'Operator ' + otherId, role: 'user' };
-            }
-          } catch(e) { /* ignore */ }
-        }
-        
-        return renderChatCard(operativeCache[otherId] || {userId: otherId, name: '...'}, chat, false);
-      }));
-      hubList.innerHTML = cards.join('');
-    };
-
-    renderAll();
+    hubList.innerHTML = sorted.map(chat => {
+      const otherId = (chat.participants || []).find(p => p !== myID);
+      if (!otherId || otherId === 'admin') return ''; // We handle admin separately
+      const uData = operativeCache[otherId] || { userId: otherId, name: 'User ' + otherId };
+      return renderChatCard(uData, chat, false);
+    }).join('');
   }
 }
 
@@ -3192,11 +3194,11 @@ async function startChat(targetUserId, targetName) {
     if (!chatDoc.exists) {
       await chatRef.set({
         chatId: chatId,
-        participants: [myID, String(targetUserId)],
+        participants: [myID, String(targetUserId).trim()],
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
         lastMessage: '',
         lastSenderId: ''
-      });
+      }, { merge: true });
     }
   } catch (e) {
     console.error("Chat Init Error:", e);
