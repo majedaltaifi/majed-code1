@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nit-cache-v9.2';
+const CACHE_NAME = 'nit-cache-v9.4';
 const ASSETS = [
   './',
   './index.html',

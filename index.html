@@ -122,7 +122,7 @@ body{font-family:var(--font-ar);font-weight:500;color:var(--text);min-height:100
 .app-header .h-btn svg{width:18px;height:18px}
 
 /* ── TAB CONTENT ── */
-.tab-content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:14px 16px 26px;width:100%;position:relative;scrollbar-width:none}
+.tab-content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:4px 16px 26px;width:100%;position:relative;scrollbar-width:none}
 .tab-content::-webkit-scrollbar{display:none}
 .tab-pane{display:none}
 .tab-pane.active{display:block;animation:fadeUp .4s var(--ease) both}
@@ -466,7 +466,8 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 .login-guest-btn:hover{color:var(--turquoise)}
 
 /* Profile card in More tab */
-.profile-card{display:flex;align-items:center;gap:18px;padding:22px;background:linear-gradient(135deg,rgba(46,49,146,0.7),rgba(26,28,94,0.8));border:1px solid rgba(128,209,233,0.3);border-radius:var(--r-xl);margin-bottom:16px;position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.2)}
+/* Profile card in More tab */
+.profile-card{display:flex;align-items:center;gap:18px;padding:22px;background:linear-gradient(135deg,rgba(46,49,146,0.7),rgba(26,28,94,0.8));border:1px solid rgba(128,209,233,0.3);border-radius:var(--r-xl);margin:0 0 16px;position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.2)}
 .profile-card::before{content:'';position:absolute;inset-inline-end:-20px;top:-20px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(128,209,233,0.15),transparent 70%);pointer-events:none}
 .profile-avatar{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,var(--turquoise),var(--nit-blue));display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.5rem;font-weight:800;flex-shrink:0;box-shadow:0 8px 20px rgba(128,209,233,0.4);position:relative;z-index:1;text-transform:uppercase;border:2px solid rgba(255,255,255,0.1)}
 .profile-info{flex:1;min-width:0;position:relative;z-index:1}
@@ -996,9 +997,9 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
     </div>
 
     <!-- MORE TAB -->
-    <div class="tab-pane" id="tab-more">
+    <div class="tab-pane" id="tab-more" style="justify-content: flex-start; padding-top: 4px;">
       <div id="profile-card-wrap"></div>
-      <div class="section-label" data-t="moreSettings"></div>
+      <div class="section-label" style="margin-top: 10px;" data-t="moreSettings"></div>
       <div class="settings-list">
         <button class="setting-item" onclick="openLangPicker()">
           <div class="setting-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
