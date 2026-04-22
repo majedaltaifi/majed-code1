@@ -40,10 +40,14 @@ html,body{margin:0;padding:0;background:var(--bg);-webkit-text-size-adjust:100%}
 body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size:16px;text-align:start;width:100%;min-height:100dvh;scrollbar-width:none;-webkit-font-smoothing:antialiased;line-height:1.5}
 [dir="ltr"] body{font-family:var(--font-en)}
 
-/* ── GLOBAL BG (Clean Premium Theme) ── */
-.bg-layer{position:fixed;inset:0;z-index:-1;pointer-events:none;background:#050614;overflow:hidden}
-.bg-grad{position:absolute;inset:0;background:radial-gradient(circle at 5% 5%,#1a1c5e 0,#080922 100%)}
-.bg-grad::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 80% 80%,rgba(128,209,233,0.03),transparent 50%);pointer-events:none}
+/* ── GLOBAL BG (Vibrant Galaxy Theme) ── */
+.bg-layer{position:fixed;inset:0;z-index:-1;pointer-events:none;background:#080922;overflow:hidden}
+.bg-grad{position:absolute;inset:0;background:radial-gradient(circle at 10% 10%,#2e3192 0,transparent 45%),radial-gradient(circle at 90% 90%,#1b1464 0,#080922 100%)}
+.bg-grad::before{content:'';position:absolute;inset:0;background:url('https://www.transparenttextures.com/patterns/dark-matter.png');opacity:.18;mix-blend-mode:screen}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(110px);opacity:.22;animation:orbFloat 25s infinite alternate ease-in-out}
+.bg-orb-1{width:800px;height:800px;background:var(--turquoise);top:-250px;right:-180px;animation-delay:-2s}
+.bg-orb-2{width:700px;height:700px;background:#6366f1;bottom:-200px;left:-120px;animation-delay:-8s}
+@keyframes orbFloat{0%{transform:translate(0,0) scale(1)}100%{transform:translate(50px,50px) scale(1.15)}}
 
 /* ── SPLASH ── */
 #splash{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,var(--bg),var(--nit-dark),var(--nit-blue));transition:opacity .6s ease,visibility .6s ease;overflow:hidden}
@@ -800,6 +804,8 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 
 <div class="bg-layer">
   <div class="bg-grad"></div>
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
 </div>
 
 <!-- SPLASH -->
