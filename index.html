@@ -2129,7 +2129,7 @@ function syncChats() {
   if (unsubChats) unsubChats();
   const myID = String(currentUser.empNo);
   
-  unsubChats = db.collection('chat_sessions')
+  unsubChats = db.collection('conversations')
     .where('participants', 'array-contains', myID)
     .onSnapshot(snap => {
       const chats = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -3095,7 +3095,7 @@ async function openChatWithUser(targetID, targetName) {
   };
 
   try {
-    await db.collection('chat_sessions').doc(roomId).set(chatData, { merge: true });
+    await db.collection('conversations').doc(roomId).set(chatData, { merge: true });
     if(document.getElementById('chats-search')) document.getElementById('chats-search').value = '';
     filterHub();
     openChat(roomId, targetName);
@@ -3114,14 +3114,14 @@ async function openChat(id, name) {
   sheet.querySelector('.sheet-title').textContent = name;
   
   const up = {}; up[`unread_counts.${myID}`] = 0;
-  db.collection('chat_sessions').doc(id).update(up).catch(()=>{});
+  db.collection('conversations').doc(id).update(up).catch(()=>{});
 
   openSheet('sheet-chat');
   const box = document.getElementById('chat-messages');
   box.innerHTML = '<div style="padding:40px; text-align:center; opacity:0.5">Establishing secure handshake...</div>';
 
   if(unsubMsgs) unsubMsgs();
-  unsubMsgs = db.collection('chat_sessions').doc(id).collection('messages')
+  unsubMsgs = db.collection('conversations').doc(id).collection('messages')
     .orderBy('created_at', 'asc')
     .onSnapshot(snap => {
       const msgs = snap.docs.map(d => ({
@@ -3161,7 +3161,7 @@ async function sendChat() {
   inp.value = ''; inp.disabled = true;
 
   try {
-    const ref = db.collection('chat_sessions').doc(currentChatId);
+    const ref = db.collection('conversations').doc(currentChatId);
     const updateObj = { 
       updated_at: now,
       last_message_at: now,
