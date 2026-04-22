@@ -40,14 +40,10 @@ html,body{margin:0;padding:0;background:var(--bg);-webkit-text-size-adjust:100%}
 body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size:16px;text-align:start;width:100%;min-height:100dvh;scrollbar-width:none;-webkit-font-smoothing:antialiased;line-height:1.5}
 [dir="ltr"] body{font-family:var(--font-en)}
 
-/* ── GLOBAL BG (Galaxy Theme) ── */
+/* ── GLOBAL BG (Clean Premium Theme) ── */
 .bg-layer{position:fixed;inset:0;z-index:-1;pointer-events:none;background:#050614;overflow:hidden}
-.bg-grad{position:absolute;inset:0;background:radial-gradient(circle at 15% 15%,#1a1c5e 0,transparent 35%),radial-gradient(circle at 85% 85%,#0d0e3d 0,#050614 100%)}
-.bg-grad::before{content:'';position:absolute;inset:0;background:url('https://www.transparenttextures.com/patterns/dark-matter.png');opacity:.15;mix-blend-mode:overlay}
-.bg-orb{position:absolute;border-radius:50%;filter:blur(110px);opacity:.18;animation:orbFloat 25s infinite alternate ease-in-out}
-.bg-orb-1{width:800px;height:800px;background:var(--turquoise);top:-300px;right:-200px;animation-delay:-2s}
-.bg-orb-2{width:700px;height:700px;background:var(--nit-blue);bottom:-250px;left:-150px;animation-delay:-8s}
-@keyframes orbFloat{0%{transform:translate(0,0) scale(1)}100%{transform:translate(60px,50px) scale(1.15)}}
+.bg-grad{position:absolute;inset:0;background:radial-gradient(circle at 5% 5%,#1a1c5e 0,#080922 100%)}
+.bg-grad::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 80% 80%,rgba(128,209,233,0.03),transparent 50%);pointer-events:none}
 
 /* ── SPLASH ── */
 #splash{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,var(--bg),var(--nit-dark),var(--nit-blue));transition:opacity .6s ease,visibility .6s ease;overflow:hidden}
@@ -804,8 +800,6 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 
 <div class="bg-layer">
   <div class="bg-grad"></div>
-  <div class="bg-orb bg-orb-1"></div>
-  <div class="bg-orb bg-orb-2"></div>
 </div>
 
 <!-- SPLASH -->
