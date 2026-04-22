@@ -3187,7 +3187,7 @@ function renderChatCard(user, chat, isPinned) {
           <div class="chat-name">${user.name} ${user.role === 'admin' ? '<span style="font-size:0.6rem; color:var(--turquoise); margin-inline-start:5px">● ADMIN</span>' : ''}</div>
           <div class="chat-time">${time}</div>
         </div>
-        <div class="chat-msg-preview">${lastMsg}</div>
+        <div class="chat-msg-preview">${rawLastMsg ? lastMsg : ''}</div>
       </div>
     </div>
   `;
