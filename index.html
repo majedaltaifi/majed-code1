@@ -742,6 +742,15 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}
+
+/* ── CHAT SEARCH ── */
+.search-container { padding: 18px 16px; background: rgba(8,9,34,0.3); border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 20; }
+.search-box { 
+  display: flex; align-items: center; gap: 12px; background: var(--glass); border: 1.5px solid var(--glass-border); 
+  border-radius: 20px; padding: 10px 16px; transition: all 0.3s var(--ease);
+}
+.search-box input { flex: 1; background: none; border: none; color: #fff; font-size: 0.95rem; font-family: inherit; outline: none; }
+.search-box svg { width: 18px; height: 18px; color: var(--turquoise); opacity: 0.8; }
 </style>
 </head>
 <body>
@@ -921,9 +930,15 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       <div id="reports-list"></div>
     </div>
 
-
-
-
+    <!-- CHATS TAB -->
+    <div class="tab-pane" id="tab-chats">
+      <div class="search-container">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Search..." disabled>
+        </div>
+      </div>
+    </div>
 
     <!-- MORE TAB -->
     <div class="tab-pane" id="tab-more">
