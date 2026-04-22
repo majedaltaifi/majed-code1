@@ -2982,11 +2982,16 @@ window.addEventListener('click', (e) => {
 // ─── CHAT ENGINE ─────────────────────────
 let chatUnsub = null;
 function initChatSystem() {
-  if (!currentUser) return;
+  const user = currentUser || loadUser();
+  if (!user) return;
   if (chatUnsub) chatUnsub();
 
-  const chatPath = `chats/${currentUser.employeeId}/messages`;
-  chatUnsub = db.collection('chats').doc(currentUser.employeeId).collection('messages')
+  const myId = user.empNo || user.employeeId;
+  if (!myId) { console.error("No valid user ID for chat"); return; }
+
+  console.log("Chat initialized for:", myId);
+
+  chatUnsub = db.collection('chats').doc(String(myId)).collection('messages')
     .orderBy('timestamp', 'asc')
     .onSnapshot(snap => {
       const msgsDiv = document.getElementById('chat-msgs');
@@ -2994,47 +2999,49 @@ function initChatSystem() {
       msgsDiv.innerHTML = '';
       snap.forEach(doc => {
         const m = doc.data();
-        const isMe = m.senderId === currentUser.employeeId;
+        const isMe = String(m.senderId) === String(myId);
         const msgDiv = document.createElement('div');
         msgDiv.className = `msg ${isMe ? 'me' : 'them'}`;
         msgDiv.textContent = m.text;
         msgsDiv.appendChild(msgDiv);
       });
       msgsDiv.scrollTop = msgsDiv.scrollHeight;
+    }, err => {
+      console.error("Chat sync error:", err);
     });
 }
 
 async function sendMessage() {
   console.log("sendMessage called");
   const input = document.getElementById('chat-input');
-  if (!input) { console.error("Chat input not found"); return; }
+  if (!input) return;
   
   const user = currentUser || loadUser();
-  if (!user) { console.error("No current user found"); alert("Session error. Please login again."); return; }
+  if (!user) { alert("Session error. Please login again."); return; }
   
+  const myId = user.empNo || user.employeeId;
   const text = input.value.trim();
-  if (!text) return;
+  if (!text || !myId) return;
 
-  console.log("Sending message for user:", user.employeeId);
+  console.log("Sending message as:", myId);
 
   const msg = {
     text: text,
-    senderId: user.employeeId,
+    senderId: String(myId),
     senderName: user.name || "User",
     timestamp: firebase.firestore.FieldValue.serverTimestamp()
   };
 
   try {
-    await db.collection('chats').doc(user.employeeId).collection('messages').add(msg);
-    await db.collection('chats').doc(user.employeeId).set({
+    await db.collection('chats').doc(String(myId)).collection('messages').add(msg);
+    await db.collection('chats').doc(String(myId)).set({
       senderName: user.name || "User",
       lastMessage: text,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     }, {merge: true});
-    console.log("Message & Metadata added to Firestore");
+
     input.value = '';
     input.focus();
-    // Local fast scroll
     const msgsDiv = document.getElementById('chat-msgs');
     if (msgsDiv) msgsDiv.scrollTop = msgsDiv.scrollHeight;
   } catch(e) {
