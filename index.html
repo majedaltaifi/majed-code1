@@ -3086,23 +3086,12 @@ function renderChatHub() {
   const myID = String(currentUser.empNo);
   
   // 1. Pinned Admin Section (Always Visible)
-  db.collection('employees').where('role', '==', 'admin').limit(1).get().then(snap => {
-    if (!snap.empty && adminWrap) {
-      const doc = snap.docs[0];
-      const adminData = {
-        userId: doc.id,
-        name: doc.data().name || 'Management Support',
-        role: 'admin'
-      };
-      const adminChat = activeChats.find(c => c.participants.includes(doc.id));
-      adminWrap.innerHTML = renderChatCard(adminData, adminChat, true);
-    } else if (adminWrap) {
-      // Fallback Admin
-      const fallback = { userId: 'admin', name: 'Management Support', role: 'admin' };
-      const chat = activeChats.find(c => c.participants.includes('admin'));
-      adminWrap.innerHTML = renderChatCard(fallback, chat, true);
-    }
-  }).catch(() => {});
+  const supportChatId = "chat_support_" + myID;
+  const supportChat = activeChats.find(c => c.id === supportChatId);
+  if (adminWrap) {
+    const adminData = { userId: 'admin', name: 'Management Support', role: 'admin' };
+    adminWrap.innerHTML = renderChatCard(adminData, supportChat, true);
+  }
 
   // 2. Active Conversations List (Default View)
   if (!searchQuery) {
