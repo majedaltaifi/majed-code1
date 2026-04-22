@@ -1026,28 +1026,21 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input type="text" id="chat-search" placeholder="Search by name or phone..." oninput="performDatabaseSearch()">
           </div>
-          <div id="debug-chat-status" style="font-size: 0.6rem; color: var(--turquoise); opacity: 0.4; margin-top: 5px; text-align: center; font-family: var(--font-en);"></div>
-          
-      <div class="support-btn-glass" onclick="openSupportChat()">
-        <div class="support-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        </div>
-        <div class="support-text-wrap">
-          <div class="support-title">MANAGEMENT SUPPORT</div>
-          <div class="support-sub">Open secure line</div>
-        </div>
-        <div class="support-arrow">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-      </div>
+          <div class="support-btn-glass" onclick="openSupportChat()" style="margin-top:12px">
+            <div class="support-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+            <div class="support-text-wrap">
+              <div class="support-title">MANAGEMENT SUPPORT</div>
+              <div class="support-sub">Open secure line</div>
+            </div>
+            <div class="support-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+          </div>
         </div>
 
         <div class="chat-scroll-area">
-
-          <div class="pinned-label">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            ALL OPERATIVES
-          </div>
           <div id="chat-list-container">
             <!-- Chat list or search results -->
           </div>
@@ -1121,10 +1114,11 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
     <button class="nav-fab" onclick="openForm()" aria-label="New Report">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     </button>
-    <button class="nav-btn" data-tab="chats" onclick="switchTab('chats')">
+    <button class="nav-btn" data-tab="chats" onclick="switchTab('chats')" style="position:relative">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       <span class="nav-lbl" data-t="tabChats"></span>
       <span class="dot" id="chats-dot"></span>
+      <span id="chat-tab-badge" style="display:none;position:absolute;top:4px;right:12px;background:var(--danger);color:#fff;font-size:0.55rem;font-weight:900;min-width:16px;height:16px;border-radius:8px;align-items:center;justify-content:center;border:2px solid var(--bg)"></span>
     </button>
     <button class="nav-btn" data-tab="more" onclick="switchTab('more')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="12" cy="19" r="1.5" fill="currentColor"/></svg>
@@ -2989,275 +2983,296 @@ function doTrackByRef(){
 }
 
 /* ══════════════════════════════════════════
-   NEW CHAT ENGINE (FIREBASE REBUILT)
+   CHAT ENGINE v3 — CLEAN REBUILD
    ══════════════════════════════════════════ */
 let allUsers = [];
 let activeChats = [];
 let chatUnsub = null;
 let msgUnsub = null;
 let activeChatId = null;
-let operativeCache = {}; // Cache for employee names to prevent flickering
+let nameCache = {};      // { odId: { name, role } }
+let unreadMap = {};       // { chatId: true/false }
 
-async function initChatSystem() {
-  if (!currentUser) return;
-  const myID = String(currentUser.empNo).trim();
-  
-  try {
-    // 1. Ensure Firebase Auth is active (required for most Firestore rules)
-    if (!firebase.auth().currentUser) {
-      await firebase.auth().signInAnonymously();
-      console.log("Chat system: Anonymous sign-in success.");
-    }
-    
-    // 2. Ensure profile exists in 'employees' (for search) and 'users' (for global list)
-    const prof = {
-      userId: myID,
-      name: currentUser.name || 'Operative ' + myID,
-      phoneNumber: currentUser.phone || 'N/A',
-      role: currentUser.role || 'user',
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
-    await db.collection('employees').doc(myID).set(prof, { merge: true });
-    await db.collection('users').doc(myID).set(prof, { merge: true });
-    
-  } catch (e) { 
-    console.error("Init Chat System Error:", e); 
-  }
-
-  // 3. Start Syncing
-  syncActiveChats();
+function getMyID() {
+  return String(currentUser.empNo).trim();
 }
 
-async function syncActiveChats() {
-  const myID = String(currentUser.empNo).trim();
+// ─── INIT ───────────────────────────────
+async function initChatSystem() {
+  if (!currentUser) return;
+  const myID = getMyID();
+  try {
+    if (!firebase.auth().currentUser) {
+      await firebase.auth().signInAnonymously();
+    }
+  } catch (e) { console.warn('Auth:', e.message); }
+
+  // Load unread state from localStorage
+  try { unreadMap = JSON.parse(localStorage.getItem('chat_unread_' + myID) || '{}'); } catch(e) {}
+
+  startChatSync();
+}
+
+// ─── REAL-TIME SYNC ─────────────────────
+function startChatSync() {
+  const myID = getMyID();
   if (chatUnsub) chatUnsub();
-  
-  const statusEl = document.getElementById('debug-chat-status');
-  if (statusEl) statusEl.textContent = "Syncing for ID: " + myID;
 
   chatUnsub = db.collection('chats')
     .where('participants', 'array-contains', myID)
     .onSnapshot(async snap => {
       activeChats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      if (statusEl) statusEl.textContent = `ID: ${myID} | Active: ${activeChats.length}`;
-      
-      // Map names immediately
-      const missing = [];
-      activeChats.forEach(chat => {
-        const otherId = (chat.participants || []).find(p => p !== myID);
-        if (otherId && !operativeCache[otherId]) {
-          missing.push(otherId);
+
+      // Detect unread: any chat where lastSenderId != me
+      snap.docChanges().forEach(change => {
+        if (change.type === 'modified') {
+          const d = change.doc.data();
+          const cid = change.doc.id;
+          if (d.lastSenderId && d.lastSenderId !== myID && cid !== activeChatId) {
+            unreadMap[cid] = true;
+            saveUnread();
+          }
         }
       });
-      
-      if (missing.length > 0) {
-        const batches = [];
-        for (let i = 0; i < missing.length; i += 10) {
-          const chunk = missing.slice(i, i + 10);
-          batches.push(db.collection('employees').where(firebase.firestore.FieldPath.documentId(), 'in', chunk).get());
-        }
-        const results = await Promise.all(batches);
-        results.forEach(res => {
-          res.forEach(doc => {
-            operativeCache[doc.id] = {
-              userId: doc.id,
-              name: doc.data().name || doc.data()['Employee Name - English'] || 'Operator ' + doc.id,
-              role: doc.data().role || 'user'
-            };
-          });
+
+      // Fetch missing names
+      const missing = [];
+      activeChats.forEach(c => {
+        (c.participants || []).forEach(pid => {
+          if (pid !== myID && pid !== 'admin' && !nameCache[pid]) missing.push(pid);
         });
+      });
+      if (missing.length > 0) {
+        const unique = [...new Set(missing)];
+        for (let i = 0; i < unique.length; i += 10) {
+          const batch = unique.slice(i, i + 10);
+          try {
+            const snap = await db.collection('employees')
+              .where(firebase.firestore.FieldPath.documentId(), 'in', batch).get();
+            snap.forEach(doc => {
+              const d = doc.data();
+              nameCache[doc.id] = {
+                name: d.name || d['Employee Name - English'] || 'User ' + doc.id,
+                role: d.role || 'user'
+              };
+            });
+          } catch(e) {}
+          // Fill missing as fallback
+          batch.forEach(id => {
+            if (!nameCache[id]) nameCache[id] = { name: 'User ' + id, role: 'user' };
+          });
+        }
       }
-      
+
       renderChatHub();
     }, err => {
-      console.error("Chat Sync Error:", err);
-      if (statusEl) statusEl.textContent = "Sync Failed: " + err.message;
+      console.error('Chat sync error:', err);
     });
 }
 
-function syncUsers() {
-  renderChatHub();
+function saveUnread() {
+  try { localStorage.setItem('chat_unread_' + getMyID(), JSON.stringify(unreadMap)); } catch(e) {}
+  updateChatBadge();
 }
 
-let searchTimeout = null;
-async function performDatabaseSearch() {
-  const query = (document.getElementById('chat-search')?.value || '').trim();
-  const hubList = document.getElementById('chat-list-container');
-  if (!query || query.length < 2) {
-    renderChatHub();
-    return;
+function updateChatBadge() {
+  const count = Object.values(unreadMap).filter(Boolean).length;
+  const badge = document.getElementById('chat-tab-badge');
+  if (badge) {
+    badge.style.display = count > 0 ? 'flex' : 'none';
+    badge.textContent = count;
   }
+}
 
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(async () => {
-    hubList.innerHTML = '<div style="padding:40px; text-align:center; opacity:0.3">Scanning database...</div>';
+// ─── SEARCH ─────────────────────────────
+let searchTimer = null;
+function performDatabaseSearch() {
+  const q = (document.getElementById('chat-search')?.value || '').trim();
+  const list = document.getElementById('chat-list-container');
+  if (!q || q.length < 2) { renderChatHub(); return; }
+
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(async () => {
+    list.innerHTML = '<div style="padding:40px;text-align:center;opacity:0.3">Searching...</div>';
+    const myID = getMyID();
+    let results = [];
     try {
-      const myID = String(currentUser.empNo);
-      // Search by Name (StartAt/EndAt for prefix search)
-      const nameQuery = query.charAt(0).toUpperCase() + query.slice(1);
-      const snap = await db.collection('employees')
-        .orderBy('name').startAt(nameQuery).endAt(nameQuery + '\uf8ff')
-        .limit(10).get();
-      
-      let results = snap.docs.map(d => ({ 
-        userId: d.id, 
+      // Search by name prefix
+      const nameQ = q.charAt(0).toUpperCase() + q.slice(1).toLowerCase();
+      const s1 = await db.collection('employees')
+        .orderBy('name').startAt(nameQ).endAt(nameQ + '\uf8ff')
+        .limit(15).get();
+      results = s1.docs.map(d => ({
+        userId: d.id,
         name: d.data().name || d.data()['Employee Name - English'] || 'User',
-        phoneNumber: d.data().phone || d.data().phoneNumber || 'N/A',
         role: d.data().role || 'user'
       })).filter(u => u.userId !== myID);
 
-      // If no name results, try searching by exact ID/Phone
+      // If no results, try by document ID (employee number)
       if (results.length === 0) {
-        const snap2 = await db.collection('employees').where('emp_no', '==', query).limit(5).get();
-        results = snap2.docs.map(d => ({ 
-          userId: d.id, 
-          name: d.data().name || d.data()['Employee Name - English'] || 'User',
-          phoneNumber: d.data().phone || d.data().phoneNumber || 'N/A',
-          role: d.data().role || 'user'
-        })).filter(u => u.userId !== myID);
+        const s2 = await db.collection('employees').doc(q).get();
+        if (s2.exists) {
+          results = [{
+            userId: s2.id,
+            name: s2.data().name || s2.data()['Employee Name - English'] || 'User',
+            role: s2.data().role || 'user'
+          }].filter(u => u.userId !== myID);
+        }
       }
+    } catch (e) { console.error('Search error:', e); }
 
-      if (results.length === 0) {
-        hubList.innerHTML = '<div style="padding:40px; text-align:center; opacity:0.3">No matching operatives found.</div>';
-      } else {
-        hubList.innerHTML = results.map(u => {
-          const chat = activeChats.find(c => c.participants.includes(u.userId));
-          return renderChatCard(u, chat, false);
-        }).join('');
-      }
-    } catch (e) { console.error("Search Error:", e); }
-  }, 400);
-}
-
-function renderChatHub() {
-  const hubList = document.getElementById('chat-list-container');
-  const adminWrap = document.getElementById('admin-chat-card-wrap');
-  const searchQuery = (document.getElementById('chat-search')?.value || '').trim();
-  if (!hubList) return;
-
-  const myID = String(currentUser.empNo).trim();
-  
-  // 1. Pinned Admin Support Card
-  const supportChat = activeChats.find(c => (c.participants || []).includes('admin'));
-  if (adminWrap) {
-    const adminData = { userId: 'admin', name: 'Management Support', role: 'admin' };
-    adminWrap.innerHTML = renderChatCard(adminData, supportChat, true);
-  }
-
-  // 2. Active Conversations (Only if not searching)
-  if (!searchQuery) {
-    if (activeChats.length === 0) {
-      hubList.innerHTML = '<div style="padding:60px 20px; text-align:center; opacity:0.3; font-size:0.85rem;">Start a new search to begin chatting.</div>';
-      return;
+    if (results.length === 0) {
+      list.innerHTML = '<div style="padding:40px;text-align:center;opacity:0.3">No results found.</div>';
+    } else {
+      list.innerHTML = results.map(u => {
+        // Cache names we find
+        nameCache[u.userId] = { name: u.name, role: u.role };
+        const chat = activeChats.find(c => c.participants?.includes(u.userId));
+        return buildChatCard(u.userId, u.name, u.role, chat);
+      }).join('');
     }
-
-    // Sort by recent activity
-    const sorted = [...activeChats].sort((a,b) => {
-      const timeA = a.updatedAt?.toDate ? a.updatedAt.toDate() : new Date(a.updatedAt || 0);
-      const timeB = b.updatedAt?.toDate ? b.updatedAt.toDate() : new Date(b.updatedAt || 0);
-      return timeB - timeA;
-    });
-
-    hubList.innerHTML = sorted.map(chat => {
-      const otherId = (chat.participants || []).find(p => p !== myID);
-      if (!otherId || otherId === 'admin') return ''; // We handle admin separately
-      const uData = operativeCache[otherId] || { userId: otherId, name: 'User ' + otherId };
-      return renderChatCard(uData, chat, false);
-    }).join('');
-  }
+  }, 350);
 }
 
-function renderChatCard(user, chat, isPinned) {
-  const initial = (user.name || '?').charAt(0).toUpperCase();
-  const rawLastMsg = chat ? (chat.lastMessage || chat.last_message || '') : '';
-  let lastMsg = 'No messages yet';
-  if (rawLastMsg) {
-    const isMe = chat.lastSenderId === String(currentUser.empNo) || chat.last_senderId === String(currentUser.empNo);
-    lastMsg = isMe ? 'You: ' + rawLastMsg : rawLastMsg;
+// ─── RENDER CHAT LIST ───────────────────
+function renderChatHub() {
+  const list = document.getElementById('chat-list-container');
+  if (!list) return;
+  const q = (document.getElementById('chat-search')?.value || '').trim();
+  if (q.length >= 2) return; // Search is active, don't override
+
+  const myID = getMyID();
+
+  if (activeChats.length === 0) {
+    list.innerHTML = '<div style="padding:60px 20px;text-align:center;opacity:0.3;font-size:0.85rem;">Search for an employee to start chatting.</div>';
+    updateChatBadge();
+    return;
   }
-  const time = (chat && chat.updatedAt) ? formatRelativeTime(chat.updatedAt.toDate ? chat.updatedAt.toDate() : new Date(chat.updatedAt)) : '';
-  
+
+  // Sort by updatedAt desc client-side to avoid composite index
+  const sortedChats = [...activeChats].sort((a,b) => {
+    const timeA = a.updatedAt?.toDate ? a.updatedAt.toDate() : new Date(a.updatedAt || 0);
+    const timeB = b.updatedAt?.toDate ? b.updatedAt.toDate() : new Date(b.updatedAt || 0);
+    return timeB - timeA;
+  });
+
+  let html = '';
+  sortedChats.forEach(chat => {
+    const otherId = (chat.participants || []).find(p => p !== myID);
+    if (!otherId) return;
+    const info = otherId === 'admin'
+      ? { name: 'Management Support', role: 'admin' }
+      : (nameCache[otherId] || { name: 'User ' + otherId, role: 'user' });
+    html += buildChatCard(otherId, info.name, info.role, chat);
+  });
+
+  list.innerHTML = html || '<div style="padding:60px 20px;text-align:center;opacity:0.3;font-size:0.85rem;">Search for an employee to start chatting.</div>';
+  updateChatBadge();
+}
+
+function buildChatCard(userId, name, role, chat) {
+  const initial = (name || '?').charAt(0).toUpperCase();
+  const myID = getMyID();
+  let preview = '';
+  if (chat) {
+    const raw = chat.lastMessage || '';
+    if (raw) {
+      preview = (chat.lastSenderId === myID ? 'You: ' : '') + raw;
+    }
+  }
+  const time = (chat?.updatedAt) 
+    ? formatRelativeTime(chat.updatedAt.toDate ? chat.updatedAt.toDate() : new Date(chat.updatedAt)) 
+    : '';
+  const isAdmin = role === 'admin';
+  const chatId = chat ? chat.id : null;
+  const hasUnread = chatId && unreadMap[chatId];
+  const safeName = (name || '').replace(/'/g, "\\'");
+
   return `
-    <div class="chat-card ${isPinned ? 'pinned' : ''}" onclick="startChat('${user.userId}', '${user.name.replace(/'/g, "\\'")}')">
-      <div class="chat-avatar ${user.role === 'admin' ? 'admin' : ''}">
-        ${initial}
-      </div>
+    <div class="chat-card ${isAdmin ? 'pinned' : ''}" onclick="startChat('${userId}', '${safeName}')">
+      ${hasUnread ? '<div class="unread-dot"></div>' : ''}
+      <div class="chat-avatar ${isAdmin ? 'admin' : ''}">${initial}</div>
       <div class="chat-info">
         <div class="chat-name-row">
-          <div class="chat-name">${user.name} ${user.role === 'admin' ? '<span style="font-size:0.6rem; color:var(--turquoise); margin-inline-start:5px">● ADMIN</span>' : ''}</div>
+          <div class="chat-name">${name}${isAdmin ? ' <span style="font-size:0.6rem;color:var(--turquoise);margin-inline-start:5px">● ADMIN</span>' : ''}</div>
           <div class="chat-time">${time}</div>
         </div>
-        <div class="chat-msg-preview">${rawLastMsg ? lastMsg : ''}</div>
+        ${preview ? '<div class="chat-msg-preview">' + escapeHtml(preview) + '</div>' : ''}
       </div>
     </div>
   `;
 }
 
-async function startChat(targetUserId, targetName) {
-  if (!currentUser) {
-    alert("Please log in first to start a chat.");
-    return;
-  }
-  
-  const myID = String(currentUser.empNo);
-  const chatId = [myID, String(targetUserId)].sort().join('_');
-  
-  console.log("Starting chat with:", targetUserId, "Room ID:", chatId);
-  
-  // Show the sheet immediately for better UX
+// ─── START / OPEN CHAT ──────────────────
+async function startChat(targetId, targetName) {
+  if (!currentUser) { toast('Please log in first.'); return; }
+  const myID = getMyID();
+  const tid = String(targetId).trim();
+  const chatId = [myID, tid].sort().join('_');
+
+  // Clear unread for this chat
+  delete unreadMap[chatId];
+  saveUnread();
+
+  // Open UI immediately
   openChatRoom(chatId, targetName);
-  
+
+  // Ensure chat doc exists
   try {
-    const chatRef = db.collection('chats').doc(chatId);
-    const chatDoc = await chatRef.get();
-    
-    if (!chatDoc.exists) {
-      await chatRef.set({
+    const ref = db.collection('chats').doc(chatId);
+    const doc = await ref.get();
+    if (!doc.exists) {
+      await ref.set({
         chatId: chatId,
-        participants: [myID, String(targetUserId).trim()],
+        participants: [myID, tid],
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
         lastMessage: '',
         lastSenderId: ''
-      }, { merge: true });
+      });
     }
-  } catch (e) {
-    console.error("Chat Init Error:", e);
-  }
+  } catch (e) { console.error('startChat error:', e); }
 }
 
-function openChatRoom(id, name) {
-  activeChatId = id;
-  const myID = String(currentUser.empNo);
+function openChatRoom(chatId, name) {
+  activeChatId = chatId;
   document.getElementById('chat-title-name').textContent = name;
-  document.getElementById('msg-container').innerHTML = '<div style="padding:40px; text-align:center; opacity:0.3">Loading secure link...</div>';
-  
+  document.getElementById('msg-container').innerHTML = '<div style="padding:40px;text-align:center;opacity:0.2">Loading...</div>';
   openSheet('sheet-chat');
 
+  // Clear unread
+  delete unreadMap[chatId];
+  saveUnread();
+
+  // Listen to messages
   if (msgUnsub) msgUnsub();
-  msgUnsub = db.collection('chats').doc(id).collection('messages')
+  msgUnsub = db.collection('chats').doc(chatId).collection('messages')
     .orderBy('timestamp', 'asc')
     .onSnapshot(snap => {
-      const messages = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      renderMessages(messages);
+      const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderMessages(msgs);
+    }, err => {
+      console.error('Message listener error:', err);
+      document.getElementById('msg-container').innerHTML = '<div style="padding:40px;text-align:center;color:var(--danger)">Connection error. Please retry.</div>';
     });
 }
 
 function renderMessages(msgs) {
   const container = document.getElementById('msg-container');
-  const myID = String(currentUser.empNo);
+  const myID = getMyID();
   if (!container) return;
 
   if (msgs.length === 0) {
-    container.innerHTML = '<div style="padding:100px 20px; text-align:center; opacity:0.2; font-weight:700">STRIKE UP A CONVERSATION</div>';
+    container.innerHTML = '<div style="padding:80px 20px;text-align:center;opacity:0.15;font-weight:700;font-size:0.9rem">Send a message to start the conversation</div>';
     return;
   }
 
   container.innerHTML = msgs.map(m => {
     const isMe = String(m.senderId) === myID;
-    const time = m.timestamp ? new Date(m.timestamp.toDate ? m.timestamp.toDate() : m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+    const time = m.timestamp
+      ? new Date(m.timestamp.toDate ? m.timestamp.toDate() : m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : '';
     return `
       <div class="msg-row ${isMe ? 'me' : 'them'}">
-        <div class="msg-sender-label">${isMe ? 'You' : ''}</div>
         <div class="msg-bubble ${isMe ? 'me' : 'them'}">
           ${escapeHtml(m.text)}
           <div class="msg-time">${time}</div>
@@ -3268,87 +3283,69 @@ function renderMessages(msgs) {
   container.scrollTop = container.scrollHeight;
 }
 
+// ─── SEND MESSAGE ───────────────────────
 async function sendNewMessage() {
   const inp = document.getElementById('msg-input');
-  const text = inp.value.trim();
+  const text = (inp?.value || '').trim();
   if (!text || !activeChatId) return;
 
-  const myID = String(currentUser.empNo);
+  const myID = getMyID();
   inp.value = '';
   inp.focus();
 
   try {
-    const chatRef = db.collection('chats').doc(activeChatId);
+    const ref = db.collection('chats').doc(activeChatId);
     const ts = firebase.firestore.FieldValue.serverTimestamp();
-    const msgData = {
+    await ref.collection('messages').add({
       senderId: myID,
       text: text,
       timestamp: ts
-    };
-
-    // 1. Add to subcollection
-    console.log("Transmitting message to:", activeChatId);
-    await chatRef.collection('messages').add(msgData);
-
-    // 2. Update parent metadata for previews
-    await chatRef.set({
+    });
+    await ref.set({
       lastMessage: text,
       lastSenderId: myID,
       updatedAt: ts
     }, { merge: true });
-    
-    console.log("Transmission successful.");
-    // Force a local UI update to show the message preview instantly
-    renderChatHub();
   } catch (e) {
-    console.error("Transmission Error:", e);
-    toast("Transmission failed: " + e.message);
+    console.error('Send error:', e);
+    toast('Message failed: ' + e.message);
   }
 }
 
+// ─── CLOSE CHAT ─────────────────────────
 function closeChatRoom() {
   if (msgUnsub) msgUnsub();
   msgUnsub = null;
   activeChatId = null;
   closeSheet('sheet-chat');
-  renderChatHub();
 }
 
+// ─── SUPPORT CHAT ───────────────────────
 async function openSupportChat() {
-  if (!currentUser) {
-    alert("Log in required for support.");
-    return;
-  }
-  const myID = String(currentUser.empNo);
-  const chatId = "chat_support_" + myID;
-  
-  console.log("Opening Support channel for:", myID);
-  
-  // Pivot to room immediately
-  openChatRoom(chatId, "Management Support");
-  
+  if (!currentUser) { toast('Please log in first.'); return; }
+  const myID = getMyID();
+  const chatId = 'chat_support_' + myID;
+
+  openChatRoom(chatId, 'Management Support');
+
   try {
-    const chatRef = db.collection('chats').doc(chatId);
-    const chatDoc = await chatRef.get();
-    
-    if (!chatDoc.exists) {
-      await chatRef.set({
+    const ref = db.collection('chats').doc(chatId);
+    const doc = await ref.get();
+    if (!doc.exists) {
+      await ref.set({
         chatId: chatId,
         participants: [myID, 'admin'],
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-        lastMessage: 'Established support link',
-        lastSenderId: myID,
+        lastMessage: '',
+        lastSenderId: '',
         type: 'support'
       });
     }
-  } catch (e) {
-    console.error("Support Channel Error:", e);
-  }
+  } catch (e) { console.error('Support chat error:', e); }
 }
 
-function filterChatSelection() {
-  // Deprecated - using performDatabaseSearch
-}
+function filterChatSelection() {}
+function syncUsers() {}
 
 
 
