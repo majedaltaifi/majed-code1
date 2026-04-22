@@ -40,14 +40,14 @@ html,body{margin:0;padding:0;background:var(--bg);-webkit-text-size-adjust:100%}
 body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size:16px;text-align:start;width:100%;min-height:100dvh;scrollbar-width:none;-webkit-font-smoothing:antialiased;line-height:1.5}
 [dir="ltr"] body{font-family:var(--font-en)}
 
-/* ── BG (Galaxy Theme) ── */
-.bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;background:#050614;overflow:hidden}
-.bg-grad{position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,#1a1c5e 0,transparent 40%),radial-gradient(circle at 80% 80%,#0d0e3d 0,#050614 100%)}
-.bg-grad::before{content:'';position:absolute;inset:0;background:url('https://www.transparenttextures.com/patterns/dark-matter.png');opacity:.12;mix-blend-mode:overlay}
-.bg-orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:.15;animation:orbFloat 20s infinite alternate ease-in-out}
-.bg-orb-1{width:600px;height:600px;background:var(--turquoise);top:-200px;right:-150px;animation-delay:-2s}
-.bg-orb-2{width:500px;height:500px;background:var(--nit-blue);bottom:-150px;left:-100px;animation-delay:-7s}
-@keyframes orbFloat{0%{transform:translate(0,0) scale(1)}100%{transform:translate(40px,40px) scale(1.1)}}
+/* ── GLOBAL BG (Galaxy Theme) ── */
+.bg-layer{position:fixed;inset:0;z-index:-1;pointer-events:none;background:#050614;overflow:hidden}
+.bg-grad{position:absolute;inset:0;background:radial-gradient(circle at 15% 15%,#1a1c5e 0,transparent 35%),radial-gradient(circle at 85% 85%,#0d0e3d 0,#050614 100%)}
+.bg-grad::before{content:'';position:absolute;inset:0;background:url('https://www.transparenttextures.com/patterns/dark-matter.png');opacity:.15;mix-blend-mode:overlay}
+.bg-orb{position:absolute;border-radius:50%;filter:blur(110px);opacity:.18;animation:orbFloat 25s infinite alternate ease-in-out}
+.bg-orb-1{width:800px;height:800px;background:var(--turquoise);top:-300px;right:-200px;animation-delay:-2s}
+.bg-orb-2{width:700px;height:700px;background:var(--nit-blue);bottom:-250px;left:-150px;animation-delay:-8s}
+@keyframes orbFloat{0%{transform:translate(0,0) scale(1)}100%{transform:translate(60px,50px) scale(1.15)}}
 
 /* ── SPLASH ── */
 #splash{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,var(--bg),var(--nit-dark),var(--nit-blue));transition:opacity .6s ease,visibility .6s ease;overflow:hidden}
@@ -102,7 +102,7 @@ body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size
 [dir="rtl"] .install-cta .cta-arrow{transform:scaleX(-1)}
 
 /* ══════════ MAIN APP SHELL ══════════ */
-#main-app{display:none;width:100%;max-width:480px;margin:0 auto;min-height:100dvh;flex-direction:column;position:relative;z-index:1;background:var(--bg);box-shadow:0 0 80px rgba(0,0,0,0.6);border-left:1px solid var(--glass-border);border-right:1px solid var(--glass-border)}
+#main-app{display:none;width:100%;max-width:480px;margin:0 auto;min-height:100dvh;flex-direction:column;position:relative;z-index:1;background:rgba(8,9,34,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 0 100px rgba(0,0,0,0.7);border-left:1px solid rgba(128,209,233,.1);border-right:1px solid rgba(128,209,233,.1)}
 #main-app.show{display:flex;animation:appIn .55s var(--ease) both}
 @keyframes appIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
