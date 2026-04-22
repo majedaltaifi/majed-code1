@@ -2985,10 +2985,7 @@ function renderChats() {
     const myID = String(currentUser.empNo);
     const otherId = (s.participants || []).find(p => String(p) !== myID) || 'admin';
     const otherName = (otherId === 'admin') ? 'Management Support' : (s.names ? s.names[otherId] : (s.other_name || 'User ' + otherId));
-    
-    let preview = s.last_msg || s.last_message || 'No messages yet';
-    if(s.last_msg && String(s.last_sender) === myID) { preview = 'You: ' + s.last_msg; }
-    
+    const preview = s.last_msg || s.last_message || 'No messages yet';
     const time = s.updated_at ? formatRelativeTime(new Date(s.updated_at)) : '';
     const unread = (s.unread_counts && s.unread_counts[myID]) || 0;
 
@@ -3000,13 +2997,113 @@ function renderChats() {
       <div class="list-body">
         <div class="list-top">
           <div class="list-title" style="font-weight:700">${otherName}</div>
-          <div class="list-time" style="font-size:0.72rem">${time}</div>
+          <div class="list-time">${time}</div>
         </div>
-        <div class="list-preview" style="color:rgba(255,255,255,0.6)">${escapeHtml(String(preview).slice(0,80))}</div>
+        <div class="list-preview">${escapeHtml(String(preview).slice(0,80))}</div>
       </div>
     </div>`;
   }).join('');
-} catch(e) { 
+}
+
+function startNewChat() {
+  switchTab('chats');
+  setTimeout(() => {
+    const inp = document.getElementById('chats-search');
+    if (inp) { inp.focus(); }
+  }, 300);
+}
+
+async function openSupport() {
+  if(!currentUser || currentUser.guest) return;
+  const myID = String(currentUser.empNo);
+  const roomId = 'chat_support_' + myID;
+  try {
+    await db.collection('conversations').doc(roomId).set({
+      participants: [myID, 'admin'],
+      updated_at: new Date().toISOString(),
+      names: { [myID]: (currentUser.name || 'User'), 'admin': 'Management Support' },
+      other_name: 'Management Support',
+      target_id: 'admin',
+      type: 'support'
+    }, {merge: true});
+  } catch(e) { console.error("Support Init Error", e); }
+  openChat(roomId, 'Management Support');
+}
+
+let lastSearchId = 0;
+
+async function filterHub() {
+  const mySearchId = ++lastSearchId;
+  const v = (document.getElementById('chats-search')?.value||'').trim().toLowerCase();
+  const resArea = document.getElementById('hub-search-view');
+  const inboxArea = document.getElementById('hub-default-view');
+  const empList = document.getElementById('employees-list');
+  
+  if(!v) {
+    if(resArea) resArea.style.display = 'none';
+    if(inboxArea) inboxArea.style.display = 'block';
+    return;
+  }
+
+  if(resArea) resArea.style.display = 'block';
+  if(inboxArea) inboxArea.style.display = 'none';
+  if(empList) empList.innerHTML = '<div style="padding:40px;text-align:center;font-size:0.85rem;color:var(--text-muted);letter-spacing:1px">SEARCHING TACTICAL DIRECTORY...</div>';
+
+  try {
+    const vPrefix = v.charAt(0).toUpperCase() + v.slice(1);
+    
+    // Fail-safe query wrapper: one failing query shouldn't kill the search
+    const safeGet = (q) => q.get().catch(err => {
+      console.warn("Sub-query failed:", err);
+      return { docs: [] };
+    });
+
+    const queries = [
+      // Direct ID lookup (most important)
+      safeGet(db.collection('employees').where('emp_no', '==', v)),
+      safeGet(db.collection('employees').where('emp_no', '==', Number(v) || -1)),
+      safeGet(db.collection('employees').where('empNo', '==', v)),
+      safeGet(db.collection('employees').where('empNo', '==', Number(v) || -1)),
+      
+      // Name lookup
+      safeGet(db.collection('employees').orderBy('name_en').startAt(vPrefix).endAt(vPrefix + '\uf8ff').limit(10)),
+      safeGet(db.collection('employees').orderBy('nameEn').startAt(vPrefix).endAt(vPrefix + '\uf8ff').limit(10))
+    ];
+
+    const results = await Promise.all(queries);
+    
+    if(mySearchId !== lastSearchId) return;
+
+    let matchesMap = new Map();
+    results.forEach(snap => {
+      if(!snap || !snap.docs) return;
+      snap.docs.forEach(d => {
+        const data = d.data();
+        const id = data.emp_no || data.empNo || d.id;
+        matchesMap.set(String(id), data);
+      });
+    });
+    
+    let matches = Array.from(matchesMap.values());
+    
+    if(!empList) return;
+    if(!matches.length) {
+      empList.innerHTML = '<div style="padding:40px;text-align:center;font-size:0.85rem;color:var(--text-muted)">NO OPERATIVES FOUND<br><small>Double check the ID (e.g. 1010).</small></div>';
+    } else {
+      empList.innerHTML = matches.map(e => {
+        const eid = e.emp_no || e.empNo || '---';
+        const name = e.name_en || e.nameEn || e.name || 'Employee ' + eid;
+        const dept = e.department || e.deptEn || e.dept || '';
+        return `<button class="list-item" onclick="openChatWithUser('${eid}', '${name.replace(/'/g, "\\'")}')">
+          <div class="list-avatar" style="background:rgba(59,130,246,0.1);color:var(--primary)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <div class="list-body">
+            <div class="list-title">${name}</div>
+            <div class="list-preview">ID: ${eid} • ${dept}</div>
+          </div>
+        </button>`;
+      }).join('');
+    }
+  } catch(e) { 
     if(mySearchId === lastSearchId) {
       console.error("Search Error:", e);
       if(empList) empList.innerHTML = '<div style="padding:20px;color:var(--danger)">Search Interrupted</div>';
