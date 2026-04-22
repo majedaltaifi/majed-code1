@@ -847,7 +847,7 @@
                 alert("Database Connection Error. Please check Firestore Rules.");
             });
 
-            db.collection('chat_sessions').onSnapshot(snap => {
+            db.collection('chats').onSnapshot(snap => {
                 console.log("Chats Sync Received:", snap.size, "sessions");
                 allSessions = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 if(activeView === 'chat') renderChatUsers();
@@ -1284,21 +1284,24 @@
             }
 
             // Default Mode: Recent active sessions
-            const directSessions = allSessions.filter(s => s.id.startsWith('direct_') && s.id.toLowerCase().includes(search));
+            const relevantSessions = allSessions.filter(s => (s.id.startsWith('direct_') || s.id.startsWith('chat_')) && s.id.toLowerCase().includes(search));
             
-            list.innerHTML = directSessions.map(s => {
-                const empId = s.id.replace('direct_', '');
+            list.innerHTML = relevantSessions.map(s => {
+                const isSupport = s.id.includes('support');
+                const empId = s.id.replace('direct_', '').replace('chat_support_', '').replace('chat_', '').split('_').find(x => x !== 'admin');
+                const displayName = isSupport ? `Support: Operative #${empId}` : `Operative #${empId}`;
+                
                 return `
-                    <div class="chat-user-item ${activeChatSession === s.id ? 'active' : ''}" onclick="openChat('${s.id}', '${empId}')">
+                    <div class="chat-user-item ${activeChatSession === s.id ? 'active' : ''}" onclick="openChat('${s.id}', '${displayName.replace(/'/g, "\\'")}')">
                         <div style="display: flex; gap: 12px; align-items: center;">
                             <div style="position: relative;">
-                                <img src="https://ui-avatars.com/api/?name=${empId}&background=1e293b&color=3b82f6&bold=true" style="width: 42px; height: 42px; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.1);">
+                                <img src="https://ui-avatars.com/api/?name=${empId}&background=${isSupport ? '3b82f6' : '1e293b'}&color=${isSupport ? 'fff' : '3b82f6'}&bold=true" style="width: 42px; height: 42px; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.1);">
                                 <div style="position: absolute; bottom: -2px; right: -2px; width: 12px; height: 12px; background: var(--success); border-radius: 50%; border: 2px solid var(--primary);"></div>
                             </div>
                             <div style="flex: 1; overflow: hidden;">
-                                <div style="font-weight: 800; font-size: 0.9rem; color: #fff;">Emp #${empId}</div>
+                                <div style="font-weight: 800; font-size: 0.9rem; color: #fff;">${displayName}</div>
                                 <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.7;">
-                                    ${s.last_message || 'Encrypted signal established'}
+                                    ${s.lastMessage || s.last_message || 'Encrypted signal established'}
                                 </div>
                             </div>
                         </div>
@@ -1320,9 +1323,9 @@
             document.getElementById('active-user-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff&bold=true`;
             
             // Ensure session exists in Firestore if created from search
-            await db.collection('chat_sessions').doc(sid).set({
+            await db.collection('chats').doc(sid).set({
                 participants: [String(empId), 'admin'],
-                updated_at: new Date().toISOString()
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
 
             if(chatsUnsubscribe) chatsUnsubscribe();
@@ -1330,16 +1333,17 @@
             const container = document.getElementById('chat-messages-container');
             container.innerHTML = '<div style="text-align:center; padding:40px; opacity:0.3; font-size:0.7rem;">TUNING FREQUENCY...</div>';
             
-            chatsUnsubscribe = db.collection('chat_sessions').doc(sid).collection('messages').orderBy('created_at', 'asc').onSnapshot(snap => {
+            chatsUnsubscribe = db.collection('chats').doc(sid).collection('messages').orderBy('timestamp', 'asc').onSnapshot(snap => {
                 const msgs = snap.docs.map(doc => doc.data());
                 container.innerHTML = msgs.map(m => {
                     const isMe = m.sender_id === 'admin';
+                    const time = (m.timestamp || m.created_at) ? new Date(m.timestamp ? (m.timestamp.toDate ? m.timestamp.toDate() : m.timestamp) : m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--';
                     return `
                         <div style="display: flex; flex-direction: column; align-items: ${isMe ? 'flex-end' : 'flex-start'}; gap: 5px; margin-bottom: 5px;">
                             <div class="msg ${isMe ? 'sent' : 'received'}" style="${isMe ? 'background: var(--accent); border-radius: 18px 18px 4px 18px; color: #fff; font-weight: 600;' : 'background: rgba(255,255,255,0.05); border-radius: 18px 18px 18px 4px; color: #f8fafc; font-weight: 500; border: 1px solid rgba(255,255,255,0.05);'}">
                                 ${m.text || m.content}
                                 <div style="font-size: 0.6rem; opacity: 0.5; margin-top: 5px; text-align: ${isMe ? 'right' : 'left'}">
-                                    ${new Date(m.created_at || Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                    ${time}
                                 </div>
                             </div>
                         </div>
@@ -1362,11 +1366,11 @@
                 created_at: now 
             };
 
-            await db.collection('chat_sessions').doc(activeChatSession).collection('messages').add(msgData);
-            await db.collection('chat_sessions').doc(activeChatSession).set({ 
-                last_message: text, 
-                last_sender: 'admin', 
-                updated_at: now 
+            await db.collection('chats').doc(activeChatSession).collection('messages').add(msgData);
+            await db.collection('chats').doc(activeChatSession).set({ 
+                lastMessage: text, 
+                last_senderId: 'admin', 
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             }, {merge:true});
             
             input.value = '';
