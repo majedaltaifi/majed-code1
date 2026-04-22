@@ -1446,7 +1446,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script>
-  const APP_VERSION='3.31';
+  const APP_VERSION='3.32';
   let __refreshing=false;
   
   function showUpdateBanner(msg){
@@ -1461,7 +1461,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.31').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.32').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
@@ -2124,21 +2124,20 @@ function syncChats() {
     renderChats();
     
     let totalUnread = 0;
-    let adminUnread = 0;
     chats.forEach(c => {
-      const unread = (c.unread_counts && c.unread_counts[myID]) || 0;
-      totalUnread += unread;
-      if (c.id === 'direct_' + myID) adminUnread = unread;
+      totalUnread += (c.unread_counts && c.unread_counts[myID]) || 0;
     });
     const dot = document.getElementById('chats-dot');
     if(dot) dot.style.display = totalUnread > 0 ? 'block' : 'none';
-    const sDot = document.getElementById('support-dot');
-    if(sDot) sDot.style.display = adminUnread > 0 ? 'block' : 'none';
   };
 
+  // Dual-Safety: Listen via participants AND the new hard-flag
   unsubChats = db.collection('chat_sessions')
     .where('participants', 'array-contains', myID)
-    .onSnapshot(handleUpdate, err => console.error("Chat Sync Error:", err));
+    .onSnapshot(handleUpdate, err => {
+       // If array query fails, try the hard-flag fallback
+       db.collection('chat_sessions').where('user_' + myID, '==', true).onSnapshot(handleUpdate);
+    });
 }
 
 function syncReports() {
@@ -2169,7 +2168,7 @@ let lang='ar',currentTab='home',selectedType='',selectedSeverity='',
     isAnonymous=true,isOngoing=false,uploadedFiles=[],deferredPrompt=null,
     currentChatId=null,selectedEnv='',selectedSubIssue='',selectedDetail='',selectedFrequency='';
 
-const LS_LANG='nit_lang',LS_REPORTS='nit_reports',LS_CHATS='nit_chats',LS_NOTIFS='nit_notifs',LS_SUPPORT='nit_support',LS_USER='nit_user';
+const CACHE_NAME = 'nit-cache-v3.32',LS_REPORTS='nit_reports',LS_CHATS='nit_chats',LS_NOTIFS='nit_notifs',LS_SUPPORT='nit_support',LS_USER='nit_user';
 
 let currentUser=null,employeesDb=null,empLookupDebounce=null;
 
@@ -3021,10 +3020,11 @@ async function openSupport() {
   if(!currentUser || currentUser.guest) return;
   const myID = String(currentUser.empNo);
   const roomId = 'direct_' + myID;
-  // Ensure session exists first
   try {
     await db.collection('chat_sessions').doc(roomId).set({
       participants: [myID, 'admin'],
+      ['user_' + myID]: true,
+      ['user_admin']: true,
       updated_at: new Date().toISOString(),
       names: { [myID]: (currentUser.name || 'User'), 'admin': 'Support' },
       other_name: 'Support',
@@ -3235,9 +3235,9 @@ async function sendChat(){
     const parts = currentChatId.split('_').filter(p=>p!=='direct');
     if(currentChatId.startsWith('direct_') && !parts.includes('admin')) parts.push('admin');
 
-    // Create session doc with rich metadata for Admin
     await sessionRef.set({
        participants: parts,
+       ['user_' + myID]: true,
        updated_at: now,
        last_msg: txt,
        user_name: currentUser.name || 'Unknown',
