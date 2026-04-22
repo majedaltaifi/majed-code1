@@ -994,12 +994,22 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
           <div class="support-label">Support</div>
         </div>
 
-        <!-- Dynamic Chat List Section -->
-        <div id="chats-list-container" class="list" style="margin-top:16px;">
-          <!-- Items will be injected by syncAllChats() -->
-          <div style="padding:40px; text-align:center; opacity:0.4;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:48px; height:48px; margin-bottom:10px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <div style="font-size:0.85rem;">Searching for messages...</div>
+        <!-- Support Chat List Item -->
+        <div class="section-label" style="margin-top:20px;">Messages</div>
+        <div id="chats-list" class="list">
+          <!-- Dynamically populated or static 'Support' row -->
+          <div class="list-item" onclick="openChatScreen()">
+            <div class="list-avatar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-10.6 8.38 8.38 0 0 1 3.9.9"/><path d="M11.8 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/><path d="M13.5 14L18 18.5"/><path d="M18 13.5L13.5 18"/></svg>
+            </div>
+            <div class="list-body">
+              <div class="list-top" style="justify-content: space-between; display: flex; align-items: baseline;">
+                <span class="list-title">Support</span>
+                <span class="list-time" id="support-last-time" style="margin-inline-start: auto; color: var(--text-muted); font-size: 0.7rem;"></span>
+              </div>
+              <div class="list-preview" id="support-last-msg">Start a conversation...</div>
+            </div>
+            <div class="unread-dot" id="support-unread-dot" style="display:none;"></div>
           </div>
         </div>
       </div>
@@ -2138,82 +2148,28 @@ function syncBroadcasts() {
   }, err => console.error("Broadcast Sync Error:", err));
 }
 
-function syncAllChats() {
+function syncSupportPreview() {
   if (!currentUser || currentUser.guest) return;
-  const myID = String(currentUser.empNo);
-  
   if (unsubSupportPreview) unsubSupportPreview();
-  
-  // Listen for all chats where this user is a member
-  unsubSupportPreview = db.collection('chats')
-    .where('members', 'array-contains', myID)
+  const myID = String(currentUser.empNo);
+  const chatId = `${myID}_Support`;
+  unsubSupportPreview = db.collection('chats').doc(chatId).collection('messages')
+    .orderBy('timestamp', 'desc')
+    .limit(1)
     .onSnapshot(snap => {
-      const container = document.getElementById('chats-list-container');
-      if (!container) return;
-      
-      if (snap.empty) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-10.6 8.38 8.38 0 0 1 3.9.9"/><path d="M11.8 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/><path d="M13.5 14L18 18.5"/><path d="M18 13.5L13.5 18"/></svg></div>
-            <div class="empty-title">No conversations yet</div>
-            <div class="empty-sub">Search for a colleague to start chatting.</div>
-          </div>`;
-        return;
+      const msgEl = document.getElementById('support-last-msg');
+      const timeEl = document.getElementById('support-last-time');
+      if (!snap.empty) {
+        const last = snap.docs[0].data();
+        if (msgEl) msgEl.textContent = last.text || '...';
+        if (timeEl && last.timestamp) {
+          try {
+            timeEl.textContent = formatRelativeTime(last.timestamp.toDate());
+          } catch(e) { 
+            timeEl.textContent = 'Just now';
+          }
+        }
       }
-      
-      const chats = [];
-      snap.forEach(doc => chats.push({id: doc.id, ...doc.data()}));
-      
-      // Sort in client to avoid index issues
-      chats.sort((a,b) => {
-        const ta = a.last_at ? a.last_at.toMillis() : 0;
-        const tb = b.last_at ? b.last_at.toMillis() : 0;
-        return tb - ta;
-      });
-
-      let html = '';
-      chats.forEach(d => {
-        let otherName = 'Conversation';
-        let otherID = '';
-        
-        if (d.id.includes('_Support')) {
-          otherName = 'Support';
-          otherID = 'Support';
-        } else {
-          // Find the other member's name
-          const memberNames = d.memberNames || {};
-          const members = d.members || [];
-          members.forEach(m => {
-            if (m !== myID) {
-              otherID = m;
-              otherName = memberNames[m] || 'Employee ' + m;
-            }
-          });
-        }
-        
-        let timeStr = '';
-        if (d.last_at) {
-          try { timeStr = formatRelativeTime(d.last_at.toDate()); } catch(e) { timeStr = 'Just now'; }
-        }
-        
-        html += `
-          <div class="list-item" onclick="openChatWith('${doc.id}', '${otherName}')">
-            <div class="list-avatar">
-              ${otherID === 'Support' ? 
-                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-10.6 8.38 8.38 0 0 1 3.9.9"/><path d="M11.8 14.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/><path d="M13.5 14L18 18.5"/><path d="M18 13.5L13.5 18"/></svg>' : 
-                (otherName.charAt(0).toUpperCase())}
-            </div>
-            <div class="list-body">
-              <div class="list-top" style="justify-content: space-between; display: flex; align-items: baseline;">
-                <span class="list-title">${otherName}</span>
-                <span class="list-time" style="margin-inline-start: auto; color: var(--text-muted); font-size: 0.7rem;">${timeStr}</span>
-              </div>
-              <div class="list-preview">${d.last_msg || 'Start a conversation...'}</div>
-            </div>
-          </div>
-        `;
-      });
-      container.innerHTML = html;
     });
 }
 
@@ -2286,12 +2242,12 @@ function setLang(l){
     document.getElementById('screen-lang').classList.remove('show');
     document.getElementById('main-app').classList.add('show');
     seedNotifsIfFirstTime(); switchTab('home'); applyPersonalization();
-    syncBroadcasts(); syncReports(); syncAllChats();
+    syncBroadcasts(); syncReports(); syncSupportPreview();
     // Double-tap render to catch any early data
     setTimeout(() => { updateStats(); renderReports(); }, 500);
     setTimeout(() => { updateStats(); renderReports(); }, 2000);
     renderProfileCard(); updateLogoutBtn();
-    // initChatSystem removed here as it's now lazy-loaded on open
+    initChatSystem();
     const chatInp = document.getElementById('chat-input');
     if(chatInp) chatInp.addEventListener('keydown', e => { if(e.key==='Enter') sendMessage(); });
   }
@@ -3054,7 +3010,7 @@ async function handleChatSearch(q) {
         const u = doc.data();
         const name = u.name || u['Employee Name - English'] || 'User';
         overlay.innerHTML = `
-          <div class="search-item" onclick="document.getElementById('search-results').style.display='none'; openChatWithPersonal('${doc.id}', '${name}')">
+          <div class="search-item" onclick="overlay.style.display='none'">
             <div class="search-avatar">${name.charAt(0).toUpperCase()}</div>
             <div class="search-info">
               <div class="search-name">${name}</div>
@@ -3083,64 +3039,30 @@ window.addEventListener('click', (e) => {
 
 // ─── CHAT ENGINE ─────────────────────────
 
-let activeChatId = null;
-let activeChatName = 'Support';
-
-function openChatWith(id, name) {
-  activeChatId = id;
-  activeChatName = name;
-  const overlay = document.getElementById('screen-chat');
-  if (overlay) overlay.classList.add('active');
-  const titleEl = overlay.querySelector('.sheet-title');
-  if (titleEl) titleEl.textContent = name;
+function openChatScreen() {
+  const el = document.getElementById('screen-chat');
+  if(el) el.classList.add('active');
+  console.log("Chat screen opened, forcing re-init.");
   initChatSystem();
 }
-
-function openChatWithPersonal(otherId, otherName) {
-  const user = currentUser || loadUser();
-  if (!user) return;
-  const myId = String(user.empNo || user.employeeId);
-  const chatId = [myId, String(otherId)].sort().join('_');
-  
-  // Initialize the chat document if it doesn't exist
-  db.collection('chats').doc(chatId).set({
-    members: [myId, String(otherId)],
-    memberNames: {
-      [myId]: user.name,
-      [otherId]: otherName
-    },
-    last_at: firebase.firestore.FieldValue.serverTimestamp()
-  }, { merge: true });
-  
-  openChatWith(chatId, otherName);
-}
-
-function openChatScreen() {
-  const user = currentUser || loadUser();
-  if (!user) return;
-  const myId = String(user.empNo || user.employeeId);
-  openChatWith(`${myId}_Support`, 'Support');
-}
-
 function closeChatScreen() {
   const el = document.getElementById('screen-chat');
   if(el) el.classList.remove('active');
-  if (chatUnsub) { chatUnsub(); chatUnsub = null; }
-  activeChatId = null;
 }
 
 let chatUnsub = null;
 function initChatSystem() {
-  if (!activeChatId) return;
   const user = currentUser || loadUser();
   if (!user) return;
   if (chatUnsub) chatUnsub();
 
-  const myId = String(user.empNo || user.employeeId);
-  console.log("Chat setup for:", myId, "document:", activeChatId);
+  const myId = user.empNo || user.employeeId;
+  if (!myId) return;
 
-  chatUnsub = db.collection('chats').doc(activeChatId).collection('messages')
-    .orderBy('timestamp', 'asc')
+  const chatId = `${myId}_Support`;
+  console.log("Chat setup for:", myId, "document:", chatId);
+
+  chatUnsub = db.collection('chats').doc(chatId).collection('messages')
     .onSnapshot(snap => {
       console.log("Chat snapshot received, docs:", snap.size);
       const msgsDiv = document.getElementById('chat-msgs');
@@ -3149,17 +3071,25 @@ function initChatSystem() {
       const msgs = [];
       snap.forEach(doc => msgs.push(doc.data()));
 
+      // Sort locally to handle offline or pending server timestamps gracefully
+      msgs.sort((a, b) => {
+        const ta = (a.timestamp && typeof a.timestamp.toMillis === 'function') ? a.timestamp.toMillis() : Date.now();
+        const tb = (b.timestamp && typeof b.timestamp.toMillis === 'function') ? b.timestamp.toMillis() : Date.now();
+        return ta - tb;
+      });
+
       const fragment = document.createDocumentFragment();
       msgs.forEach(m => {
         const isMe = String(m.senderId) === String(myId);
         const msgDiv = document.createElement('div');
         msgDiv.className = `msg ${isMe ? 'me' : 'them'}`;
         
+        // Sender name added here for clarity, as requested 
         const nameDiv = document.createElement('div');
         nameDiv.style.fontSize = '0.7rem';
         nameDiv.style.opacity = '0.7';
         nameDiv.style.marginBottom = '2px';
-        nameDiv.textContent = m.senderName || (isMe ? 'You' : activeChatName);
+        nameDiv.textContent = m.senderName || (isMe ? 'You' : 'Support');
         
         const textDiv = document.createElement('div');
         textDiv.textContent = m.text;
@@ -3174,37 +3104,49 @@ function initChatSystem() {
       msgsDiv.scrollTop = msgsDiv.scrollHeight;
     }, err => {
       console.error("Chat sync error:", err);
+      alert("Chat sync error: " + err.message);
     });
 }
 
 async function sendMessage() {
+  console.log("sendMessage called");
   const input = document.getElementById('chat-input');
-  if (!input || !input.value.trim() || !activeChatId) return;
+  if (!input) return;
   
   const user = currentUser || loadUser();
   if (!user) { alert("Session error. Please login again."); return; }
   
-  const myId = String(user.empNo || user.employeeId);
+  const myId = user.empNo || user.employeeId;
+  const chatId = `${myId}_Support`;
   const text = input.value.trim();
-  input.value = '';
+  if (!text || !myId) return;
+
+  console.log("Sending message as:", myId, "to:", chatId);
 
   const msg = {
-    text,
-    senderId: myId,
-    senderName: user.name,
+    text: text,
+    senderId: String(myId),
+    senderName: user.name || "User",
     timestamp: firebase.firestore.FieldValue.serverTimestamp()
   };
 
   try {
-    await db.collection('chats').doc(activeChatId).collection('messages').add(msg);
-    // Update the parent chat document for the list preview
-    await db.collection('chats').doc(activeChatId).set({
-      last_msg: text,
-      last_at: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
+    await db.collection('chats').doc(chatId).collection('messages').add(msg);
+    await db.collection('chats').doc(chatId).set({
+      senderName: user.name || "User",
+      lastMessage: text,
+      lastSenderId: String(myId),
+      participants: [String(myId), 'admin'],
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, {merge: true});
+
+    input.value = '';
+    input.focus();
+    const msgsDiv = document.getElementById('chat-msgs');
+    if (msgsDiv) msgsDiv.scrollTop = msgsDiv.scrollHeight;
   } catch(e) {
-    console.error("Send error:", e);
-    alert("Fail to send: " + e.message);
+    console.error("Chat send error:", e);
+    alert("Send failed: " + e.message);
   }
 }
 
