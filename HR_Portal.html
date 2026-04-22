@@ -1248,71 +1248,37 @@
 
         async function renderChatUsers() {
             const list = document.getElementById('chat-user-list');
-            const search = document.getElementById('chat-search').value.toLowerCase();
+            const search = (document.getElementById('chat-search').value || '').toLowerCase();
             
-            if (search.length > 2) {
-                // Search Mode: Query employees collection
-                try {
-                    const snap = await db.collection('employees')
-                        .orderBy('name_en')
-                        .startAt(search.toUpperCase())
-                        .endAt(search.toUpperCase() + '\uf8ff')
-                        .limit(8)
-                        .get();
-                    
-                    const matches = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    
-                    if (matches.length > 0) {
-                        list.innerHTML = `<div style="font-size: 0.65rem; color: var(--accent); margin: 10px 5px; font-weight: 800;">SEARCH RESULTS</div>` + 
-                            matches.map(e => {
-                                const displayName = e.name_en || e.name || 'Staff member';
-                                return `
-                                    <div class="chat-user-item ${activeChatSession === 'direct_' + e.emp_no ? 'active' : ''}" onclick="openChat('direct_${e.emp_no}', '${displayName.replace(/'/g, "\\'")}')">
-                                        <div style="display: flex; align-items: center; gap: 10px;">
-                                            <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff&bold=true" style="width: 32px; height: 32px; border-radius: 8px;">
-                                            <div>
-                                                <div style="font-weight: 800; font-size: 0.85rem; color: #fff;">${displayName}</div>
-                                                <div style="font-size: 0.65rem; color: var(--text-muted);">EMP ID: ${e.emp_no}</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('');
-                        return;
-                    }
-                } catch(e) { console.error("Search error", e); }
-            }
-
-            // Default Mode: Recent active sessions
-            const relevantSessions = allSessions.filter(s => (s.id.startsWith('direct_') || s.id.startsWith('chat_')) && s.id.toLowerCase().includes(search));
+            // Build sessions list from chats collection
+            const relevantSessions = allSessions.filter(s => s.id.toLowerCase().includes(search) || (s.senderName && s.senderName.toLowerCase().includes(search)));
             
             list.innerHTML = relevantSessions.map(s => {
-                const isSupport = s.id.includes('support');
-                const empId = s.id.replace('direct_', '').replace('chat_support_', '').replace('chat_', '').split('_').find(x => x !== 'admin');
-                const displayName = isSupport ? `Support: Operative #${empId}` : `Operative #${empId}`;
+                const empId = s.id;
+                const displayName = s.senderName || `Employee #${empId}`;
                 
                 return `
                     <div class="chat-user-item ${activeChatSession === s.id ? 'active' : ''}" onclick="openChat('${s.id}', '${displayName.replace(/'/g, "\\'")}')">
                         <div style="display: flex; gap: 12px; align-items: center;">
                             <div style="position: relative;">
-                                <img src="https://ui-avatars.com/api/?name=${empId}&background=${isSupport ? '3b82f6' : '1e293b'}&color=${isSupport ? 'fff' : '3b82f6'}&bold=true" style="width: 42px; height: 42px; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.1);">
+                                <img src="https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff&bold=true" style="width: 42px; height: 42px; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.1);">
                                 <div style="position: absolute; bottom: -2px; right: -2px; width: 12px; height: 12px; background: var(--success); border-radius: 50%; border: 2px solid var(--primary);"></div>
                             </div>
                             <div style="flex: 1; overflow: hidden;">
-                                <div style="font-weight: 800; font-size: 0.9rem; color: #fff;">${displayName}</div>
+                                <div style="font-weight: 800; font-size: 0.9rem; color: #fff; text-transform: capitalize;">${displayName}</div>
                                 <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.7;">
-                                    ${s.lastMessage || s.last_message || 'Encrypted signal established'}
+                                    ${s.lastMessage || 'Connected to Support'}
                                 </div>
                             </div>
                         </div>
                     </div>
                 `;
-            }).join('') || '<p style="text-align:center; padding:30px; font-size:0.7rem; color: var(--text-muted); font-weight: 700;">NO ACTIVE SIGNALS FOUND</p>';
+            }).join('') || '<p style="text-align:center; padding:30px; font-size:0.7rem; color: var(--text-muted); font-weight: 700;">NO SUPPORT REQUESTS</p>';
         }
 
         async function openChat(sid, optName) {
             activeChatSession = sid;
-            const empId = sid.replace('direct_', '');
+            const empId = sid;
             
             document.getElementById('chat-placeholder').style.display = 'none';
             document.getElementById('chat-active').style.display = 'flex';
@@ -1322,12 +1288,6 @@
             document.getElementById('active-user-id').innerText = "EMP ID: " + empId;
             document.getElementById('active-user-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=3b82f6&color=fff&bold=true`;
             
-            // Ensure session exists in Firestore if created from search
-            await db.collection('chats').doc(sid).set({
-                participants: [String(empId), 'admin'],
-                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
-
             if(chatsUnsubscribe) chatsUnsubscribe();
             
             const container = document.getElementById('chat-messages-container');
@@ -1336,12 +1296,12 @@
             chatsUnsubscribe = db.collection('chats').doc(sid).collection('messages').orderBy('timestamp', 'asc').onSnapshot(snap => {
                 const msgs = snap.docs.map(doc => doc.data());
                 container.innerHTML = msgs.map(m => {
-                    const isMe = m.sender_id === 'admin';
-                    const time = (m.timestamp || m.created_at) ? new Date(m.timestamp ? (m.timestamp.toDate ? m.timestamp.toDate() : m.timestamp) : m.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--';
+                    const isMe = m.senderId === 'admin';
+                    const time = m.timestamp ? (m.timestamp.toDate ? m.timestamp.toDate() : new Date(m.timestamp)).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--';
                     return `
                         <div style="display: flex; flex-direction: column; align-items: ${isMe ? 'flex-end' : 'flex-start'}; gap: 5px; margin-bottom: 5px;">
                             <div class="msg ${isMe ? 'sent' : 'received'}" style="${isMe ? 'background: var(--accent); border-radius: 18px 18px 4px 18px; color: #fff; font-weight: 600;' : 'background: rgba(255,255,255,0.05); border-radius: 18px 18px 18px 4px; color: #f8fafc; font-weight: 500; border: 1px solid rgba(255,255,255,0.05);'}">
-                                ${m.text || m.content}
+                                ${m.text}
                                 <div style="font-size: 0.6rem; opacity: 0.5; margin-top: 5px; text-align: ${isMe ? 'right' : 'left'}">
                                     ${time}
                                 </div>
@@ -1358,12 +1318,11 @@
             const input = document.getElementById('chat-input');
             const text = input.value.trim();
             if(!text || !activeChatSession) return;
-            const now = new Date().toISOString();
             
             const msgData = { 
-                sender_id: 'admin', 
+                senderId: 'admin', 
                 text: text, 
-                created_at: now 
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             };
 
             await db.collection('chats').doc(activeChatSession).collection('messages').add(msgData);
@@ -1374,6 +1333,7 @@
             }, {merge:true});
             
             input.value = '';
+            input.focus();
         }
 
         // --- Broadcast Manager Logic ---

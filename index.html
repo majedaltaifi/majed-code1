@@ -3026,7 +3026,12 @@ async function sendMessage() {
 
   try {
     await db.collection('chats').doc(user.employeeId).collection('messages').add(msg);
-    console.log("Message added to Firestore");
+    await db.collection('chats').doc(user.employeeId).set({
+      senderName: user.name || "User",
+      lastMessage: text,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, {merge: true});
+    console.log("Message & Metadata added to Firestore");
     input.value = '';
     input.focus();
     // Local fast scroll
