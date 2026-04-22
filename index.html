@@ -124,7 +124,7 @@ body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size
 
 /* ── TAB CONTENT ── */
 .tab-content{flex:1;width:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px 100px;position:relative;touch-action:pan-y}
-.tab-pane{display:none;width:100%;padding-top:10px}
+.tab-pane{display:none;width:100%}
 .tab-pane.active{display:block;animation:fadeUp .4s var(--ease) both}
 .tab-pane.active > *{animation:fadeUp .5s var(--ease) both}
 .tab-pane.active > *:nth-child(1){animation-delay:.03s}
@@ -228,6 +228,8 @@ body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size
 [dir="ltr"] .search-bar input{padding-inline:40px 14px}
 
 /* ── MORE TAB ── */
+#main-app.tab-more-active .app-header{display:none}
+#main-app.tab-more-active .tab-content{padding-top:var(--sa-t)}
 .settings-list{display:flex;flex-direction:column;gap:6px}
 .setting-item{display:flex;align-items:center;gap:14px;padding:14px;background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--r);cursor:pointer;transition:all .25s;color:var(--text);font-family:inherit;font-size:.88rem;text-align:start;width:100%}
 .setting-item:active{background:var(--glass-hover)}
@@ -2576,6 +2578,10 @@ function switchTab(tab){
   pane.offsetHeight;
   pane.classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  
+  const mainApp = document.getElementById('main-app');
+  if (mainApp) mainApp.classList.toggle('tab-more-active', tab === 'more');
+
   updateHeader();
   if(tab==='reports')renderReports();
 
