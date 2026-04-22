@@ -810,7 +810,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <div class="lang-card">
     <div class="lang-title">Choose your language / اختر لغتك</div>
     <div class="lang-grid">
-      <button class="lang-btn" onclick="setLang('ar')"><span class="flag">🇸🇦</span>العربية</button>
+      <button class="lang-btn" onclick="setLang('en')"><span class="flag">🇸🇦</span>العربية</button>
       <button class="lang-btn" onclick="setLang('en')"><span class="flag">🇬🇧</span>English</button>
       <button class="lang-btn" onclick="setLang('ur')"><span class="flag">🇵🇰</span>اردو</button>
       <button class="lang-btn" onclick="setLang('hi')"><span class="flag">🇮🇳</span>हिन्दी</button>
@@ -1312,7 +1312,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   </div>
   <div class="sheet-body">
     <div class="lang-grid">
-      <button class="lang-btn" onclick="pickLang('ar')"><span class="flag">🇸🇦</span>العربية</button>
+      <button class="lang-btn" onclick="pickLang('en')"><span class="flag">🇸🇦</span>العربية</button>
       <button class="lang-btn" onclick="pickLang('en')"><span class="flag">🇬🇧</span>English</button>
       <button class="lang-btn" onclick="pickLang('ur')"><span class="flag">🇵🇰</span>اردو</button>
       <button class="lang-btn" onclick="pickLang('hi')"><span class="flag">🇮🇳</span>हिन्दी</button>
@@ -2113,49 +2113,25 @@ function syncBroadcasts() {
   }, err => console.error("Broadcast Sync Error:", err));
 }
 
-let unsubChatsV3 = null, unsubChatsLegacy = null;
-
 function syncChats() {
   if (!currentUser || currentUser.guest) return;
-  if (unsubChats) { unsubChats(); unsubChats = null; }
-  if (unsubChatsV3) { unsubChatsV3(); unsubChatsV3 = null; }
-  if (unsubChatsLegacy) { unsubChatsLegacy(); unsubChatsLegacy = null; }
-
+  if (unsubChats) unsubChats();
   const myID = String(currentUser.empNo);
-  let chatsV3 = [], chatsLegacy = [];
-
-  const mergeAndRender = () => {
-    const allMap = new Map();
-    chatsLegacy.forEach(c => allMap.set(c.id, c));
-    chatsV3.forEach(c => allMap.set(c.id, c));
-    const merged = Array.from(allMap.values()).sort(
-      (a, b) => new Date(b.updated_at || 0) - new Date(a.updated_at || 0)
-    );
-    saveChats(merged);
-    renderChats();
-    let totalUnread = 0;
-    merged.forEach(c => {
-      totalUnread += (c.unread_counts && c.unread_counts[myID]) || 0;
-    });
-    const dot = document.getElementById('chats-dot');
-    if (dot) dot.style.display = totalUnread > 0 ? 'block' : 'none';
-  };
-
-  // conversations_v3: use participants array-contains (auto-indexed in Firestore)
-  unsubChatsV3 = db.collection('conversations_v3')
+  
+  unsubChats = db.collection('conversations')
     .where('participants', 'array-contains', myID)
     .onSnapshot(snap => {
-      chatsV3 = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      mergeAndRender();
-    }, err => console.warn('V3 sync error:', err));
-
-  // chat_sessions: legacy conversations
-  unsubChatsLegacy = db.collection('chat_sessions')
-    .where('participants', 'array-contains', myID)
-    .onSnapshot(snap => {
-      chatsLegacy = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      mergeAndRender();
-    }, err => console.warn('Legacy sync error:', err));
+      const chats = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      saveChats(chats);
+      renderChats();
+      
+      let totalUnread = 0;
+      chats.forEach(c => {
+        totalUnread += (c.unread_counts && c.unread_counts[myID]) || 0;
+      });
+      const dot = document.getElementById('chats-dot');
+      if(dot) dot.style.display = totalUnread > 0 ? 'block' : 'none';
+    }, err => console.warn("Chat sync error:", err));
 }
 
 function syncReports() {
@@ -2182,11 +2158,11 @@ function syncReports() {
 /* ══════════════════════════════════════════
    STATE & PERSISTENCE
    ══════════════════════════════════════════ */
-let lang='ar',currentTab='home',selectedType='',selectedSeverity='',
+let lang='en',currentTab='home',selectedType='',selectedSeverity='',
     isAnonymous=true,isOngoing=false,uploadedFiles=[],deferredPrompt=null,
     currentChatId=null,selectedEnv='',selectedSubIssue='',selectedDetail='',selectedFrequency='';
 
-const LS_LANG='nit_lang',LS_REPORTS='nit_reports',LS_CHATS='nit_chats',LS_NOTIFS='nit_notifs',LS_SUPPORT='nit_support',LS_USER='nit_user',CACHE_NAME='nit-cache-v3.38';
+const LS_LANG='nit_lang',LS_REPORTS='nit_reports',LS_CHATS='nit_chats',LS_NOTIFS='nit_notifs',LS_SUPPORT='nit_support',LS_USER='nit_user',CACHE_NAME='nit-cache';
 
 let currentUser=null,employeesDb=null,empLookupDebounce=null;
 
@@ -2384,7 +2360,7 @@ function applyPersonalization(){
   if(!greetEl)return;
   if(currentUser&&currentUser.name&&!currentUser.guest){
     const nameStr = displayName(currentUser.name);
-    greetEl.textContent=(t.welcomeBack||en.welcomeBack)+(lang==='ar'?' ':' back, ')+nameStr;
+    greetEl.textContent=(t.welcomeBack||en.welcomeBack)+(lang==='en'?' ':' back, ')+nameStr;
   }else{
     greetEl.textContent=t.welcomeGuest||en.welcomeGuest;
   }
@@ -2564,7 +2540,7 @@ function renderRecentReports(){
     // Stage: 0=logged (always done), 1=processing (done if >48h), 2=finished (done if >120h)
     const stage0='done',stage1=hrs>48?'done':(hrs>=0?'active':''),stage2=hrs>120?'done':'';
     const line1=hrs>48?'done':'',line2=hrs>120?'done':'';
-    const d=new Date(r.at),dateStr=d.toLocaleDateString(lang==='ar'?'ar-SA':undefined,{day:'2-digit',month:'2-digit'});
+    const d=new Date(r.at),dateStr=d.toLocaleDateString(lang==='en'?'ar-SA':undefined,{day:'2-digit',month:'2-digit'});
     const caseNum=loadReports().length-idx; // reverse index (latest is highest num)
     const check='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
     const dot='<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4"/></svg>';
@@ -2607,8 +2583,8 @@ function renderBroadcasts(){
   if(!broadcastsDb || !broadcastsDb.length){wrap.style.display='none';return}
   wrap.style.display='block';
   row.innerHTML=broadcastsDb.map(b=>{
-    const title = (lang==='ar' ? (b.titleAr || b.title) : (b.titleEn || b.title)) || b.title || 'Broadcast';
-    const label = (lang==='ar' ? (b.labelAr || title) : (b.labelEn || b.titleEn || title)) || 'Nesma IT';
+    const title = (lang==='en' ? (b.titleAr || b.title) : (b.titleEn || b.title)) || b.title || 'Broadcast';
+    const label = (lang==='en' ? (b.labelAr || title) : (b.labelEn || b.titleEn || title)) || 'Nesma IT';
     const icon = ICO[b.svg] || ICO.megaphone || ICO.broadcast;
     const color = b.iconColor || 'white';
     return `<div class="bc-item" onclick="openBroadcast('${b.id}')">
@@ -2622,8 +2598,8 @@ function renderBroadcasts(){
 }
 function openBroadcast(id){
   const b=broadcastsDb.find(x=>x.id===id);if(!b)return;
-  const title=(lang==='ar'?b.titleAr:b.titleEn);
-  const content=(lang==='ar'?b.contentAr:b.contentEn);
+  const title=(lang==='en'?b.titleAr:b.titleEn);
+  const content=(lang==='en'?b.contentAr:b.contentEn);
   addNotif(title,content,'broadcast');
   toast(title);
 }
@@ -2781,7 +2757,7 @@ function openCompanyInfo(){
 
 function openSites(){
   const t=T[lang],en=T.en;
-  const descs=lang==='ar'?SITE_DESCS_AR:SITE_DESCS_EN;
+  const descs=lang==='en'?SITE_DESCS_AR:SITE_DESCS_EN;
   document.getElementById('sites-body').innerHTML=`
     <div class="section-label">${t.sitesTitle||en.sitesTitle}</div>
     ${SITES.map(s=>{
@@ -3047,9 +3023,9 @@ function startNewChat() {
 async function openSupport() {
   if(!currentUser || currentUser.guest) return;
   const myID = String(currentUser.empNo);
-  const roomId = 'v3_support_' + myID;
+  const roomId = 'chat_support_' + myID;
   try {
-    await db.collection('conversations_v3').doc(roomId).set({
+    await db.collection('conversations').doc(roomId).set({
       members: { [myID]: true, 'admin': true },
       participants: [myID, 'admin'],
       updated_at: new Date().toISOString(),
@@ -3150,66 +3126,28 @@ async function openChatWithUser(targetEmpNo, targetName) {
   if(myID === tID) return toast("Cannot chat with yourself.");
 
   const isSupport = (tID === 'admin' || tID === 'support');
-  
-  // Close search
   if(document.getElementById('chats-search')) document.getElementById('chats-search').value = '';
 
   try {
-    // 1. Check if an existing conversation already exists (in any collection)
-    let existingId = null;
-    let existingCollection = null;
-
-    if (isSupport) {
-      // Check v3 support room
-      const v3Id = 'v3_support_' + myID;
-      const v3Doc = await db.collection('conversations_v3').doc(v3Id).get();
-      if (v3Doc.exists) { existingId = v3Id; existingCollection = 'conversations_v3'; }
-      
-      if (!existingId) {
-        // Check legacy support room
-        const legacyId = 'direct_' + myID;
-        const legacyDoc = await db.collection('chat_sessions').doc(legacyId).get();
-        if (legacyDoc.exists) { existingId = legacyId; existingCollection = 'chat_sessions'; }
-      }
-    } else {
-      // Check v3 direct room
-      const v3Id = 'v3_' + [myID, tID].sort().join('_');
-      const v3Doc = await db.collection('conversations_v3').doc(v3Id).get();
-      if (v3Doc.exists) { existingId = v3Id; existingCollection = 'conversations_v3'; }
-      
-      if (!existingId) {
-        // Check legacy direct room (both sort orders)
-        const legacyId1 = [myID, tID].sort().join('_');
-        const legacyDoc1 = await db.collection('chat_sessions').doc(legacyId1).get();
-        if (legacyDoc1.exists) { existingId = legacyId1; existingCollection = 'chat_sessions'; }
-      }
-    }
-
-    if (existingId) {
-      // Found existing — just open it
-      filterHub();
-      openChat(existingId, targetName);
-      return;
-    }
-
-    // 2. No existing conversation — create new one in conversations_v3
-    const newRoomId = isSupport ? 'v3_support_' + myID : 'v3_' + [myID, tID].sort().join('_');
+    const roomId = isSupport ? 'chat_support_' + myID : 'chat_' + [myID, tID].sort().join('_');
     const tIDFinal = isSupport ? 'admin' : tID;
 
-    await db.collection('conversations_v3').doc(newRoomId).set({
-      members: { [myID]: true, [tIDFinal]: true },
-      participants: [myID, tIDFinal],
-      names: { [myID]: (currentUser.name || 'User'), [tIDFinal]: targetName },
-      other_name: targetName,
-      target_id: tIDFinal,
-      type: isSupport ? 'support' : 'direct',
-      updated_at: new Date().toISOString()
-    }, {merge: true});
+    // Check if exists
+    const doc = await db.collection('conversations').doc(roomId).get();
+    if (!doc.exists) {
+      await db.collection('conversations').doc(roomId).set({
+        participants: [myID, tIDFinal],
+        names: { [myID]: (currentUser.name || 'User'), [tIDFinal]: targetName },
+        other_name: targetName,
+        target_id: tIDFinal,
+        type: isSupport ? 'support' : 'direct',
+        updated_at: new Date().toISOString()
+      });
+    }
 
     filterHub();
-    openChat(newRoomId, targetName);
-
-  } catch(e) { console.error('Create chat error', e); toast('Connection Error'); }
+    openChat(roomId, targetName);
+  } catch(e) { console.error('Chat open error', e); toast('Connection Error'); }
 }
 
 
@@ -3220,19 +3158,15 @@ async function openChat(id, optName){
   const t = T[lang];
   document.querySelector('#sheet-chat .sheet-title').textContent = optName || t.chatName;
   
-  // Determine collection based on room ID
-  const isV3 = id.startsWith('v3_');
-  const colName = isV3 ? 'conversations_v3' : 'chat_sessions';
-  
   // Clear unreads
   const up = {}; up[`unread_counts.${myID}`] = 0;
-  db.collection(colName).doc(id).update(up).catch(()=>{});
+  db.collection('conversations').doc(id).update(up).catch(()=>{});
 
   renderChatMessages({messages:[]});
   openSheet('sheet-chat');
   
   if(unsubMsgs) unsubMsgs();
-  unsubMsgs = db.collection(colName).doc(id).collection('messages')
+  unsubMsgs = db.collection('conversations').doc(id).collection('messages')
     .orderBy('created_at', 'asc')
     .onSnapshot(snap => {
       const msgs = snap.docs.map(d => ({
@@ -3273,22 +3207,17 @@ async function sendChat(){
   const txt = inp.value.trim();
   if(!txt || !currentChatId) return;
   const myID = String(currentUser.empNo);
-  inp.value = ''; inp.disabled = true;
-  
   const now = new Date().toISOString();
-  // Route to the correct collection
-  const isV3 = currentChatId.startsWith('v3_');
-  const colName = isV3 ? 'conversations_v3' : 'chat_sessions';
-  const sessionRef = db.collection(colName).doc(currentChatId);
-  
+  inp.value = ''; inp.disabled = true;
+
   try {
-    const sessionUpdate = {
+    const sessionRef = db.collection('conversations').doc(currentChatId);
+    await sessionRef.set({
        updated_at: now,
        last_msg: txt,
-       last_message: txt
-    };
-    if (isV3) sessionUpdate[`members.${myID}`] = true;
-    await sessionRef.set(sessionUpdate, {merge:true});
+       last_message: txt,
+       last_sender: myID
+    }, {merge:true});
 
     await sessionRef.collection('messages').add({
       sender_id: myID,
@@ -3296,6 +3225,18 @@ async function sendChat(){
       text: txt,
       created_at: now
     });
+    
+    // Increment unreads for others
+    const doc = await sessionRef.get();
+    const parts = doc.data().participants || [];
+    const updates = {};
+    parts.forEach(p => {
+      if(String(p) !== myID) {
+        updates[`unread_counts.${p}`] = firebase.firestore.FieldValue.increment(1);
+      }
+    });
+    if(Object.keys(updates).length) await sessionRef.update(updates);
+
   } catch(e) { console.error("Send error", e); }
   inp.disabled = false; inp.focus();
 }
