@@ -3141,14 +3141,26 @@ async function openChatWithUser(targetEmpNo, targetName) {
     const roomId = isSupport ? 'chat_support_' + myID : 'chat_' + [myID, tID].sort().join('_');
     const tIDFinal = isSupport ? 'admin' : tID;
 
-    await db.collection('conversations').doc(roomId).set({
+    const chatData = {
+      id: roomId,
       participants: [myID, tIDFinal],
       names: { [myID]: (currentUser.name || 'User'), [tIDFinal]: targetName },
       other_name: targetName,
       target_id: tIDFinal,
       type: isSupport ? 'support' : 'direct',
       updated_at: new Date().toISOString()
-    }, { merge: true });
+    };
+
+    // Save to Firestore
+    await db.collection('conversations').doc(roomId).set(chatData, { merge: true });
+
+    // Update Local for Instant Feedback
+    const local = loadChats();
+    const idx = local.findIndex(x => x.id === roomId);
+    if(idx > -1) local[idx] = { ...local[idx], ...chatData };
+    else local.push(chatData);
+    saveChats(local);
+    renderChats();
 
     filterHub();
     openChat(roomId, targetName);
