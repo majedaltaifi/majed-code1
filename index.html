@@ -3204,11 +3204,23 @@ async function sendChat() {
 
   try {
     const ref = db.collection('conversations').doc(currentChatId);
-    const updateObj = { updated_at: now, last_msg: txt, last_sender: myID };
+    // 1. Permanently update conversation metadata for the list preview
+    const updateObj = { 
+      updated_at: now, 
+      last_msg: txt, 
+      last_sender: myID,
+      last_message_at: now
+    };
     await ref.set(updateObj, { merge: true });
-    await ref.collection('messages').add({ sender_id: myID, text: txt, created_at: now });
     
-    // Instant Local Update for UI
+    // 2. Add the actual message to the subcollection
+    await ref.collection('messages').add({ 
+      sender_id: myID, 
+      text: txt, 
+      created_at: now 
+    });
+    
+    // 3. Instant local sync for zero-latency feedback
     const local = loadChats();
     const idx = local.findIndex(x => x.id === currentChatId);
     if(idx > -1) {
@@ -3217,7 +3229,7 @@ async function sendChat() {
       renderChats();
     }
 
-    // Update unread counts
+    // 4. Update unread counts for recipients
     const doc = await ref.get();
     const parts = doc.data().participants || [];
     const updates = {};
@@ -3232,6 +3244,7 @@ function sendQuick(btn, txt) {
   const inp = document.getElementById('chat-input');
   if(inp) { inp.value = txt; sendChat(); }
 }
+
 
 
 
