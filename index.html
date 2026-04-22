@@ -3022,10 +3022,10 @@ function initChatSystem() {
       const msgs = [];
       snap.forEach(doc => msgs.push(doc.data()));
       
-      // Sort locally to handle offline null timestamps gracefully
+      // Sort locally to handle offline or pending server timestamps gracefully
       msgs.sort((a, b) => {
-        const ta = a.timestamp ? (a.timestamp.toMillis ? a.timestamp.toMillis() : 0) : Date.now();
-        const tb = b.timestamp ? (b.timestamp.toMillis ? b.timestamp.toMillis() : 0) : Date.now();
+        const ta = (a.timestamp && typeof a.timestamp.toMillis === 'function') ? a.timestamp.toMillis() : Date.now();
+        const tb = (b.timestamp && typeof b.timestamp.toMillis === 'function') ? b.timestamp.toMillis() : Date.now();
         return ta - tb;
       });
 
