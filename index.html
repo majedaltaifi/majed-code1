@@ -101,7 +101,7 @@ body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size
 [dir="rtl"] .install-cta .cta-arrow{transform:scaleX(-1)}
 
 /* ══════════ MAIN APP SHELL ══════════ */
-#main-app{display:none;width:100%;min-height:100dvh;flex-direction:column;position:relative;z-index:1;background:var(--bg)}
+#main-app{display:none;width:100%;max-width:480px;margin:0 auto;min-height:100dvh;flex-direction:column;position:relative;z-index:1;background:var(--bg);box-shadow:0 0 80px rgba(0,0,0,0.6);border-left:1px solid var(--glass-border);border-right:1px solid var(--glass-border)}
 #main-app.show{display:flex;animation:appIn .55s var(--ease) both}
 @keyframes appIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
@@ -112,7 +112,7 @@ body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 
 /* ── APP HEADER ── */
-.app-header{position:sticky;top:0;z-index:100;background:rgba(8,9,34,.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--glass-border);padding:calc(var(--sa-t) + 12px) 16px 12px;display:flex;align-items:center;gap:12px;min-height:calc(var(--header-h) + var(--sa-t))}
+.app-header{position:sticky;top:0;z-index:100;background:rgba(8,9,34,.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--glass-border);padding:calc(var(--sa-t) + 12px) 16px 12px;display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;min-height:calc(var(--header-h) + var(--sa-t))}
 .app-header .logo-small{height:26px;filter:brightness(0) invert(1);opacity:.85;flex-shrink:0}
 .app-header .header-title{flex:1;overflow:hidden;text-align:start}
 .app-header .h-t{font-size:1.02rem;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
