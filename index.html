@@ -806,7 +806,7 @@ window.addEventListener('error', function(e) {
   errDiv.style.top = '0px'; errDiv.style.left = '0px'; errDiv.style.right = '0px';
   errDiv.style.background = 'red'; errDiv.style.color = 'white'; errDiv.style.padding = '10px';
   errDiv.style.zIndex = '999999'; errDiv.style.fontSize = '11px';
-  errDiv.innerText = '[v6.95] ERR: ' + e.message + ' @ ' + e.lineno;
+  errDiv.innerText = '[v6.96] ERR: ' + e.message + ' @ ' + e.lineno;
   document.body.appendChild(errDiv);
 });
 window.addEventListener('unhandledrejection', function(e) {
@@ -815,7 +815,7 @@ window.addEventListener('unhandledrejection', function(e) {
   errDiv.style.top = '40px'; errDiv.style.left = '0px'; errDiv.style.right = '0px';
   errDiv.style.background = 'orange'; errDiv.style.color = 'black'; errDiv.style.padding = '10px';
   errDiv.style.zIndex = '999999'; errDiv.style.fontSize = '11px';
-  errDiv.innerText = '[v6.95] Promise: ' + (e.reason ? e.reason.message : 'Unknown');
+  errDiv.innerText = '[v6.96] Promise: ' + (e.reason ? e.reason.message : 'Unknown');
   document.body.appendChild(errDiv);
 });
 </script>
@@ -2141,7 +2141,7 @@ function tr(key){const l=I18N[key];if(!l)return key;return l[lang]||l.en||key}
    SYNC ENGINE (FIRESTORE)
    ══════════════════════════════════════════ */
 let broadcastsDb=[];
-let unsubBroadcasts = null, unsubChats = null, unsubMsgs = null, activeRoom = null;
+let unsubBroadcasts = null, unsubReports = null, unsubChats = null, unsubMsgs = null, activeRoom = null;
 
 function syncBroadcasts() {
   if (unsubBroadcasts) unsubBroadcasts();
@@ -2180,7 +2180,8 @@ let lang='en',currentTab='home',selectedType='',selectedSeverity='',
     isAnonymous=true,isOngoing=false,uploadedFiles=[],deferredPrompt=null,
     selectedEnv='',selectedSubIssue='',selectedDetail='',selectedFrequency='';
 
-const LS_LANG='nit_lang',LS_REPORTS='nit_reports',LS_CHATS='nit_chats',LS_NOTIFS='nit_notifs',LS_SUPPORT='nit_support',LS_USER='nit_user',LS_SEEN_WELCOME='nit_seen_welcome',CACHE_NAME='nit-cache';
+const LS_LANG='nit_lang',LS_REPORTS='nit_reports',LS_CHATS='nit_chats',LS_NOTIFS='nit_notifs',LS_SUPPORT='nit_support',LS_USER='nit_user',LS_SEEN_WELCOME='nit_seen_welcome';
+const CACHE_NAME = 'nit-cache-v6.96';
 
 let currentUser=null,employeesDb=null,empLookupDebounce=null;
 
