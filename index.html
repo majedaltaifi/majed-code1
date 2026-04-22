@@ -2157,30 +2157,38 @@ function syncBroadcasts() {
 }
 
 function syncChats() {
-  if (!currentUser || currentUser.guest) return;
-  if (unsubChats) unsubChats();
-  const myID = String(currentUser.empNo);
-  const isAdmin = (myID === '3734' || currentUser.role === 'admin');
-  
-  if (isAdmin) {
-    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'flex');
-    unsubChats = db.collection('conversations')
-      .orderBy('updated_at', 'desc')
-      .onSnapshot(snap => {
-        const chats = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        saveChats(chats);
-        renderChats();
-        updateAdminStats(chats.length);
-      });
-  } else {
-    unsubChats = db.collection('conversations')
-      .where('participants', 'array-contains', myID)
-      .onSnapshot(snap => {
-        const chats = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        saveChats(chats);
-        renderChats();
-      });
-  }
+  try {
+    if (!currentUser || currentUser.guest) return;
+    if (unsubChats) unsubChats();
+    const myID = String(currentUser.empNo);
+    const isAdmin = (myID === '3734' || currentUser.role === 'admin');
+    
+    if (isAdmin) {
+      document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'flex');
+      unsubChats = db.collection('conversations')
+        .orderBy('updated_at', 'desc')
+        .onSnapshot(snap => {
+          const chats = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          saveChats(chats);
+          renderChats();
+          updateAdminStats(chats.length);
+        }, err => {
+          console.warn("Admin Chat Sync Error:", err);
+          setTimeout(syncChats, 5000);
+        });
+    } else {
+      unsubChats = db.collection('conversations')
+        .where('participants', 'array-contains', myID)
+        .onSnapshot(snap => {
+          const chats = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          saveChats(chats);
+          renderChats();
+        }, err => {
+          console.warn("User Chat Sync Error:", err);
+          setTimeout(syncChats, 5000);
+        });
+    }
+  } catch(e) { console.error("syncChats Critical Error:", e); }
 }
 
 async function updateAdminStats(count) {
@@ -2617,28 +2625,41 @@ function applyT(){
    TAB SWITCHING
    ══════════════════════════════════════════ */
 function switchTab(tab){
-  if(currentTab===tab)return;
-  currentTab=tab;
-  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
-  const pane=document.getElementById('tab-'+tab);
-  if(!pane) return;
-  pane.offsetHeight;
-  pane.classList.add('active');
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
-  updateHeader();
-  if(tab==='reports')renderReports();
-  if(tab==='chats')renderChats();
-  if(tab==='home'){updateStats();applyPersonalization();renderStatsDashboard()}
-  if(tab==='more'){renderProfileCard();updateLogoutBtn()}
-  window.scrollTo({top:0,behavior:'smooth'});
-  if(navigator.vibrate)navigator.vibrate(8);
+  try {
+    if(currentTab===tab)return;
+    currentTab=tab;
+    document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+    const pane=document.getElementById('tab-'+tab);
+    if(!pane) return;
+    pane.offsetHeight;
+    pane.classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+    updateHeader();
+    
+    if(tab==='reports') try { renderReports(); } catch(e) {}
+    if(tab==='chats') try { renderChats(); } catch(e) {}
+    if(tab==='home'){ try { updateStats();applyPersonalization();renderStatsDashboard(); } catch(e) {} }
+    if(tab==='more'){ try { renderProfileCard();updateLogoutBtn(); } catch(e) {} }
+    if(tab==='admin-dashboard'){ try { renderAdminDashboard(); } catch(e) {} }
+    
+    window.scrollTo({top:0,behavior:'smooth'});
+    if(navigator.vibrate)navigator.vibrate(8);
+  } catch(e) { console.error("switchTab error", e); }
 }
 
 function updateHeader(){
-  const titles={home:{t:T[lang].tabHome,s:T[lang].hubSub},reports:{t:T[lang].tabReports,s:''},chats:{t:T[lang].tabChats,s:''},more:{t:T[lang].tabMore,s:''}};
-  const h=titles[currentTab];
-  document.getElementById('header-title').textContent=h.t;
-  document.getElementById('header-subtitle').textContent=h.s;
+  try {
+    const titles={
+      home:{t:T[lang].tabHome,s:T[lang].hubSub},
+      reports:{t:T[lang].tabReports,s:''},
+      chats:{t:T[lang].tabChats,s:''},
+      more:{t:T[lang].tabMore,s:''},
+      'admin-dashboard':{t:'Royal Admin',s:'System Monitoring'}
+    };
+    const h=titles[currentTab] || {t:'NIT',s:''};
+    document.getElementById('header-title').textContent=h.t || 'NIT';
+    document.getElementById('header-subtitle').textContent=h.s || '';
+  } catch(e) {}
 }
 
 /* ══════════════════════════════════════════
