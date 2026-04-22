@@ -1446,7 +1446,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script>
-  const APP_VERSION='3.32';
+  const APP_VERSION='3.33';
   let __refreshing=false;
   
   function showUpdateBanner(msg){
@@ -1461,7 +1461,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.32').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.33').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
@@ -2131,13 +2131,10 @@ function syncChats() {
     if(dot) dot.style.display = totalUnread > 0 ? 'block' : 'none';
   };
 
-  // Dual-Safety: Listen via participants AND the new hard-flag
-  unsubChats = db.collection('chat_sessions')
-    .where('participants', 'array-contains', myID)
-    .onSnapshot(handleUpdate, err => {
-       // If array query fails, try the hard-flag fallback
-       db.collection('chat_sessions').where('user_' + myID, '==', true).onSnapshot(handleUpdate);
-    });
+  // V3 ENGINE: Mapping based query
+  unsubChats = db.collection('conversations_v3')
+    .where('members.' + myID, '==', true)
+    .onSnapshot(handleUpdate, err => console.warn("Sync Error", err));
 }
 
 function syncReports() {
@@ -3019,16 +3016,16 @@ function startNewChat() {
 async function openSupport() {
   if(!currentUser || currentUser.guest) return;
   const myID = String(currentUser.empNo);
-  const roomId = 'direct_' + myID;
+  const roomId = 'v3_support_' + myID;
   try {
-    await db.collection('chat_sessions').doc(roomId).set({
+    await db.collection('conversations_v3').doc(roomId).set({
+      members: { [myID]: true, 'admin': true },
       participants: [myID, 'admin'],
-      ['user_' + myID]: true,
-      ['user_admin']: true,
       updated_at: new Date().toISOString(),
       names: { [myID]: (currentUser.name || 'User'), 'admin': 'Support' },
       other_name: 'Support',
-      target_id: 'admin'
+      target_id: 'admin',
+      type: 'support'
     }, {merge: true});
   } catch(e) { console.error("Support Init Error", e); }
   openChat(roomId, 'Support');
@@ -3116,46 +3113,24 @@ async function filterHub() {
 }
 
 async function openChatWithUser(targetEmpNo, targetName) {
-  console.log("Opening chat with:", targetEmpNo, targetName);
   if(!currentUser || currentUser.guest) return toast(T[lang].moreLoginNow);
   const myID = String(currentUser.empNo);
   const tID = String(targetEmpNo);
-  
-  if(tID === 'admin') toast(lang === 'ar' ? 'جاري الاتصال بالإدارة...' : 'Connecting to Management...');
-  
   if(myID === tID) return toast("Cannot chat with yourself.");
-  
-  let roomId;
-  if(tID === 'admin' || tID === 'support') {
-    roomId = 'direct_' + myID;
-  } else {
-    roomId = [myID, tID].sort().join('_');
-  }
+  let roomId = (tID === 'admin' || tID === 'support') ? 'v3_support_' + myID : 'v3_' + [myID, tID].sort().join('_');
   
   try {
-    const sessionData = {
-      participants: roomId.includes('direct_') ? [myID, 'admin'] : [myID, tID],
-      updated_at: new Date().toISOString(),
-      names: {}
-    };
-    
-    // Store names for both participants so each sees the other correctly
-    sessionData.names[myID] = currentUser.name || 'User ' + myID;
-    sessionData.names[tID] = targetName;
-    
-    sessionData.updated_at = new Date().toISOString();
-    
-    // Compatibility fields
-    sessionData.other_name = targetName;
-    sessionData.target_id = tID;
-
-    await db.collection('chat_sessions').doc(roomId).set(sessionData, {merge:true});
-    
-    const searchInput = document.getElementById('chats-search');
-    if(searchInput) searchInput.value = '';
-    filterHub(); // Reset view to Recent Messages
-
-    openChat(roomId, targetName);
+    await db.collection('conversations_v3').doc(roomId).set({
+      members: { [myID]: true, [tID]: true },
+      participants: [myID, tID],
+      names: { [myID]: (currentUser.name || 'User'), [tID]: targetName },
+      other_name: targetName,
+      target_id: tID,
+      type: (tID === 'admin' || tID === 'support') ? 'support' : 'direct',
+      updated_at: new Date().toISOString()
+    }, {merge:true});
+    if(document.getElementById('chats-search')) document.getElementById('chats-search').value = '';
+    filterHub(); openChat(roomId, targetName);
   } catch(e) { console.error("Create chat error", e); }
 }
 
@@ -3163,36 +3138,27 @@ async function openChatWithUser(targetEmpNo, targetName) {
 async function openChat(id, optName){
   if(!currentUser || currentUser.guest) return;
   const myID = String(currentUser.empNo);
-  const parts = id.split('_');
-  if(!parts.includes(myID) && myID !== 'admin'){ 
-    console.error("Access Denied to Chat:", id);
-    return toast("Access Denied");
-  }
-
   currentChatId = id;
   const t = T[lang];
-  let headerName = optName || t.chatName;
-  document.querySelector('#sheet-chat .sheet-title').textContent = headerName;
+  document.querySelector('#sheet-chat .sheet-title').textContent = optName || t.chatName;
   
-  if(!currentUser.guest){
-    const up = {}; up[`unread_counts.${myID}`] = 0;
-    db.collection('chat_sessions').doc(id).update(up).catch(()=>{});
-  }
+  // Clear unreads
+  const up = {}; up[`unread_counts.${myID}`] = 0;
+  db.collection('conversations_v3').doc(id).update(up).catch(()=>{});
 
   renderChatMessages({messages:[]});
   openSheet('sheet-chat');
   
   if(unsubMsgs) unsubMsgs();
-  unsubMsgs = db.collection('chat_sessions').doc(id).collection('messages')
+  unsubMsgs = db.collection('conversations_v3').doc(id).collection('messages')
     .orderBy('created_at', 'asc')
     .onSnapshot(snap => {
       const msgs = snap.docs.map(d => ({
         text: d.data().text,
-        type: String(d.data().sender_id) === String(currentUser.empNo) ? 'user' : 'bot',
+        type: String(d.data().sender_id) === String(myID) ? 'user' : 'bot',
         at: d.data().created_at
       }));
       renderChatMessages({messages: msgs});
-      // Scroll to bottom
       const m = document.getElementById('chat-messages');
       if(m) m.scrollTop = m.scrollHeight;
     });
@@ -3221,36 +3187,33 @@ function renderChatMessages(chat){
 }
 
 async function sendChat(){
-  const inp=document.getElementById('chat-input');
-  const txt=inp.value.trim();
-  if(!txt||!currentChatId)return;
-  
-  inp.value='';
-  inp.disabled=true;
+  const inp = document.getElementById('chat-input');
+  const txt = inp.value.trim();
+  if(!txt || !currentChatId) return;
+  const myID = String(currentUser.empNo);
+  inp.value = ''; inp.disabled = true;
   
   const now = new Date().toISOString();
-  const sessionRef = db.collection('chat_sessions').doc(currentChatId);
+  const sessionRef = db.collection('conversations_v3').doc(currentChatId);
   
   try {
-    const parts = currentChatId.split('_').filter(p=>p!=='direct');
-    if(currentChatId.startsWith('direct_') && !parts.includes('admin')) parts.push('admin');
-
-    await sessionRef.set({
-       participants: parts,
-       ['user_' + myID]: true,
+    const update = {
        updated_at: now,
        last_msg: txt,
-       user_name: currentUser.name || 'Unknown',
-       emp_no: currentUser.empNo,
-       type: currentChatId.startsWith('direct_') ? 'support' : 'direct',
-       created_at: firebase.firestore.FieldValue.serverTimestamp() // Real server time
-    }, {merge:true});
+       last_sender: myID,
+       [`members.${myID}`]: true
+    };
+    await sessionRef.set(update, {merge:true});
 
     await sessionRef.collection('messages').add({
-      sender_id: String(currentUser.empNo),
+      sender_id: myID,
       sender_name: currentUser.name || 'User',
       text: txt,
       created_at: now
+    });
+  } catch(e) { console.error("Send error", e); }
+  inp.disabled = false; inp.focus();
+}
     });
 
     const sess = await sessionRef.get();
