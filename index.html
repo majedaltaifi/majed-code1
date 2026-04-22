@@ -2995,6 +2995,7 @@ let activeChats = [];
 let chatUnsub = null;
 let msgUnsub = null;
 let activeChatId = null;
+let operativeCache = {}; // Cache for employee names to prevent flickering
 
 async function initChatSystem() {
   if (!currentUser) return;
@@ -3095,7 +3096,6 @@ function renderChatHub() {
   
   // 1. Pinned Admin Section (Always Visible)
   const supportChat = activeChats.find(c => c.participants.includes(myID) && c.participants.includes('admin'));
-  
   if (adminWrap) {
     const adminData = { userId: 'admin', name: 'Management Support', role: 'admin' };
     adminWrap.innerHTML = renderChatCard(adminData, supportChat, true);
@@ -3108,24 +3108,40 @@ function renderChatHub() {
       return;
     }
 
-    // Sort active chats by most recent
-    const sorted = activeChats.slice().sort((a,b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0));
-    
-    // We need to fetch names for active chats since we don't have allUsers in memory
-    hubList.innerHTML = '<div style="padding:40px; text-align:center; opacity:0.3">Loading conversations...</div>';
-    
-    Promise.all(sorted.map(async chat => {
-      const otherId = chat.participants.find(p => p !== myID);
-      const userDoc = await db.collection('employees').doc(otherId).get();
-      const userData = userDoc.exists ? {
-        userId: otherId,
-        name: userDoc.data().name || userDoc.data()['Employee Name - English'] || 'User',
-        role: userDoc.data().role || 'user'
-      } : { userId: otherId, name: 'User ' + otherId, role: 'user' };
-      return renderChatCard(userData, chat, false);
-    })).then(cards => {
-      hubList.innerHTML = cards.join('');
+    // Sort by updated time
+    const sorted = [...activeChats].sort((a,b) => {
+      const ta = a.updatedAt?.toDate ? a.updatedAt.toDate() : new Date(a.updatedAt || 0);
+      const tb = b.updatedAt?.toDate ? b.updatedAt.toDate() : new Date(b.updatedAt || 0);
+      return tb - ta;
     });
+
+    const renderAll = async () => {
+      const cards = await Promise.all(sorted.map(async chat => {
+        const otherId = chat.participants.find(p => p !== myID);
+        if (!otherId) return '';
+        
+        // Use cache or fetch
+        if (!operativeCache[otherId]) {
+          try {
+            const doc = await db.collection('employees').doc(otherId).get();
+            if (doc.exists) {
+              operativeCache[otherId] = {
+                userId: otherId,
+                name: doc.data().name || doc.data()['Employee Name - English'] || 'Operator ' + otherId,
+                role: doc.data().role || 'user'
+              };
+            } else {
+              operativeCache[otherId] = { userId: otherId, name: 'Operator ' + otherId, role: 'user' };
+            }
+          } catch(e) { /* ignore */ }
+        }
+        
+        return renderChatCard(operativeCache[otherId] || {userId: otherId, name: '...'}, chat, false);
+      }));
+      hubList.innerHTML = cards.join('');
+    };
+
+    renderAll();
   }
 }
 
