@@ -230,17 +230,145 @@ body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size
 /* ── MORE TAB ── */
 #main-app.tab-more-active .app-header{display:none}
 #main-app.tab-more-active .tab-content{padding-top:var(--sa-t)}
-.settings-list{display:flex;flex-direction:column;gap:6px}
-.setting-item{display:flex;align-items:center;gap:14px;padding:14px;background:var(--glass);border:1px solid var(--glass-border);border-radius:var(--r);cursor:pointer;transition:all .25s;color:var(--text);font-family:inherit;font-size:.88rem;text-align:start;width:100%}
-.setting-item:active{background:var(--glass-hover)}
-.setting-icon{width:34px;height:34px;border-radius:10px;background:rgba(128,209,233,.1);display:flex;align-items:center;justify-content:center;color:var(--turquoise);flex-shrink:0}
-.setting-icon svg{width:16px;height:16px}
-.setting-label{flex:1;font-weight:600}
-.setting-value{font-size:.78rem;color:var(--text-dim)}
-.setting-arrow{color:var(--text-muted);font-size:1rem}
-[dir="rtl"] .setting-arrow{transform:scaleX(-1)}
-.about-block{margin-top:20px;text-align:center;color:var(--text-muted);font-size:.7rem;line-height:1.6}
-.about-block .logo-sm{height:24px;filter:brightness(0) invert(1);opacity:.5;margin-bottom:8px}
+
+.settings-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.setting-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px 12px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-lg);
+  cursor: pointer;
+  transition: all .25s var(--ease);
+  color: var(--text);
+  font-family: inherit;
+  text-align: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+}
+
+.setting-item:active {
+  transform: scale(0.95);
+  background: var(--glass-hover);
+  border-color: var(--turquoise);
+}
+
+.setting-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(128, 209, 233, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--turquoise);
+  flex-shrink: 0;
+  transition: transform 0.3s var(--ease);
+}
+
+.setting-item:hover .setting-icon {
+  transform: translateY(-2px) scale(1.05);
+}
+
+.setting-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.setting-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.setting-value, .setting-arrow {
+  display: none;
+}
+
+.profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  padding: 24px 20px;
+  background: linear-gradient(135deg, rgba(46, 49, 146, 0.4), rgba(128, 209, 233, 0.1));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-xl);
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.profile-card::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(128, 209, 233, 0.15), transparent 70%);
+}
+
+.profile-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--turquoise), var(--nit-blue));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.6rem;
+  font-weight: 800;
+  box-shadow: 0 8px 20px rgba(128, 209, 233, 0.3);
+  border: 3px solid rgba(255, 255, 255, 0.1);
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-name {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.profile-meta {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.profile-badge {
+  display: inline-flex;
+  margin: 8px auto 0;
+  padding: 4px 10px;
+  background: rgba(128, 209, 233, 0.12);
+  border: 1px solid rgba(128, 209, 233, 0.2);
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--turquoise);
+}
+
+.about-block{margin-top:30px;text-align:center;color:var(--text-muted);font-size:.72rem;line-height:1.6;opacity:0.6}
+.about-block .logo-sm{height:28px;filter:brightness(0) invert(1);opacity:.4;margin-bottom:10px}
 
 /* ══════════ BOTTOM NAV ══════════ */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;margin:0 auto;width:100%;max-width:480px;z-index:1000;background:rgba(8,9,34,.98);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-top:1px solid var(--glass-border);display:flex;justify-content:space-around;align-items:center;padding:4px 4px var(--sa-b);height:calc(var(--nav-h) + var(--sa-b));transition:transform .3s var(--ease);will-change:transform}
