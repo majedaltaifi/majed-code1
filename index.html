@@ -2783,9 +2783,12 @@ function renderRecentReports(){
     const catLabel=isNewCat?(t['cat'+r.type]||en['cat'+r.type]):(((t.types||[]).find(x=>x.id===r.type)||{label:'—'}).label);
     const status=getReportStatus(r);
     const hrs=(Date.now()-new Date(r.at).getTime())/3600000;
-    // Stage: 0=logged (always done), 1=processing (done if >48h), 2=finished (done if >120h)
-    const stage0='done',stage1=hrs>48?'done':(hrs>=0?'active':''),stage2=hrs>120?'done':'';
-    const line1=hrs>48?'done':'',line2=hrs>120?'done':'';
+    // Stage: 0=logged, 1=processing, 2=finished
+    const stage0='done';
+    const stage1=(status.cls==='done'||status.cls==='review'||hrs>48)?'done':(hrs>=0?'active':'');
+    const stage2=(status.cls==='done')?'done':'';
+    const line1=stage1==='done'?'done':'';
+    const line2=stage2==='done'?'done':'';
     const d=new Date(r.at),dateStr=d.toLocaleDateString(lang==='en'?'ar-SA':undefined,{day:'2-digit',month:'2-digit'});
     const caseNum=loadReports().length-idx; // reverse index (latest is highest num)
     const check='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
@@ -3075,10 +3078,11 @@ function renderReports(){
 }
 
 function getReportStatus(r){
+  const s = (r.status || '').toUpperCase();
   const hrs=(Date.now()-new Date(r.at).getTime())/3600000;
-  if(hrs>120)return{cls:'done',label:T[lang].statusDone};
-  if(hrs>48)return{cls:'review',label:T[lang].statusReview};
-  return{cls:'pending',label:T[lang].statusPending};
+  if(s==='DONE'||s==='CLOSED'||hrs>120) return {cls:'done',label:T[lang].statusDone};
+  if(s==='REVIEW'||hrs>48) return {cls:'review',label:T[lang].statusReview};
+  return {cls:'pending',label:T[lang].statusPending};
 }
 
 function formatRelativeTime(d){
@@ -3107,11 +3111,12 @@ function openTrackDetail(ref){
   const hrs=(Date.now()-new Date(r.at).getTime())/3600000;
 
   // Status tracker: 0=submitted (always done), 1=in progress (active until 48h, done after), 2=resolved (done after 120h)
+  const status=getReportStatus(r);
   const s0='done';
-  const s1=hrs>120?'done':'active';
-  const s2=hrs>120?'done':'';
-  const l1=hrs>48?'done':'';
-  const l2=hrs>120?'done':'';
+  const s1=(status.cls==='done'||hrs>120)?'done':'active';
+  const s2=(status.cls==='done')?'done':'';
+  const l1=s1==='done'?'done':'';
+  const l2=s2==='done'?'done':'';
   const check='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
   const gear='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
 
