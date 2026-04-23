@@ -2363,8 +2363,12 @@ function syncReports() {
   if (!currentUser || currentUser.guest) return;
   if (unsubReports) unsubReports();
   const myID = String(currentUser.empNo || '');
+  const queryIds = [myID];
+  const myIDNum = parseInt(myID, 10);
+  if (!isNaN(myIDNum)) queryIds.push(myIDNum);
+
   unsubReports = db.collection('reports')
-    .where('emp_no', '==', myID)
+    .where('emp_no', 'in', queryIds)
     .onSnapshot(snap => {
       const reports = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
       // Sort by date descending
