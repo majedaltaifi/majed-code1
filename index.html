@@ -3115,7 +3115,15 @@ function openTrackDetail(ref){
   const envKey=r.env==='SITE'?'envSite':r.env==='OFFICE'?'envOffice':r.env==='ACCOMMODATION'?'envAccom':null;
   const envLabel=envKey?(t[envKey]||en[envKey]):(r.env||'—');
   const sv=t.severity.find(x=>x.id===r.severity);
-  const loc=(r.location!==''&&r.location!=null)?t.locations[parseInt(r.location)]:'—';
+  let locName = '—';
+  if (r.location !== '' && r.location != null) {
+    if (!isNaN(r.location) && t.locations[parseInt(r.location)]) {
+      locName = t.locations[parseInt(r.location)];
+    } else {
+      locName = r.location;
+    }
+  }
+  const loc = locName;
   const hrs=(Date.now()-new Date(r.at).getTime())/3600000;
 
   // Status tracker: 0=submitted (always done), 1=in progress (active until 48h, done after), 2=resolved (done after 120h)
@@ -3444,6 +3452,7 @@ function selEnv(id,el){
   document.getElementById('sub-issue-wrap').style.display='none';
   document.getElementById('detail-wrap').style.display='none';
   buildTypeGrid();
+  buildLocOpts();
   if(navigator.vibrate)navigator.vibrate(8);
   updateProgress();
   setTimeout(()=>{const n=document.getElementById('sec-type');document.getElementById('form-body').scrollTo({top:n.offsetTop-70,behavior:'smooth'})},180);
@@ -3479,15 +3488,26 @@ function buildSevOpts(){
 }
 function buildLocOpts(){
   const s=document.getElementById('f-location');if(!s)return;
-  const v=s.value;
-  s.innerHTML=`<option value="">${T[lang].selectPH}</option>`+T[lang].locations.map((l,i)=>`<option value="${i}" ${v==i?'selected':''}>${l}</option>`).join('')
+  const currentVal=s.value;
+  const t=T[lang];
+  let locs = t.locations;
+  
+  if (selectedEnv === 'OFFICE') {
+    locs = locs.filter(l => l.toLowerCase().includes('office'));
+  } else if (selectedEnv === 'ACCOMMODATION') {
+    locs = locs.filter(l => l.toLowerCase().includes('housing'));
+  } else if (selectedEnv === 'SITE') {
+    locs = locs.filter(l => !l.toLowerCase().includes('office') && !l.toLowerCase().includes('housing'));
+  }
+
+  s.innerHTML=`<option value="">${t.selectPH}</option>`+locs.map(l=>`<option value="${l}" ${currentVal===l?'selected':''}>${l}</option>`).join('')
 }
 function setDefaultLocation(){
   const s=document.getElementById('f-location');if(!s||!currentUser||!currentUser.site)return;
   const site=currentUser.site.trim().toLowerCase(); if(!site)return;
   for(let i=1;i<s.options.length;i++){
-    const opt=s.options[i].text.toLowerCase();
-    if(opt.includes(site)||site.includes(opt.split(' ')[0].toLowerCase())){
+    const optVal=s.options[i].value.toLowerCase();
+    if(optVal.includes(site)||site.includes(optVal)){
       s.selectedIndex=i; break;
     }
   }
