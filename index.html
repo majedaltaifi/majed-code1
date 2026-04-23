@@ -2362,7 +2362,7 @@ function syncAllChats() {
 function syncReports() {
   if (!currentUser || currentUser.guest) return;
   if (unsubReports) unsubReports();
-  const myID = String(currentUser.empNo);
+  const myID = String(currentUser.empNo || '');
   unsubReports = db.collection('reports')
     .where('emp_no', '==', myID)
     .onSnapshot(snap => {
@@ -3078,8 +3078,11 @@ function renderReports(){
 }
 
 function getReportStatus(r){
-  const s = (r.status || '').toUpperCase();
-  const hrs=(Date.now()-new Date(r.at).getTime())/3600000;
+  if(!r) return {cls:'pending',label:T[lang].statusPending};
+  const s = String(r.status || 'OPEN').toUpperCase();
+  const at = r.at || r.created_at || new Date().toISOString();
+  const hrs=(Date.now()-new Date(at).getTime())/3600000;
+  
   if(s==='DONE'||s==='CLOSED'||hrs>120) return {cls:'done',label:T[lang].statusDone};
   if(s==='REVIEW'||s==='IN PROG'||hrs>48) return {cls:'review',label:T[lang].statusReview};
   return {cls:'pending',label:T[lang].statusPending};
@@ -3648,9 +3651,9 @@ async function submitReport(){
     desc:descEl.value,
     location:document.getElementById('f-location').value || (currentUser ? currentUser.site : 'Unknown'),
     site: (currentUser ? (currentUser.site || currentUser.project) : document.getElementById('f-location').value) || 'Unknown',
-    project: (currentUser ? currentUser.project : '') || '',
-    dept: (currentUser ? currentUser.dept : '') || '',
-    emp_no: (currentUser ? currentUser.empNo : '') || '',
+    project: String(currentUser ? (currentUser.project || '') : ''),
+    dept: String(currentUser ? (currentUser.dept || '') : ''),
+    emp_no: String(currentUser ? (currentUser.empNo || '') : ''),
     emp_name: (currentUser && !isAnonymous) ? currentUser.name : (isAnonymous ? 'Anonymous' : 'Guest'),
     imageDatas: imageDatas,
     date:document.getElementById('f-date').value,
