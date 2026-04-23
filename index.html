@@ -3081,7 +3081,7 @@ function getReportStatus(r){
   const s = (r.status || '').toUpperCase();
   const hrs=(Date.now()-new Date(r.at).getTime())/3600000;
   if(s==='DONE'||s==='CLOSED'||hrs>120) return {cls:'done',label:T[lang].statusDone};
-  if(s==='REVIEW'||hrs>48) return {cls:'review',label:T[lang].statusReview};
+  if(s==='REVIEW'||s==='IN PROG'||hrs>48) return {cls:'review',label:T[lang].statusReview};
   return {cls:'pending',label:T[lang].statusPending};
 }
 

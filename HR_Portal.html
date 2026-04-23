@@ -1240,7 +1240,10 @@
                         <td><span class="status-pill p-${priorityClass}">${r.priority || 'Low'}</span></td>
                         <td><span style="font-size: 0.7rem; font-weight: 900; opacity: 0.8">${(r.status || 'OPEN').toUpperCase()}</span></td>
                         <td style="font-size: 0.8rem; color: var(--text-muted);">${displayDate}</td>
-                        <td><button class="btn-action" onclick="openDetailPanel('${r.ref || r.id}')">DETAILS</button></td>
+                        <td>
+                            <button class="btn-action" onclick="openDetailPanel('${r.ref || r.id}')">DETAILS</button>
+                            ${(r.status||'').toUpperCase() !== 'DONE' ? `<button class="btn-action" style="background: #10b981; margin-left: 5px; border-color: #10b981;" onclick="markResolved('${r.ref || r.id}')">DONE</button>` : ''}
+                        </td>
                     </tr>
                 `;
             }).join('');
