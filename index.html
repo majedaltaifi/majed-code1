@@ -37,7 +37,7 @@
   --ease:cubic-bezier(.4,0,.2,1);
 }
 html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--bg);-webkit-text-size-adjust:100%}
-body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size:16px;text-align:start;width:100%;height:100dvh;position:fixed;top:0;left:0;overscroll-behavior:none}
+body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size:16px;text-align:start;width:100%;height:100%;position:fixed;top:0;left:0;overscroll-behavior:none}
 [dir="ltr"] body{font-family:var(--font-en)}
 
 /* ── GLOBAL BG (Vibrant Galaxy Theme) ── */
@@ -102,8 +102,8 @@ body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size
 [dir="rtl"] .install-cta .cta-arrow{transform:scaleX(-1)}
 
 /* ══════════ MAIN APP SHELL ══════════ */
-#main-app{display:none;width:100%;max-width:480px;margin:0 auto;height:100dvh;flex-direction:column;position:relative;z-index:1;background:rgba(8,9,34,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 0 100px rgba(0,0,0,0.7);overflow:hidden}
-#main-app.show{display:flex;flex-direction:column;animation:appIn .55s var(--ease) both}
+#main-app{display:none;width:100%;max-width:480px;margin:0 auto;height:100%;flex-direction:column;position:relative;z-index:1;background:rgba(8,9,34,.82);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 0 100px rgba(0,0,0,0.7);overflow:hidden}
+#main-app.show{display:flex;animation:appIn .55s var(--ease) both}
 @keyframes appIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes slideInR{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
@@ -122,19 +122,26 @@ body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size
 .app-header .h-btn:active{transform:scale(.92)}
 .app-header .h-btn svg{width:18px;height:18px}
 
-.tab-pane {
-  display: none;
-  width: 100%;
+/* ── TAB CONTENT ── */
+.tab-content {
   flex: 1;
-  min-height: 0;
+  width: 100%;
+  height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 16px 16px calc(var(--nav-h) + var(--sa-b) + 16px);
+  padding: 16px 16px calc(var(--nav-h) + var(--sa-b) + 30px);
   position: relative;
-  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
-.tab-pane.active{display:flex;flex-direction:column;animation:fadeUp .4s var(--ease) both}
+.tab-pane {
+  display: none;
+  width: 100%;
+  flex-shrink: 0;
+  min-height: min-content;
+}
+.tab-pane.active{display:block;animation:fadeUp .4s var(--ease) both}
 .tab-pane.active > *{animation:fadeUp .5s var(--ease) both}
 .tab-pane.active > *:nth-child(1){animation-delay:.03s}
 .tab-pane.active > *:nth-child(2){animation-delay:.09s}
@@ -239,17 +246,20 @@ body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size
 /* ── MORE TAB ── */
 
 .settings-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+  padding: 0 8px;
 }
 
 .setting-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 4px;
   background: var(--glass);
   border: 1px solid var(--glass-border);
   border-radius: var(--r-lg);
@@ -257,8 +267,9 @@ body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size
   transition: all .25s var(--ease);
   color: var(--text);
   font-family: inherit;
-  text-align: start;
+  text-align: center;
   width: 100%;
+  aspect-ratio: 1 / 1;
 }
 
 .setting-item:active {
@@ -290,15 +301,15 @@ body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size
 }
 
 .setting-label {
-  flex: 1;
-  font-size: 0.92rem;
-  font-weight: 600;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1.2;
   color: var(--text);
 }
-.setting-value { font-size: 0.85rem; color: var(--text-dim); }
-.setting-arrow { color: var(--text-muted); opacity: 0.5; font-size: 1.2rem; }
 
-
+.setting-value, .setting-arrow {
+  display: none;
+}
 
 .profile-card {
   display: flex;
@@ -1046,7 +1057,8 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
     </div>
   </header>
 
-  <!-- TABS -->
+  <!-- TAB CONTENT -->
+  <div class="tab-content">
 
     <!-- HOME TAB -->
     <div class="tab-pane active" id="tab-home">
@@ -1127,6 +1139,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
           <!-- Dynamically populated by syncAllChats() -->
           <div style="padding:20px;text-align:center;opacity:0.5;">Loading conversations...</div>
         </div>
+      </div>
     </div>
 
     <!-- MORE TAB -->
@@ -1177,8 +1190,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
         <div>v3.15</div>
       </div>
     </div>
-    <!-- END TABS -->
-  </div>
+
   </div>
 
   <!-- BOTTOM NAV -->
@@ -2722,7 +2734,8 @@ function switchTab(tab){
 
   if(tab==='home'){updateStats();applyPersonalization();renderStatsDashboard()}
   if(tab==='more'){renderProfileCard();updateLogoutBtn()}
-   if(pane) pane.scrollTop = 0;
+  const content = document.querySelector('.tab-content');
+  if(content) content.scrollTop = 0;
   if(navigator.vibrate)navigator.vibrate(8);
 }
 
