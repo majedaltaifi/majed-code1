@@ -246,20 +246,18 @@ body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size
 /* ── MORE TAB ── */
 
 .settings-list {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-top: 10px;
-  padding: 0 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
 }
 
 .setting-item {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 10px 4px;
+  gap: 14px;
+  padding: 14px 16px;
   background: var(--glass);
   border: 1px solid var(--glass-border);
   border-radius: var(--r-lg);
@@ -267,9 +265,8 @@ body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size
   transition: all .25s var(--ease);
   color: var(--text);
   font-family: inherit;
-  text-align: center;
+  text-align: start;
   width: 100%;
-  aspect-ratio: 1 / 1;
 }
 
 .setting-item:active {
@@ -301,15 +298,13 @@ body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size
 }
 
 .setting-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  line-height: 1.2;
+  flex: 1;
+  font-size: 0.92rem;
+  font-weight: 600;
   color: var(--text);
 }
-
-.setting-value, .setting-arrow {
-  display: none;
-}
+.setting-value { font-size: 0.82rem; color: var(--text-dim); }
+.setting-arrow { color: var(--text-muted); font-size: 1.2rem; opacity: 0.5; }
 
 .profile-card {
   display: flex;
