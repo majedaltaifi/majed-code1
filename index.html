@@ -1144,6 +1144,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
 
     <!-- MORE TAB -->
     <div class="tab-pane" id="tab-more">
+      <div id="profile-card-wrap"></div>
       <div class="section-label" data-t="moreSettings"></div>
       <div class="settings-list">
         <button class="setting-item" onclick="openLangPicker()">
@@ -2750,7 +2751,7 @@ function updateHeader(){
   const header = document.querySelector('.app-header');
   if (header) {
     // Premium feel: only show full header on Home/Reports, hide subtitle on More/Chats for cleaner look
-    header.style.minHeight = (currentTab==='more' || currentTab==='chats') ? 'calc(50px + var(--sa-t))' : 'calc(var(--header-h) + var(--sa-t))';
+    header.style.minHeight = 'calc(var(--header-h) + var(--sa-t))';
   }
   document.getElementById('header-title').textContent=h.t;
   document.getElementById('header-subtitle').textContent=h.s;
