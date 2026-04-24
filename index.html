@@ -131,7 +131,7 @@ body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 16px 16px calc(var(--nav-h) + var(--sa-b) + 20px);
+  padding: 0 16px calc(var(--nav-h) + var(--sa-b) + 20px);
   position: relative;
   box-sizing: border-box;
 }
@@ -1136,7 +1136,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
     </div>
 
     <!-- MORE TAB -->
-    <div class="tab-pane" id="tab-more">
+    <div class="tab-pane" id="tab-more" style="padding-top: 10px;">
       <div id="profile-card-wrap"></div>
       <div class="section-label" data-t="moreSettings"></div>
       <div class="settings-list">
@@ -2727,8 +2727,7 @@ function switchTab(tab){
 
   if(tab==='home'){updateStats();applyPersonalization();renderStatsDashboard()}
   if(tab==='more'){renderProfileCard();updateLogoutBtn()}
-  const content = document.querySelector('.tab-content');
-  if(content) content.scrollTop = 0;
+  if(pane) pane.scrollTop = 0;
   if(navigator.vibrate)navigator.vibrate(8);
 }
 
