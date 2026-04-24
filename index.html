@@ -1080,13 +1080,12 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- MORE TAB (Outside tab-content wrapper) -->
-  <div class="tab-pane" id="tab-more" style="flex:1; overflow-y:auto; padding:16px 16px 100px;">
-    <div id="profile-card-wrap"></div>
-    <div class="section-label" data-t="moreSettings"></div>
-    <div class="settings-list">
+    <!-- MORE TAB -->
+    <div class="tab-pane" id="tab-more">
+      <div id="profile-card-wrap"></div>
+      <div class="section-label" data-t="moreSettings"></div>
+      <div class="settings-list">
         <button class="setting-item" onclick="openLangPicker()">
           <div class="setting-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
           <span class="setting-label" data-t="moreLanguage"></span>
@@ -1130,6 +1129,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
         <div style="font-size: 0.65rem; color: var(--text-muted);">Version 3.15.2</div>
       </div>
     </div>
+  </div>
 
   <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
@@ -2672,12 +2672,8 @@ function switchTab(tab){
 
   if(tab==='home'){updateStats();applyPersonalization();renderStatsDashboard()}
   if(tab==='more'){renderProfileCard();updateLogoutBtn()}
-  
   const content = document.querySelector('.tab-content');
-  if(content) {
-    content.style.display = (tab === 'more') ? 'none' : 'flex';
-    content.scrollTop = 0;
-  }
+  if(content) content.scrollTop = 0;
   if(navigator.vibrate)navigator.vibrate(8);
 }
 
