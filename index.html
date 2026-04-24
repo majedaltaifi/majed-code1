@@ -12,6 +12,7 @@
 <link rel="icon" type="image/png" sizes="512x512" href="assets/icons/icon-512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
 <title>Nesma Reports | Confidential Reporting</title>
+<link rel="stylesheet" href="more-tab.css">
 <style>
 @font-face{font-family:'DIN Next Arabic';src:url('assets/fonts/din-next-lt-w23-medium.ttf') format('truetype');font-weight:500;font-display:swap}
 @font-face{font-family:'DIN Next Arabic';src:url('assets/fonts/din-next-lt-w23-light.ttf') format('truetype');font-weight:300;font-display:swap}
@@ -243,142 +244,8 @@ body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size
 [dir="rtl"] .search-bar input{padding-inline:40px 14px}
 [dir="ltr"] .search-bar input{padding-inline:40px 14px}
 
-/* ── MORE TAB ── */
+/* ── MORE TAB styles → see more-tab.css ── */
 
-.settings-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.setting-item {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
-  background: var(--glass);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--r-lg);
-  cursor: pointer;
-  transition: all .25s var(--ease);
-  color: var(--text);
-  font-family: inherit;
-  text-align: start;
-  width: 100%;
-}
-
-.setting-item:active {
-  transform: scale(0.95);
-  background: var(--glass-hover);
-  border-color: var(--turquoise);
-}
-
-.setting-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: rgba(128, 209, 233, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--turquoise);
-  flex-shrink: 0;
-  transition: transform 0.3s var(--ease);
-}
-
-.setting-item:hover .setting-icon {
-  transform: translateY(-2px) scale(1.05);
-}
-
-.setting-icon svg {
-  width: 22px;
-  height: 22px;
-}
-
-.setting-label {
-  flex: 1;
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: var(--text);
-}
-.setting-value { font-size: 0.82rem; color: var(--text-dim); }
-.setting-arrow { color: var(--text-muted); font-size: 1.2rem; opacity: 0.5; }
-
-.profile-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 14px;
-  padding: 24px 20px;
-  background: linear-gradient(135deg, rgba(46, 49, 146, 0.4), rgba(128, 209, 233, 0.1));
-  border: 1px solid var(--glass-border);
-  border-radius: var(--r-xl);
-  margin-bottom: 24px;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-}
-
-.profile-card::before {
-  content: '';
-  position: absolute;
-  top: -40px;
-  right: -40px;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(128, 209, 233, 0.15), transparent 70%);
-}
-
-.profile-avatar {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--turquoise), var(--nit-blue));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 1.6rem;
-  font-weight: 800;
-  box-shadow: 0 8px 20px rgba(128, 209, 233, 0.3);
-  border: 3px solid rgba(255, 255, 255, 0.1);
-}
-
-.profile-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.profile-name {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: var(--text);
-}
-
-.profile-meta {
-  font-size: 0.8rem;
-  color: var(--text-dim);
-}
-
-.profile-badge {
-  display: inline-flex;
-  margin: 8px auto 0;
-  padding: 4px 10px;
-  background: rgba(128, 209, 233, 0.12);
-  border: 1px solid rgba(128, 209, 233, 0.2);
-  border-radius: 8px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--turquoise);
-}
-
-.about-block{margin-top:30px;text-align:center;color:var(--text-muted);font-size:.72rem;line-height:1.6;opacity:0.6}
-.about-block .logo-sm{height:28px;filter:brightness(0) invert(1);opacity:.4;margin-bottom:10px}
 
 /* ══════════ BOTTOM NAV ══════════ */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;margin:0 auto;width:100%;max-width:480px;z-index:1000;background:rgba(8,9,34,.98);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-top:1px solid var(--glass-border);display:flex;justify-content:space-around;align-items:center;padding:4px 4px var(--sa-b);height:calc(var(--nav-h) + var(--sa-b));transition:transform .3s var(--ease);will-change:transform}
