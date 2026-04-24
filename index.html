@@ -12,7 +12,6 @@
 <link rel="icon" type="image/png" sizes="512x512" href="assets/icons/icon-512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
 <title>Nesma Reports | Confidential Reporting</title>
-<link rel="stylesheet" href="more-tab.css">
 <style>
 @font-face{font-family:'DIN Next Arabic';src:url('assets/fonts/din-next-lt-w23-medium.ttf') format('truetype');font-weight:500;font-display:swap}
 @font-face{font-family:'DIN Next Arabic';src:url('assets/fonts/din-next-lt-w23-light.ttf') format('truetype');font-weight:300;font-display:swap}
@@ -150,7 +149,7 @@ body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size
 .tab-pane.active > *:nth-child(6){animation-delay:.33s}
 
 /* ── HOME TAB ── */
-.hero-card{background:linear-gradient(135deg,rgba(46,49,146,.55),rgba(26,28,94,.65));border:1px solid rgba(128,209,233,.18);border-radius:var(--r-lg);padding:22px 20px;margin-bottom:18px;position:relative;overflow:hidden;transition:transform .3s var(--ease)}
+.hero-card{background:linear-gradient(135deg,rgba(46,49,146,.55),rgba(26,28,94,.65));border:1px solid rgba(128,209,233,.18);border-radius:var(--r-lg);padding:24px 20px;margin-bottom:18px;position:relative;overflow:hidden;transition:transform .3s var(--ease);min-height:100px;display:flex;flex-direction:column;justify-content:center}
 .hero-card:active{transform:scale(.995)}
 .hero-card::before{content:'';position:absolute;top:-60px;inset-inline-end:-30px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(128,209,233,.22),transparent 70%);pointer-events:none}
 .hero-card::after{content:'';position:absolute;bottom:-80px;inset-inline-start:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(46,49,146,.35),transparent 70%);pointer-events:none}
@@ -242,7 +241,87 @@ body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size
 [dir="rtl"] .search-bar input{padding-inline:40px 14px}
 [dir="ltr"] .search-bar input{padding-inline:40px 14px}
 
-/* ── MORE TAB styles → see more-tab.css ── */
+/* ── MORE TAB ── */
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+.setting-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 18px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-lg);
+  cursor: pointer;
+  transition: all .25s var(--ease);
+  color: var(--text);
+  font-family: inherit;
+  text-align: start;
+  width: 100%;
+}
+.setting-item:active { transform: scale(0.97); background: var(--glass-hover); border-color: var(--turquoise); }
+.setting-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(128, 209, 233, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--turquoise);
+  flex-shrink: 0;
+}
+.setting-icon svg { width: 20px; height: 20px; }
+.setting-label { flex: 1; font-size: 0.95rem; font-weight: 600; color: var(--text); }
+.setting-value { font-size: 0.85rem; color: var(--text-dim); }
+.setting-arrow { color: var(--text-muted); font-size: 1.2rem; opacity: 0.5; }
+
+.profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 24px 20px;
+  background: linear-gradient(135deg, rgba(46, 49, 146, 0.4), rgba(128, 209, 233, 0.1));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-xl);
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.profile-avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--turquoise), var(--nit-blue));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1.6rem;
+  font-weight: 800;
+  box-shadow: 0 8px 20px rgba(128, 209, 233, 0.3);
+}
+.profile-name { font-size: 1.2rem; font-weight: 800; color: var(--text); }
+.profile-meta { font-size: 0.85rem; color: var(--text-dim); }
+.profile-badge {
+  display: inline-flex;
+  margin-top: 8px;
+  padding: 4px 12px;
+  background: rgba(128, 209, 233, 0.1);
+  border: 1px solid rgba(128, 209, 233, 0.2);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--turquoise);
+}
+
 
 
 /* ══════════ BOTTOM NAV ══════════ */
