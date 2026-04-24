@@ -1124,6 +1124,11 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
           <span class="setting-arrow">›</span>
         </button>
       </div>
+      <div class="about-block" style="margin-top: 40px; text-align: center; opacity: 0.5;">
+        <img class="logo-sm" src="assets/logo.png" alt="NIT" style="height: 24px; filter: brightness(0) invert(1); margin-bottom: 8px;">
+        <div style="font-size: 0.7rem; color: var(--text-dim);">Nesma Infrastructure & Technology</div>
+        <div style="font-size: 0.65rem; color: var(--text-muted);">Version 3.15.2</div>
+      </div>
     </div>
 
   <!-- BOTTOM NAV -->
@@ -2667,8 +2672,12 @@ function switchTab(tab){
 
   if(tab==='home'){updateStats();applyPersonalization();renderStatsDashboard()}
   if(tab==='more'){renderProfileCard();updateLogoutBtn()}
+  
   const content = document.querySelector('.tab-content');
-  if(content) content.scrollTop = 0;
+  if(content) {
+    content.style.display = (tab === 'more') ? 'none' : 'flex';
+    content.scrollTop = 0;
+  }
   if(navigator.vibrate)navigator.vibrate(8);
 }
 
