@@ -2765,6 +2765,7 @@ function applyT(){
   document.querySelectorAll('[data-t-placeholder]').forEach(el=>{
     const k=el.dataset.tPlaceholder;const v=t[k]||en[k];if(v)el.placeholder=v
   });
+  updateCurrentLangLabel();
 }
 
 /* ══════════════════════════════════════════
