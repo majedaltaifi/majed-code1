@@ -1083,7 +1083,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
           <div class="action-info"><div class="action-title" data-t="hubTrack"></div><div class="action-desc" data-t="hubTrackDesc"></div></div>
           <span class="action-arrow">›</span>
         </button>
-        <button class="action-card" onclick="openSheet('sheet-support')">
+        <button class="action-card" onclick="openTechSupport()">
           <div class="action-icon" style="color:#a78bfa;background:linear-gradient(135deg,rgba(167,139,250,.18),rgba(139,92,246,.28));box-shadow:inset 0 0 0 1px rgba(167,139,250,.2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>
           <div class="action-info"><div class="action-title" data-t="hubSupport">SUPPORT</div><div class="action-desc" data-t="hubSupportDesc"></div></div>
           <span class="action-arrow">›</span>
@@ -2917,7 +2917,10 @@ function markAllRead(){
    ══════════════════════════════════════════ */
 let selectedSupCat='';
 function openTechSupport(){
-  openSheet('sheet-support');
+  const user = currentUser || loadUser();
+  if (!user) return;
+  const myId = String(user.empNo || '');
+  openChatWith(myId + '_Support', 'Support');
 }
 function buildCatGrid(){
   const t=T[lang],cats=t.supportCats||T.en.supportCats;
