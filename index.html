@@ -2342,17 +2342,21 @@ function syncAllChats() {
 
       let html = '';
       chats.forEach(d => {
-        if (d.id.includes('_Support')) return;
         let otherName = 'Employee';
         let otherID = '';
         
-        const members = d.members || [];
-        members.forEach(m => {
-          if (m !== myID) {
-            otherID = m;
-            otherName = (d.memberNames && d.memberNames[m]) || 'Employee ' + m;
-          }
-        });
+        if (d.id.includes('_Support')) {
+          otherName = 'Support';
+          otherID = 'Support';
+        } else {
+          const members = d.members || [];
+          members.forEach(m => {
+            if (m !== myID) {
+              otherID = m;
+              otherName = (d.memberNames && d.memberNames[m]) || 'Employee ' + m;
+            }
+          });
+        }
         
         let timeStr = '';
         if (d.last_at) {
