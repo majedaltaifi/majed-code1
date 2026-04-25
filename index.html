@@ -1115,7 +1115,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       <div class="search-container">
         <div class="search-box">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="chat-global-search" placeholder="Search..." oninput="handleChatSearch(this.value)">
+          <input type="text" id="chat-global-search" data-t-placeholder="searchChats" oninput="handleChatSearch(this.value)">
         </div>
         <div id="search-results" class="search-results-overlay"></div>
       </div>
@@ -1127,12 +1127,12 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:32px; height:32px"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
             </div>
             <div>
-              <div style="color:var(--turquoise); font-weight:800; font-size:1.1rem; letter-spacing:-0.02em">Support</div>
-              <div style="color:white; font-size:0.7rem; opacity:0.6; margin-top:4px; line-height:1.2">Management Line</div>
+              <div style="color:var(--turquoise); font-weight:800; font-size:1.1rem; letter-spacing:-0.02em" data-t="integrityTeam"></div>
+              <div style="color:white; font-size:0.7rem; opacity:0.6; margin-top:4px; line-height:1.2" data-t="chatName"></div>
             </div>
           </button>
         </div>
-        <div class="section-label" style="margin-top:20px;">Messages</div>
+        <div class="section-label" style="margin-top:20px;" data-t="statChats"></div>
         <div id="chats-list-container" class="list">
           <!-- Dynamically populated by syncAllChats() -->
           <div style="padding:20px;text-align:center;opacity:0.5;">Loading conversations...</div>
@@ -2645,7 +2645,12 @@ function applyPersonalization(){
   if(!greetEl)return;
   if(currentUser&&currentUser.name&&!currentUser.guest){
     const nameStr = displayName(currentUser.name);
-    greetEl.textContent=(t.welcomeBack||en.welcomeBack)+(lang==='en'?' ':' back, ')+nameStr;
+    let greeting = t.welcomeBack || en.welcomeBack;
+    if(lang === 'ar') {
+      greetEl.textContent = greeting + "، " + nameStr;
+    } else {
+      greetEl.textContent = greeting + ", " + nameStr;
+    }
   }else{
     greetEl.textContent=t.welcomeGuest||en.welcomeGuest;
   }
@@ -3058,7 +3063,11 @@ function openCompanyInfo(){
 
 function openSites(){
   const t=T[lang],en=T.en;
-  const descs = lang === 'ar' ? SITE_DESCS_AR : SITE_DESCS_EN;
+  let descs = lang === 'ar' ? SITE_DESCS_AR : SITE_DESCS_EN;
+  // If we have other languages, they currently default to English for long descriptions
+  if (lang !== 'ar' && lang !== 'en') {
+     descs = SITE_DESCS_EN;
+  }
   document.getElementById('sites-body').innerHTML=`
     <div class="section-label">${t.sitesTitle||en.sitesTitle}</div>
     ${SITES.map(s=>{
