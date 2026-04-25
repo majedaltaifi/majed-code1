@@ -14,16 +14,27 @@
     
     <style>
         :root {
-            --primary: #0f172a;
-            --accent: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.5);
-            --bg: #020617;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
+            /* Branding Colors from Mobile App */
+            --nit-blue: #2e3192;
+            --nit-dark: #1a1c5e;
+            --nit-deep: #0d0e3d;
+            --turquoise: #80d1e9;
+            --turq-glow: rgba(128, 209, 233, 0.25);
+            
+            --bg: #080922;
+            --bg-accent: #0d0e3d;
+            --surface: rgba(255, 255, 255, 0.03);
+            --surface-hover: rgba(255, 255, 255, 0.07);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(128, 209, 233, 0.3);
+            
+            --text-main: #f0f2ff;
+            --text-dim: rgba(240, 242, 255, 0.6);
+            --text-muted: rgba(240, 242, 255, 0.35);
+            
+            --success: #00e676;
+            --warning: #ffab00;
+            --danger: #ff5252;
             --sidebar-w: 280px;
         }
 
@@ -32,6 +43,7 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Outfit', sans-serif;
+            -webkit-font-smoothing: antialiased;
         }
 
         body {
@@ -41,93 +53,137 @@
             height: 100vh;
             overflow: hidden;
             background-image: 
-                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(30, 41, 59, 0.4) 0px, transparent 50%);
+                radial-gradient(circle at 10% 10%, var(--nit-blue) 0%, transparent 45%),
+                radial-gradient(circle at 90% 90%, #1b1464 0%, var(--bg) 100%);
+        }
+
+        /* --- Global Background Layers --- */
+        .bg-layer {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.15;
+            animation: orbFloat 30s infinite alternate ease-in-out;
+        }
+        .bg-orb-1 { width: 600px; height: 600px; background: var(--turquoise); top: -100px; right: -100px; }
+        .bg-orb-2 { width: 500px; height: 500px; background: #6366f1; bottom: -50px; left: -50px; animation-delay: -10s; }
+        
+        @keyframes orbFloat {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(100px, 50px) scale(1.2); }
         }
 
         /* --- Sidebar --- */
         .sidebar {
             width: var(--sidebar-w);
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(8, 9, 34, 0.6);
+            backdrop-filter: blur(40px);
+            border-right: 1px solid var(--border);
             padding: 40px 20px;
             display: flex;
             flex-direction: column;
             gap: 40px;
             z-index: 100;
+            box-shadow: 20px 0 50px rgba(0,0,0,0.3);
         }
 
         .logo-area {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
+            padding-bottom: 20px;
         }
 
         .logo-img {
-            width: 180px;
+            width: 160px;
             filter: brightness(0) invert(1);
+            transition: 0.3s;
         }
+        .logo-img:hover { transform: scale(1.05); }
 
         .nav-menu {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
 
         .nav-item {
-            padding: 16px 20px;
-            border-radius: 16px;
-            color: var(--text-muted);
+            padding: 14px 20px;
+            border-radius: 14px;
+            color: var(--text-dim);
             text-decoration: none;
             display: flex;
             align-items: center;
             gap: 15px;
-            font-weight: 600;
-            transition: all 0.3s;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
+            border: 1px solid transparent;
         }
 
         .nav-item i {
-            font-size: 1.2rem;
-            width: 25px;
+            font-size: 1.1rem;
+            width: 24px;
             text-align: center;
+            opacity: 0.7;
         }
 
-        .nav-item:hover, .nav-item.active {
-            background: rgba(59, 130, 246, 0.1);
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
             color: var(--text-main);
-            box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.05);
+            transform: translateX(5px);
         }
 
         .nav-item.active {
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            color: var(--accent);
+            background: linear-gradient(135deg, rgba(128, 209, 233, 0.1), rgba(46, 49, 146, 0.2));
+            border-color: var(--border-glow);
+            color: var(--turquoise);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
+        .nav-item.active i { opacity: 1; color: var(--turquoise); }
 
         /* --- Main Content --- */
         .main {
             flex: 1;
             overflow-y: auto;
-            padding: 40px;
+            padding: 40px 60px;
             position: relative;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
         }
+        .main::-webkit-scrollbar { width: 6px; }
+        .main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 
         .header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 40px;
+            align-items: center;
+            margin-bottom: 50px;
         }
 
         .title-h {
-            font-size: 2.2rem;
-            font-weight: 900;
-            letter-spacing: -1px;
-            background: linear-gradient(to right, #fff, #94a3b8);
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            background: linear-gradient(135deg, #fff 0%, var(--turquoise) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+
+        .header-sub {
+            color: var(--text-dim);
+            font-weight: 500;
+            font-size: 1rem;
+            margin-top: 8px;
+            opacity: 0.8;
         }
 
         /* --- Grid Layout --- */
@@ -139,34 +195,47 @@
         }
 
         .stat-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
             padding: 30px;
-            border-radius: 30px;
+            border-radius: 24px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            transition: 0.3s;
+            gap: 12px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, transparent, rgba(128, 209, 233, 0.05));
+            pointer-events: none;
         }
 
         .stat-card:hover {
-            border-color: rgba(59, 130, 246, 0.3);
-            transform: translateY(-5px);
+            border-color: var(--border-glow);
+            transform: translateY(-8px) scale(1.02);
+            background: var(--surface-hover);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
 
         .stat-label {
-            font-size: 0.85rem;
-            font-weight: 600;
+            font-size: 0.75rem;
+            font-weight: 700;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
         }
 
         .stat-value {
-            font-size: 2.5rem;
+            font-size: 3rem;
             font-weight: 900;
             color: var(--text-main);
+            line-height: 1;
         }
 
         /* --- Charts --- */
@@ -178,16 +247,20 @@
         }
 
         .chart-container {
-            background: var(--card-bg);
-            border-radius: 32px;
-            padding: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 35px;
+            border: 1px solid var(--border);
+            transition: 0.3s;
         }
+        .chart-container:hover { border-color: var(--border-glow); }
 
         .chart-title {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: 800;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
+            color: var(--text-main);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -195,124 +268,151 @@
 
         /* --- Tables --- */
         .panel {
-            background: var(--card-bg);
-            border-radius: 32px;
-            padding: 35px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 40px;
+            border: 1px solid var(--border);
         }
 
         .modern-table {
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+            margin-top: 10px;
         }
 
         .modern-table th {
             text-align: left;
-            padding: 15px;
+            padding: 15px 20px;
             color: var(--text-muted);
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .modern-table td {
-            padding: 18px 15px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .status-pill {
-            padding: 6px 12px;
-            border-radius: 10px;
             font-size: 0.7rem;
             font-weight: 800;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .p-critical { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
-        .p-high { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
-        .p-med { background: rgba(59, 130, 246, 0.1); color: var(--accent); }
-        .p-low { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .modern-table tr {
+            transition: 0.3s;
+        }
+
+        .modern-table td {
+            padding: 20px;
+            background: rgba(255,255,255,0.02);
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        
+        .modern-table tr:hover td {
+            background: rgba(255,255,255,0.05);
+            color: var(--turquoise);
+        }
+
+        .modern-table td:first-child { border-radius: 12px 0 0 12px; }
+        .modern-table td:last-child { border-radius: 0 12px 12px 0; }
+
+        .status-pill {
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .p-critical { background: rgba(255, 82, 82, 0.15); color: var(--danger); border: 1px solid rgba(255, 82, 82, 0.2); }
+        .p-high { background: rgba(255, 171, 0, 0.15); color: var(--warning); border: 1px solid rgba(255, 171, 0, 0.2); }
+        .p-med { background: rgba(128, 209, 233, 0.15); color: var(--turquoise); border: 1px solid rgba(128, 209, 233, 0.2); }
+        .p-low { background: rgba(0, 230, 118, 0.15); color: var(--success); border: 1px solid rgba(0, 230, 118, 0.2); }
 
         .btn-action {
             background: rgba(255, 255, 255, 0.05);
             color: var(--text-main);
-            border: none;
-            padding: 8px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 18px;
             border-radius: 10px;
             cursor: pointer;
-            transition: 0.2s;
+            transition: 0.3s;
             font-size: 0.8rem;
+            font-weight: 700;
         }
 
-        .btn-action:hover { background: var(--accent); }
+        .btn-action:hover { 
+            background: var(--turquoise); 
+            color: var(--nit-deep); 
+            border-color: var(--turquoise);
+            box-shadow: 0 0 15px var(--turq-glow);
+        }
 
         /* --- Filters & Search --- */
         .search-input {
             background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 10px 15px;
-            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 14px 20px;
+            border-radius: 14px;
             color: white;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             width: 100%;
-            max-width: 330px;
+            transition: 0.3s;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--turquoise);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 20px rgba(128, 209, 233, 0.1);
         }
 
         .filter-select {
-            background: #0f172a;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 10px 15px;
-            border-radius: 12px;
+            background: var(--bg-accent);
+            border: 1px solid var(--border);
+            padding: 14px 20px;
+            border-radius: 14px;
             color: white;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.3s;
         }
+        .filter-select:hover { border-color: var(--turquoise); }
 
         /* --- Chat Interface --- */
         .chat-layout {
             display: grid;
-            grid-template-columns: 320px 1fr;
+            grid-template-columns: 350px 1fr;
             gap: 25px;
-            height: calc(100vh - 200px);
+            height: calc(100vh - 220px);
         }
 
         .chat-sidebar {
-            background: var(--card-bg);
-            border-radius: 28px;
-            padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 25px;
+            border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            overflow: hidden;
-        }
-
-        .chat-list {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            gap: 20px;
         }
 
         .chat-user-item {
-            padding: 15px;
-            border-radius: 16px;
+            padding: 18px;
+            border-radius: 18px;
             background: rgba(255, 255, 255, 0.02);
             cursor: pointer;
-            transition: 0.2s;
+            transition: 0.3s;
+            border: 1px solid transparent;
         }
 
         .chat-user-item:hover, .chat-user-item.active {
-            background: rgba(59, 130, 246, 0.1);
+            background: rgba(128, 209, 233, 0.08);
+            border-color: var(--border-glow);
+            transform: scale(1.02);
         }
 
         .chat-main {
-            background: var(--card-bg);
-            border-radius: 28px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: var(--surface);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -320,186 +420,97 @@
 
         .chat-messages {
             flex: 1;
-            padding: 30px;
+            padding: 35px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px;
         }
 
         .msg {
-            max-width: 70%;
-            padding: 12px 18px;
-            border-radius: 18px;
-            font-size: 0.9rem;
-            line-height: 1.4;
+            max-width: 65%;
+            padding: 15px 22px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
         .msg.received {
             align-self: flex-start;
             background: rgba(255, 255, 255, 0.05);
             border-bottom-left-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.05);
         }
 
         .msg.sent {
             align-self: flex-end;
-            background: var(--accent);
+            background: linear-gradient(135deg, var(--nit-blue), var(--nit-dark));
             border-bottom-right-radius: 4px;
+            color: #fff;
+            border: 1px solid rgba(128, 209, 233, 0.2);
         }
 
         .chat-input-area {
-            padding: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            background: rgba(0,0,0,0.1);
+            border-top: 1px solid var(--border);
             display: flex;
-            gap: 15px;
+            gap: 20px;
         }
 
+        /* --- Pulse Animation --- */
         .pulse-dot {
-            animation: pulse-green 2s infinite;
+            animation: pulse-turquoise 2s infinite;
         }
-
-        @keyframes pulse-green {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        @keyframes pulse-turquoise {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(128, 209, 233, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(128, 209, 233, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(128, 209, 233, 0); }
         }
-
-        /* --- Modal --- */
-        .modal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(2, 6, 23, 0.9);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .modal.active { display: flex; }
-
-        .modal-content {
-            background: #0f172a;
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            width: 100%;
-            max-width: 600px;
-            border-radius: 30px;
-            padding: 35px;
-            position: relative;
-        }
-
-        .close-modal {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: transparent;
-            color: var(--text-muted);
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-
-        /* Animations */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .tab-content {
-            display: none;
-            animation: fadeIn 0.4s ease-out forwards;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .pulse-dot {
-            animation: pulse-animation 2s infinite;
-        }
-
-        @keyframes pulse-animation {
-            0% { transform: scale(1); opacity: 0.5; }
-            50% { transform: scale(1.5); opacity: 0.2; }
-            100% { transform: scale(1); opacity: 0.5; }
-        }
-
-        .export-btn {
-            background: var(--success);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 12px;
-            border: none;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .export-btn:hover { transform: scale(1.05); }
 
         /* --- Side Detail Panel --- */
         .side-panel {
             position: fixed;
             top: 0;
-            right: -500px;
-            width: 450px;
+            right: -550px;
+            width: 500px;
             height: 100vh;
-            background: #0f172a;
-            border-left: 1px solid rgba(59, 130, 246, 0.3);
-            box-shadow: -20px 0 50px rgba(0,0,0,0.5);
+            background: rgba(8, 9, 34, 0.95);
+            backdrop-filter: blur(30px);
+            border-left: 1px solid var(--border-glow);
+            box-shadow: -30px 0 60px rgba(0,0,0,0.6);
             z-index: 2000;
-            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            padding: 40px;
+            transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 50px;
             overflow-y: auto;
-            backdrop-filter: blur(20px);
         }
 
-        .side-panel.active {
-            right: 0;
-        }
+        .side-panel.active { right: 0; }
 
-        .panel-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(4px);
-            z-index: 1999;
-            display: none;
-        }
-
-        .panel-overlay.active {
-            display: block;
-        }
-
-        .detail-row {
-            margin-bottom: 25px;
-        }
-
+        .detail-row { margin-bottom: 35px; }
         .detail-label {
             font-size: 0.7rem;
             color: var(--text-muted);
             text-transform: uppercase;
             font-weight: 800;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             display: block;
+            letter-spacing: 2px;
         }
+        .detail-value { font-size: 1.1rem; font-weight: 600; color: var(--text-main); }
 
-        .detail-value {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-main);
-        }
-
-        .clickable-card {
-            cursor: pointer;
-        }
-        .clickable-card:hover {
-            background: rgba(59, 130, 246, 0.15);
-        }
-
+        /* Interactive Elements */
+        .clickable-card { cursor: pointer; }
+        
     </style>
 </head>
 <body>
+
+    <div class="bg-layer">
+        <div class="bg-orb bg-orb-1"></div>
+        <div class="bg-orb bg-orb-2"></div>
+    </div>
 
     <div class="panel-overlay" id="panel-overlay" onclick="closeSidePanel()"></div>
     <div class="side-panel" id="side-panel">
@@ -511,24 +522,24 @@
 
     <div class="sidebar">
         <div class="logo-area">
-            <img src="https://iconape.com/wp-content/files/hq/389851/svg/389851.svg" class="logo-img" alt="Nesma IT">
-            <div style="font-size: 10px; font-weight: 800; color: var(--accent); letter-spacing: 3px; margin-top: 5px;">HR FIELD COMMAND</div>
+            <img src="assets/logo.png" class="logo-img" alt="Nesma IT" onerror="this.src='https://iconape.com/wp-content/files/hq/389851/svg/389851.svg'">
+            <div style="font-size: 10px; font-weight: 900; color: var(--turquoise); letter-spacing: 4px; margin-top: 5px; text-transform: uppercase;">Strategic Command</div>
         </div>
         
         <div class="nav-menu">
-            <div class="nav-item active" onclick="switchView('dashboard', this)"><i class="fas fa-chart-pie"></i> Main Dashboard</div>
-            <div class="nav-item" onclick="switchView('per-site', this)"><i class="fas fa-building"></i> Per-Site Intelligence</div>
-            <div class="nav-item" onclick="switchView('all-reports', this)"><i class="fas fa-list-check"></i> Operational Records</div>
-            <div class="nav-item" onclick="switchView('chat', this)"><i class="fas fa-comments"></i> Employee Chat</div>
-            <div class="nav-item" onclick="switchView('broadcasts', this)"><i class="fas fa-bullhorn"></i> Broadcast Manager</div>
-            <div class="nav-item" onclick="switchView('hr-reports', this)"><i class="fas fa-file-invoice"></i> HR Trend Reports</div>
+            <div class="nav-item active" onclick="switchView('dashboard', this)"><i class="fas fa-chart-line"></i> Dashboard View</div>
+            <div class="nav-item" onclick="switchView('per-site', this)"><i class="fas fa-map-marked-alt"></i> Field Intelligence</div>
+            <div class="nav-item" onclick="switchView('all-reports', this)"><i class="fas fa-database"></i> Operational Logs</div>
+            <div class="nav-item" onclick="switchView('chat', this)"><i class="fas fa-headset"></i> Support Terminal</div>
+            <div class="nav-item" onclick="switchView('broadcasts', this)"><i class="fas fa-broadcast-tower"></i> Signal Manager</div>
+            <div class="nav-item" onclick="switchView('hr-reports', this)"><i class="fas fa-file-invoice"></i> Insight Reports</div>
         </div>
 
-        <div style="margin-top: auto; background: rgba(59, 130, 246, 0.05); padding: 20px; border-radius: 20px; border: 1px solid rgba(59, 130, 246, 0.1);">
-            <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px;">SYSTEM STATUS</div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <div style="width: 8px; height: 8px; background: var(--success); border-radius: 50%;" class="pulse-dot"></div>
-                <span style="font-size: 11px; font-weight: 800;">LIVE CONNECTION</span>
+        <div style="margin-top: auto; background: rgba(128, 209, 233, 0.05); padding: 25px; border-radius: 20px; border: 1px solid var(--border-glow);">
+            <div style="font-size: 11px; font-weight: 800; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 1px;">SYSTEM STATUS</div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 10px; height: 10px; background: var(--success); border-radius: 50%;" class="pulse-dot"></div>
+                <span style="font-size: 12px; font-weight: 900; color: #fff;">LIVE CONNECTED</span>
             </div>
         </div>
     </div>
@@ -537,7 +548,7 @@
         <div class="header">
             <div>
                 <h1 id="view-title" class="title-h">Main Dashboard</h1>
-                <p style="color: var(--text-muted); font-weight: 500; font-size: 0.95rem; margin-top: 5px;">Real-time field transparency & issue resolution tracking</p>
+                <p class="header-sub">Comprehensive field transparency & real-time resolution tracking</p>
             </div>
         </div>
 
@@ -876,11 +887,13 @@
                     labels: ['Safety', 'Service', 'Other'],
                     datasets: [{
                         data: [0, 0, 0],
-                        backgroundColor: ['#ef4444', '#3b82f6', '#94a3b8'],
-                        borderWidth: 0
+                        backgroundColor: ['#ff5252', '#80d1e9', '#2e3192'],
+                        borderColor: 'rgba(255,255,255,0.05)',
+                        borderWidth: 2
                     }]
                 },
                 options: { 
+                    cutout: '70%',
                     onHover: (e, el) => e.native.target.style.cursor = el.length ? 'pointer' : 'default',
                     onClick: (e, elements, chart) => {
                         if (elements.length > 0) {
@@ -889,7 +902,9 @@
                             openFilteredList(r => (r.category || 'Other') === label, `Signals: ${label}`);
                         }
                     },
-                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } } 
+                    plugins: { 
+                        legend: { position: 'bottom', labels: { color: '#f0f2ff', font: { weight: '600' }, padding: 20 } } 
+                    } 
                 }
             });
 
@@ -901,7 +916,8 @@
                     datasets: [{
                         label: 'Incidents',
                         data: [0, 0, 0, 0],
-                        backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#10b981']
+                        backgroundColor: ['#ff5252', '#ffab00', '#80d1e9', '#00e676'],
+                        borderRadius: 8
                     }]
                 },
                 options: { 
@@ -913,7 +929,10 @@
                             openFilteredList(r => (r.priority || 'Low') === label, `Signals: ${label} Priority`);
                         }
                     },
-                    scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }, x: { ticks: { color: '#94a3b8' } } },
+                    scales: { 
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(240,242,255,0.5)' } }, 
+                        x: { grid: { display: false }, ticks: { color: 'rgba(240,242,255,0.8)', font: { weight: '600' } } } 
+                    },
                     plugins: { legend: { display: false } }
                 }
             });
@@ -925,7 +944,8 @@
                     labels: [],
                     datasets: [{
                         data: [],
-                        backgroundColor: '#3b82f6'
+                        backgroundColor: '#80d1e9',
+                        borderRadius: 6
                     }]
                 },
                 options: { 
@@ -939,7 +959,10 @@
                         }
                     },
                     plugins: { legend: { display: false } }, 
-                    scales: { x: { ticks: { color: '#94a3b8', beginAtZero: true, stepSize: 1 } }, y: { ticks: { color: '#94a3b8' } } } 
+                    scales: { 
+                        x: { ticks: { color: 'rgba(240,242,255,0.5)', beginAtZero: true, stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.05)' } }, 
+                        y: { ticks: { color: 'rgba(240,242,255,0.8)', font: { weight: '600' } }, grid: { display: false } } 
+                    } 
                 }
             });
 
@@ -958,7 +981,7 @@
                              }, `${activeSiteType} Units: ${label}`);
                          }
                      },
-                     plugins: { legend: { labels: { color: '#94a3b8' } } } 
+                     plugins: { legend: { labels: { color: '#f0f2ff' } } } 
                  } 
              });
 
@@ -979,13 +1002,23 @@
                      },
                      plugins: { legend: { display: false } },
                      scales: { 
-                         y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
-                         x: { ticks: { color: '#94a3b8' } }
+                         y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(240,242,255,0.5)' } },
+                         x: { ticks: { color: 'rgba(240,242,255,0.8)', font: { weight: '600' } }, grid: { display: false } }
                      }
                  } 
              });
 
-             charts.trend = new Chart(document.getElementById('trendChart').getContext('2d'), { type: 'line', data: { labels: [], datasets: [{data:[]}] }, options: { plugins: { legend: { display: false } } } });
+             charts.trend = new Chart(document.getElementById('trendChart').getContext('2d'), { 
+                 type: 'line', 
+                 data: { labels: [], datasets: [{data:[]}] }, 
+                 options: { 
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(240,242,255,0.5)' } },
+                        x: { grid: { display: false }, ticks: { color: 'rgba(240,242,255,0.5)' } }
+                    }
+                 } 
+             });
         }
 
         function updateCharts() {
@@ -1233,16 +1266,21 @@
                 
                 return `
                     <tr>
-                        <td style="color: var(--accent); font-weight: 800; font-size: 0.8rem;">${displayId}</td>
-                        <td><b>${r.emp_no || 'Employee'}</b></td>
-                        <td>${r.category || r.type || 'General'}</td>
-                        <td><small>${r.location || 'Site'}</small><br><span style="font-size:0.7rem; opacity:0.6">${r.site || ''}</span></td>
-                        <td><span class="status-pill p-${priorityClass}">${r.priority || 'Low'}</span></td>
-                        <td><span style="font-size: 0.7rem; font-weight: 900; opacity: 0.8">${(r.status || 'OPEN').toUpperCase()}</span></td>
-                        <td style="font-size: 0.8rem; color: var(--text-muted);">${displayDate}</td>
+                        <td style="color: var(--turquoise); font-weight: 800; font-size: 0.85rem;">${displayId}</td>
+                        <td style="color: #fff;"><b>${r.emp_no || 'Employee'}</b></td>
+                        <td><span style="opacity: 0.9;">${r.category || r.type || 'General'}</span></td>
                         <td>
-                            <button class="btn-action" onclick="openDetailPanel('${r.ref || r.id}')">DETAILS</button>
-                            ${(r.status||'').toUpperCase() !== 'DONE' ? `<button class="btn-action" style="background: #10b981; margin-left: 5px; border-color: #10b981;" onclick="markResolved('${r.ref || r.id}')">DONE</button>` : ''}
+                            <div style="font-weight: 700; font-size: 0.85rem;">${r.location || 'Site'}</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted);">${r.site || ''}</div>
+                        </td>
+                        <td><span class="status-pill p-${priorityClass}">${r.priority || 'Low'}</span></td>
+                        <td><span style="font-size: 0.75rem; font-weight: 800; color: var(--turquoise);">${(r.status || 'OPEN').toUpperCase()}</span></td>
+                        <td style="font-size: 0.8rem; color: var(--text-dim);">${displayDate}</td>
+                        <td>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn-action" onclick="openDetailPanel('${r.ref || r.id}')">VIEW</button>
+                                ${(r.status||'').toUpperCase() !== 'DONE' ? `<button class="btn-action" style="background: var(--success); color: var(--bg); border-color: var(--success);" onclick="markResolved('${r.ref || r.id}')">DONE</button>` : ''}
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -1351,21 +1389,30 @@
                 const regular = list.filter(b => !b.pinned);
 
                 const renderCard = (b) => `
-                    <div class="stat-card" style="padding:20px; display:flex; flex-direction:column; gap:10px; border-left:3px solid ${b.iconColor || '#3b82f6'}; position:relative;">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div style="display:flex; align-items:center; gap:10px;">
-                                <span style="font-size:1.5rem;">${b.svg === 'alert' ? '🚨' : (b.svg === 'calendarCheck' ? '📅' : (b.svg === 'trophy' ? '🏆' : '📢'))}</span>
-                                <button class="btn-action" style="background:none; color:${b.pinned ? 'var(--warning)' : 'rgba(255,255,255,0.2)'}; font-size:0.8rem; padding:0;" onclick="togglePin('${b.id}', ${b.pinned || false})">
+                    <div class="stat-card" style="padding:25px; border-left:4px solid ${b.iconColor || '#80d1e9'};">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div style="width:42px; height:42px; background:rgba(255,255,255,0.05); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.4rem;">
+                                    ${b.svg === 'alert' ? '🚨' : (b.svg === 'calendarCheck' ? '📅' : (b.svg === 'trophy' ? '🏆' : '📢'))}
+                                </div>
+                                <div>
+                                    <div style="font-size:0.65rem; color:var(--text-muted); font-weight:800; letter-spacing:1.5px;">${b.labelEn || 'SYSTEM SIGNAL'}</div>
+                                    <div style="font-weight:800; color:var(--turquoise); font-size:1.1rem; margin-top:2px;">${b.titleEn || b.titleAr}</div>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                <button class="btn-action" style="background:none; border:none; color:${b.pinned ? 'var(--warning)' : 'rgba(255,255,255,0.1)'}; font-size:1rem; padding:5px;" onclick="togglePin('${b.id}', ${b.pinned || false})">
                                     <i class="fas fa-thumbtack"></i>
                                 </button>
                             </div>
-                            <div style="display:flex; gap:5px;">
-                                <button class="btn-action" style="background:rgba(59, 130, 246, 0.1); color:var(--accent); font-size:0.6rem; padding:5px 10px;" onclick="promptEditBroadcast('${b.id}')">EDIT</button>
-                                <button class="btn-action" style="background:rgba(239, 68, 68, 0.1); color:#ef4444; font-size:0.6rem; padding:5px 10px;" onclick="deleteBroadcast('${b.id}')">DELETE</button>
-                            </div>
                         </div>
-                        <div style="font-size:0.65rem; color:var(--text-muted); font-weight:800; text-transform:uppercase;">${b.labelEn || ''} ${b.pinned ? '<span style="color:var(--warning); margin-left:5px;">[FIXED SIGNAL]</span>' : ''}</div>
-                        <div style="font-weight:800; color:var(--accent); font-size:0.9rem;">${b.titleEn || b.titleAr}</div>
+                        <div style="margin-top:15px; font-size:0.85rem; color:var(--text-dim); line-height:1.5; padding:15px; background:rgba(0,0,0,0.2); border-radius:12px;">
+                            ${b.contentEn || b.contentAr}
+                        </div>
+                        <div style="display:flex; gap:10px; margin-top:15px;">
+                            <button class="btn-action" style="flex:1; background:rgba(128, 209, 233, 0.1); border-color:rgba(128, 209, 233, 0.2);" onclick="promptEditBroadcast('${b.id}')">MODIFY</button>
+                            <button class="btn-action" style="background:rgba(255, 82, 82, 0.1); color:var(--danger); border-color:rgba(255, 82, 82, 0.2);" onclick="deleteBroadcast('${b.id}')"><i class="fas fa-trash"></i></button>
+                        </div>
                     </div>
                 `;
 
