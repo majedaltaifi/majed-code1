@@ -1121,19 +1121,15 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       </div>
 
         <!-- Support Chat Shortcut -->
-        <div class="list" style="margin-top:20px; margin-bottom:10px">
-          <button class="list-item" onclick="openTechSupport()" style="border:1px solid rgba(128,209,233,0.15); background:rgba(128,209,233,0.05); border-radius:12px">
-            <div class="list-avatar" style="background:var(--nit-blue); color:white; border-radius:10px; box-shadow:0 0 15px rgba(46,49,146,0.3)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+        <div style="margin-top:20px; margin-bottom:20px; display:flex; justify-content:center">
+          <button onclick="openTechSupport()" style="width:160px; height:160px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px; border:1px solid rgba(128,209,233,0.25); background:rgba(128,209,233,0.08); border-radius:24px; cursor:pointer; gap:12px; transition:all 0.3s ease; box-shadow:0 10px 30px rgba(0,0,0,0.1)">
+            <div style="width:64px; height:64px; background:var(--nit-blue); color:white; border-radius:18px; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 25px rgba(46,49,146,0.4)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:32px; height:32px"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
             </div>
-            <div class="list-body">
-              <div class="list-top">
-                <div class="list-title" style="color:var(--turquoise); font-weight:700;">Support Team</div>
-                <div class="list-time">24/7</div>
-              </div>
-              <div class="list-msg">Direct line to management support</div>
+            <div>
+              <div style="color:var(--turquoise); font-weight:800; font-size:1.1rem; letter-spacing:-0.02em">Support</div>
+              <div style="color:white; font-size:0.7rem; opacity:0.6; margin-top:4px; line-height:1.2">Management Line</div>
             </div>
-            <span class="action-arrow" style="margin-inline-start:10px; opacity:0.5">›</span>
           </button>
         </div>
         <div class="section-label" style="margin-top:20px;">Messages</div>
