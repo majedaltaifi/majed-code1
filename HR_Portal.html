@@ -54,8 +54,8 @@
         .stat-value { font-size: 4.8rem; font-weight: 950; color: #fff; line-height: 1; letter-spacing: -2px; }
 
         .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 35px; margin-bottom: 50px; }
-        .chart-container { background: var(--surface); border: 1px solid var(--border); border-radius: 40px; padding: 45px; height: 550px; position: relative; transition: 0.4s; }
-        .chart-title { font-size: 1.5rem; font-weight: 950; margin-bottom: 30px; color: #fff; display: flex; align-items: center; gap: 15px; }
+        .chart-container { background: var(--surface); border: 1px solid var(--border); border-radius: 40px; padding: 45px; height: 580px; position: relative; transition: 0.4s; overflow: hidden; }
+        .chart-title { font-size: 1.5rem; font-weight: 950; margin-bottom: 20px; color: #fff; display: flex; align-items: center; gap: 15px; }
 
         .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 40px; padding: 50px; backdrop-filter: blur(20px); }
         .chart-title-sub { font-size: 1.5rem; font-weight: 950; margin-bottom: 40px; color: #fff; }
@@ -124,8 +124,8 @@
                 <div class="stat-card"><div class="stat-label">Success Rate</div><div class="stat-value" id="main-rate">0%</div></div>
             </div>
             <div class="charts-row">
-                <div class="chart-container" style="height: 600px;"><div class="chart-title"><i class="fas fa-chart-pie"></i> Incident Categories</div><canvas id="categoryChart"></canvas></div>
-                <div class="chart-container" style="height: 600px;"><div class="chart-title"><i class="fas fa-chart-bar"></i> Priority Distribution</div><canvas id="priorityChart"></canvas></div>
+                <div class="chart-container"><div class="chart-title"><i class="fas fa-chart-pie"></i> Incident Categories</div><div style="height: 420px;"><canvas id="categoryChart"></canvas></div></div>
+                <div class="chart-container"><div class="chart-title"><i class="fas fa-chart-bar"></i> Priority Distribution</div><div style="height: 420px;"><canvas id="priorityChart"></canvas></div></div>
             </div>
             <div class="panel"><div class="chart-title-sub"><i class="fas fa-globe-americas"></i> Geographic Breakdown</div><div style="height: 400px;"><canvas id="locationChart"></canvas></div></div>
         </div>
@@ -216,7 +216,7 @@
                 return true;
             });
             let html = `<h2 style="font-size:2.5rem; font-weight:950; margin-bottom:40px; color:var(--turquoise);">${title}</h2>`;
-            if(filtered.length === 0) { html += `<div style="text-align:center; padding:80px; color:var(--text-dim); font-size:1.2rem;">No records.</div>`; }
+            if(filtered.length === 0) { html += `<div style="text-align:center; padding:80px; color:var(--text-dim); font-size:1.2rem;">No operational records found.</div>`; }
             else {
                 html += `<table class="modern-table"><thead><tr><th>Ref</th><th>Category</th><th>Status</th></tr></thead><tbody>`;
                 filtered.forEach(r => { const s = (r.status || 'OPEN').toUpperCase(); html += `<tr><td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td><td>${r.category}</td><td>${s}</td></tr>`; });
@@ -229,7 +229,7 @@
             const opt = (type) => ({
                 responsive: true, maintainAspectRatio: false,
                 onClick: (e, els, chart) => { if(els.length > 0) { const idx = els[0].index; const label = chart.data.labels[idx]; openFilteredList(label, `${label} Analysis`, type); } },
-                plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 14, weight: '700' }, padding: 30 } } }
+                plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 14, weight: '700' }, padding: 15 } } }
             });
             charts.category = new Chart(document.getElementById('categoryChart'), { type: 'doughnut', data: { labels: ['Safety', 'Service', 'Other'], datasets: [{ data: [0,0,0], backgroundColor: ['#ff5252', '#80d1e9', '#2e3192'], borderWidth: 0 }] }, options: { ...opt('category'), cutout: '78%' } });
             charts.priority = new Chart(document.getElementById('priorityChart'), { type: 'bar', data: { labels: ['Critical', 'High', 'Medium', 'Low'], datasets: [{ data: [0,0,0,0], backgroundColor: ['#ff5252', '#ffab00', '#80d1e9', '#00e676'], borderRadius: 12 }] }, options: { ...opt('priority'), plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#fff', font: { weight: '800' } } }, x: { ticks: { color: '#fff', font: { weight: '800' } } } } } });
@@ -249,11 +249,16 @@
             const pris = { Critical: 0, High: 0, Medium: 0, Low: 0 };
             const locs = {};
             
-            // FILTER OUT GARBAGE LOCATIONS
-            const GARBAGE = ['1', '0', '66', '2', '92', '58'];
+            // CLEANUP GARBAGE LOCATIONS PERMANENTLY
+            const GARBAGE = ['1', '0', '66', '2', '92', '58', '106', '112', '113', 'SITE', 'site'];
+            
             allReports.forEach(r => { 
                 const l = (r.location || r.site || 'Unknown').trim();
-                if (!GARBAGE.includes(l)) {
+                // If it's a number-only string or "SITE", we ignore it from the dashboard stats
+                if (!GARBAGE.includes(l) && !/^\d+$/.test(l)) {
+                    cats[r.category || 'Other']++; pris[r.priority || 'Low']++;
+                    locs[l] = (locs[l] || 0) + 1;
+                } else if (l.includes('HQ') || l.includes('KSP')) {
                     cats[r.category || 'Other']++; pris[r.priority || 'Low']++;
                     locs[l] = (locs[l] || 0) + 1;
                 }
@@ -261,7 +266,10 @@
 
             if(charts.category) { charts.category.data.datasets[0].data = [cats.Safety, cats.Service, cats.Other]; charts.category.update(); }
             if(charts.priority) { charts.priority.data.datasets[0].data = [pris.Critical, pris.High, pris.Medium, pris.Low]; charts.priority.update(); }
-            if(charts.location) { const sortedLocs = Object.entries(locs).sort((a,b) => b[1] - a[1]).slice(0, 8); charts.location.data.labels = sortedLocs.map(l => l[0]); charts.location.data.datasets[0].data = sortedLocs.map(l => l[1]); charts.location.update(); }
+            if(charts.location) { 
+                const sortedLocs = Object.entries(locs).sort((a,b) => b[1] - a[1]).slice(0, 8); 
+                charts.location.data.labels = sortedLocs.map(l => l[0]); charts.location.data.datasets[0].data = sortedLocs.map(l => l[1]); charts.location.update(); 
+            }
             if(activeView === 'per-site') updateUnitMatrix(currentUnitFilter);
         }
 
