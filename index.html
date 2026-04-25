@@ -3175,7 +3175,7 @@ function openTrackDetail(ref){
     <div class="detail-card">
       <div class="dc-label">${t.imagesLabel||en.imagesLabel||'Evidence Images'}</div>
       <div class="dc-images" style="display:flex;gap:10px;overflow-x:auto;padding:5px 0">
-        ${r.imageDatas.map(img=>`<img src="${img}" style="width:120px;height:120px;object-fit:cover;border-radius:12px;border:1px solid var(--glass-border)">`).join('')}
+        ${r.imageDatas.map(img=>`<img src="${img}" onclick="previewImage('${img}')" style="width:120px;height:120px;object-fit:cover;border-radius:12px;border:1px solid var(--glass-border);cursor:pointer">`).join('')}
       </div>
     </div>
     ` : ''}
@@ -3853,6 +3853,25 @@ let toastTimer;
 function toast(msg){
   const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
   clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2400);
+}
+
+function toBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+}
+
+function previewImage(src) {
+  const p = document.createElement('div');
+  p.style.position = 'fixed'; p.style.inset = '0'; p.style.background = 'rgba(0,0,0,0.9)';
+  p.style.zIndex = '9999'; p.style.display = 'flex'; p.style.alignItems = 'center'; p.style.justifyContent = 'center';
+  p.style.padding = '20px';
+  p.innerHTML = `<img src="${src}" style="max-width:100%;max-height:100%;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,0.5)">
+  <button style="position:absolute;top:20px;right:20px;background:white;color:black;border:none;border-radius:50%;width:40px;height:40px;font-size:24px;cursor:pointer" onclick="this.parentElement.remove()">×</button>`;
+  document.body.appendChild(p);
 }
 
 /* ══════════════════════════════════════════
