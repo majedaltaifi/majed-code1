@@ -1620,7 +1620,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       showUpdateBanner('Updating...');
       setTimeout(()=>window.location.reload(),400);
     });
-    navigator.serviceWorker.register('sw.js?v=3.38').then(reg=>{
+    navigator.serviceWorker.register('sw.js?v=3.39').then(reg=>{
       reg.update().catch(()=>{});
       setInterval(()=>reg.update().catch(()=>{}),60*1000);
     }).catch(()=>{});
@@ -2497,6 +2497,7 @@ function setLang(l){
   document.getElementById('screen-lang').classList.remove('show');
   currentUser=loadUser();
   if(!currentUser){
+    applyT(); // Force re-apply before showing login
     document.getElementById('screen-login').classList.add('show');
     return;
   }
@@ -2784,13 +2785,24 @@ function updateLogoutBtn(){
 function updateCurrentLangLabel(){const el=document.getElementById('current-lang-label');if(el)el.textContent=T[lang].name}
 
 function applyT(){
-  const t=T[lang],en=T.en;
-  document.querySelectorAll('[data-t]').forEach(el=>{
-    const k=el.dataset.t;const v=t[k]||en[k];if(v)el.textContent=v
+  const t = T[lang] || T.en;
+  const en = T.en;
+  if (!t) return;
+  
+  // Translate text content
+  document.querySelectorAll('[data-t]').forEach(el => {
+    const k = el.dataset.t;
+    const v = t[k] || en[k];
+    if (v !== undefined) el.textContent = v;
   });
-  document.querySelectorAll('[data-t-placeholder]').forEach(el=>{
-    const k=el.dataset.tPlaceholder;const v=t[k]||en[k];if(v)el.placeholder=v
+  
+  // Translate placeholders
+  document.querySelectorAll('[data-t-placeholder]').forEach(el => {
+    const k = el.dataset.tPlaceholder;
+    const v = t[k] || en[k];
+    if (v !== undefined) el.placeholder = v;
   });
+  
   updateCurrentLangLabel();
 }
 
