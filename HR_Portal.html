@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NIT Field Portal | HR Strategic Command</title>
     
+    <!-- Premium Fonts & Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Charting Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
@@ -17,76 +20,75 @@
             --surface-hover: rgba(255, 255, 255, 0.07); --border: rgba(255, 255, 255, 0.08);
             --border-glow: rgba(128, 209, 233, 0.3); --text-main: #f0f2ff;
             --text-dim: rgba(240, 242, 255, 0.6); --text-muted: rgba(240, 242, 255, 0.35);
-            --success: #00e676; --warning: #ffab00; --danger: #ff5252; --sidebar-w: 280px;
+            --success: #00e676; --warning: #ffab00; --danger: #ff5252; --sidebar-w: 260px;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; -webkit-font-smoothing: antialiased; }
-        body { background-color: var(--bg); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; background-image: radial-gradient(circle at 10% 10%, var(--nit-blue) 0%, transparent 45%), radial-gradient(circle at 90% 90%, #1b1464 0%, var(--bg) 100%); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { background-color: var(--bg); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
 
+        /* Background Effects */
         .bg-layer { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
-        .bg-orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.15; animation: orbFloat 30s infinite alternate ease-in-out; }
-        .bg-orb-1 { width: 600px; height: 600px; background: var(--turquoise); top: -100px; right: -100px; }
-        .bg-orb-2 { width: 500px; height: 500px; background: #6366f1; bottom: -50px; left: -50px; animation-delay: -10s; }
-        @keyframes orbFloat { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(100px, 50px) scale(1.2); } }
+        .bg-orb { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.1; animation: orbFloat 20s infinite alternate ease-in-out; }
+        .bg-orb-1 { width: 600px; height: 600px; background: var(--turquoise); top: -200px; right: -100px; }
+        .bg-orb-2 { width: 400px; height: 400px; background: #6366f1; bottom: -100px; left: -100px; animation-delay: -5s; }
+        @keyframes orbFloat { 0% { transform: translate(0, 0); } 100% { transform: translate(50px, 30px); } }
 
-        .sidebar { width: var(--sidebar-w); background: rgba(8, 9, 34, 0.6); backdrop-filter: blur(40px); border-right: 1px solid var(--border); padding: 40px 20px; display: flex; flex-direction: column; gap: 40px; z-index: 100; box-shadow: 20px 0 50px rgba(0,0,0,0.3); }
-        .logo-area { display: flex; flex-direction: column; align-items: center; gap: 15px; padding-bottom: 20px; }
-        .logo-img { width: 160px; filter: brightness(0) invert(1); transition: 0.3s; }
-        .logo-img:hover { transform: scale(1.05); }
+        /* Sidebar */
+        .sidebar { width: var(--sidebar-w); background: rgba(8, 9, 34, 0.8); backdrop-filter: blur(30px); border-right: 1px solid var(--border); padding: 30px 15px; display: flex; flex-direction: column; gap: 30px; z-index: 100; flex-shrink: 0; }
+        .logo-area { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .logo-img { width: 140px; filter: brightness(0) invert(1); }
+        .nav-menu { display: flex; flex-direction: column; gap: 5px; }
+        .nav-item { padding: 12px 18px; border-radius: 12px; color: var(--text-dim); text-decoration: none; display: flex; align-items: center; gap: 12px; font-weight: 500; font-size: 0.9rem; transition: 0.3s; cursor: pointer; border: 1px solid transparent; }
+        .nav-item i { width: 20px; text-align: center; font-size: 1rem; }
+        .nav-item:hover { background: var(--surface-hover); color: #fff; transform: translateX(5px); }
+        .nav-item.active { background: linear-gradient(135deg, rgba(128, 209, 233, 0.1), rgba(46, 49, 146, 0.2)); border-color: var(--border-glow); color: var(--turquoise); font-weight: 700; }
 
-        .nav-menu { display: flex; flex-direction: column; gap: 8px; }
-        .nav-item { padding: 14px 20px; border-radius: 14px; color: var(--text-dim); text-decoration: none; display: flex; align-items: center; gap: 15px; font-weight: 500; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; border: 1px solid transparent; }
-        .nav-item i { font-size: 1.1rem; width: 24px; text-align: center; opacity: 0.7; }
-        .nav-item:hover { background: rgba(255, 255, 255, 0.05); color: var(--text-main); transform: translateX(5px); }
-        .nav-item.active { background: linear-gradient(135deg, rgba(128, 209, 233, 0.1), rgba(46, 49, 146, 0.2)); border-color: var(--border-glow); color: var(--turquoise); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
-
-        .main { flex: 1; overflow-y: auto; padding: 40px 60px; position: relative; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
-        .main::-webkit-scrollbar { width: 6px; }
+        /* Main Content */
+        .main { flex: 1; overflow-y: auto; padding: 30px 50px; scrollbar-width: thin; scrollbar-color: var(--border) transparent; position: relative; }
+        .main::-webkit-scrollbar { width: 5px; }
         .main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 50px; }
-        .title-h { font-size: 2.8rem; font-weight: 800; letter-spacing: -1.5px; background: linear-gradient(135deg, #fff 0%, var(--turquoise) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .header-sub { color: var(--text-dim); font-weight: 500; font-size: 1rem; margin-top: 8px; opacity: 0.8; }
+        .header { margin-bottom: 30px; }
+        .title-h { font-size: 2.2rem; font-weight: 900; letter-spacing: -1px; background: linear-gradient(to right, #fff, var(--turquoise)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header-sub { color: var(--text-dim); font-size: 0.9rem; margin-top: 5px; }
 
-        .analytics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; margin-bottom: 40px; }
-        .stat-card { background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); padding: 30px; border-radius: 24px; display: flex; flex-direction: column; gap: 12px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
-        .stat-card:hover { border-color: var(--border-glow); transform: translateY(-8px) scale(1.02); background: var(--surface-hover); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-        .stat-label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; }
-        .stat-value { font-size: 3rem; font-weight: 900; color: var(--text-main); line-height: 1; }
+        /* Dashboard Components */
+        .analytics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 25px; }
+        .stat-card { background: var(--surface); border: 1px solid var(--border); padding: 25px; border-radius: 20px; transition: 0.3s; }
+        .stat-card.clickable:hover { border-color: var(--border-glow); transform: translateY(-5px); background: var(--surface-hover); cursor: pointer; }
+        .stat-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .stat-value { font-size: 2.5rem; font-weight: 900; color: #fff; margin-top: 5px; }
 
-        .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 40px; }
-        .chart-container { background: var(--surface); backdrop-filter: blur(20px); border-radius: 28px; padding: 35px; border: 1px solid var(--border); transition: 0.3s; cursor: crosshair; }
+        .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
+        .chart-container { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 25px; height: 350px; position: relative; cursor: pointer; transition: 0.3s; }
         .chart-container:hover { border-color: var(--border-glow); }
-        .chart-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 30px; color: var(--text-main); display: flex; justify-content: space-between; align-items: center; }
+        .chart-title { font-size: 1rem; font-weight: 800; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
 
-        .panel { background: var(--surface); backdrop-filter: blur(20px); border-radius: 28px; padding: 40px; border: 1px solid var(--border); }
-        .modern-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; margin-top: 10px; }
-        .modern-table th { text-align: left; padding: 15px 20px; color: var(--text-muted); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-        .modern-table td { padding: 20px; background: rgba(255,255,255,0.02); font-size: 0.9rem; font-weight: 500; }
+        .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 25px; }
+        
+        /* Table Styles */
+        .modern-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        .modern-table th { text-align: left; padding: 12px 15px; color: var(--text-muted); font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
+        .modern-table td { padding: 15px; background: rgba(255,255,255,0.02); font-size: 0.85rem; font-weight: 500; }
         .modern-table tr:hover td { background: rgba(255,255,255,0.05); color: var(--turquoise); }
-
-        .status-pill { padding: 6px 14px; border-radius: 8px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
-        .p-crit { background: rgba(255, 82, 82, 0.15); color: var(--danger); }
-        .p-high { background: rgba(255, 171, 0, 0.15); color: var(--warning); }
-        .p-med { background: rgba(128, 209, 233, 0.15); color: var(--turquoise); }
-        .p-low { background: rgba(0, 230, 118, 0.15); color: var(--success); }
-
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .clickable-card { cursor: pointer; }
+        .status-pill { padding: 5px 12px; border-radius: 6px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
 
         /* Side Panel */
-        .side-panel { position: fixed; top: 0; right: -600px; width: 550px; height: 100vh; background: rgba(8, 9, 34, 0.98); backdrop-filter: blur(50px); border-left: 1px solid var(--border-glow); box-shadow: -20px 0 60px rgba(0,0,0,0.7); z-index: 2000; transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1); padding: 60px 40px; overflow-y: auto; }
+        .side-panel { position: fixed; top: 0; right: -550px; width: 500px; height: 100vh; background: rgba(8, 9, 34, 0.98); backdrop-filter: blur(40px); border-left: 1px solid var(--border-glow); box-shadow: -20px 0 50px rgba(0,0,0,0.5); z-index: 2000; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); padding: 40px; overflow-y: auto; }
         .side-panel.active { right: 0; }
-        .close-panel { position: absolute; top: 30px; right: 30px; background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; transition: 0.3s; }
-        .close-panel:hover { color: var(--danger); transform: rotate(90deg); }
+        .close-btn { position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; }
 
-        /* Modal */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px); z-index: 3000; align-items: center; justify-content: center; }
-        .modal-content { background: var(--bg-accent); border: 1px solid var(--border-glow); padding: 40px; border-radius: 32px; width: 90%; max-width: 550px; position: relative; }
+        /* Tabs */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
         
-        .pulse-dot { animation: pulse-turquoise 2s infinite; }
-        @keyframes pulse-turquoise { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(128, 209, 233, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(128, 209, 233, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(128, 209, 233, 0); } }
+        .btn-action { background: var(--surface-hover); color: #fff; border: 1px solid var(--border); padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.75rem; font-weight: 700; transition: 0.3s; }
+        .btn-action:hover { background: var(--turquoise); color: var(--nit-deep); border-color: var(--turquoise); }
+
+        /* Modals */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 3000; align-items: center; justify-content: center; }
+        .modal-content { background: var(--bg-accent); border: 1px solid var(--border-glow); padding: 35px; border-radius: 24px; width: 450px; }
+        .form-input { background: rgba(255,255,255,0.05); border: 1px solid var(--border); padding: 12px; border-radius: 10px; color: #fff; width: 100%; margin-bottom: 15px; font-family: inherit; }
     </style>
 </head>
 <body>
@@ -94,17 +96,17 @@
     <div class="bg-layer"><div class="bg-orb bg-orb-1"></div><div class="bg-orb bg-orb-2"></div></div>
 
     <div class="side-panel" id="side-panel">
-        <button class="close-panel" onclick="closeSidePanel()"><i class="fas fa-times"></i></button>
+        <button class="close-btn" onclick="closeSidePanel()"><i class="fas fa-times"></i></button>
         <div id="side-panel-content"></div>
     </div>
 
     <div class="sidebar">
         <div class="logo-area">
-            <img src="https://iconape.com/wp-content/files/hq/389851/svg/389851.svg" class="logo-img" alt="Nesma IT">
-            <div style="font-size: 10px; font-weight: 900; color: var(--turquoise); letter-spacing: 4px; margin-top: 5px; text-transform: uppercase;">Strategic Command</div>
+            <img src="https://iconape.com/wp-content/files/hq/389851/svg/389851.svg" class="logo-img">
+            <div style="font-size: 9px; font-weight: 900; color: var(--turquoise); letter-spacing: 3px; text-transform: uppercase;">Strategic Command</div>
         </div>
         <div class="nav-menu">
-            <div class="nav-item active" onclick="switchView('dashboard', this)"><i class="fas fa-chart-line"></i> Main Dashboard</div>
+            <div class="nav-item active" onclick="switchView('dashboard', this)"><i class="fas fa-chart-line"></i> Dashboard</div>
             <div class="nav-item" onclick="switchView('per-site', this)"><i class="fas fa-map-marked-alt"></i> Field Integration</div>
             <div class="nav-item" onclick="switchView('all-reports', this)"><i class="fas fa-database"></i> Operation Logs</div>
             <div class="nav-item" onclick="switchView('chat', this)"><i class="fas fa-headset"></i> Support Terminal</div>
@@ -116,63 +118,74 @@
 
     <div class="main">
         <div class="header">
-            <div><h1 id="view-title" class="title-h">Main Dashboard</h1><p class="header-sub">Comprehensive field transparency & real-time resolution tracking</p></div>
+            <h1 id="view-title" class="title-h">Main Dashboard</h1>
+            <p class="header-sub">Operational transparency and real-time field insights.</p>
         </div>
 
+        <!-- DASHBOARD VIEW -->
         <div id="view-dashboard" class="tab-content active">
             <div class="analytics-grid">
-                <div class="stat-card clickable-card" onclick="switchView('all-reports', document.querySelectorAll('.nav-item')[2])">
-                    <span class="stat-label">Total Field Reports</span><div class="stat-value" id="main-total">0</div>
+                <div class="stat-card clickable" onclick="switchView('all-reports', document.querySelectorAll('.nav-item')[2])">
+                    <div class="stat-label">Total Reports</div><div class="stat-value" id="main-total">0</div>
                 </div>
-                <div class="stat-card clickable-card" onclick="openFilteredList('OPEN', 'Active Issues', 'status')">
-                    <span class="stat-label">Active (Open) Issues</span><div class="stat-value" id="main-open" style="color: var(--warning);">0</div>
+                <div class="stat-card clickable" onclick="openFilteredList('OPEN', 'Active Issues', 'status')">
+                    <div class="stat-label">Active Issues</div><div class="stat-value" id="main-open" style="color: var(--warning);">0</div>
                 </div>
-                <div class="stat-card clickable-card" onclick="openFilteredList('DONE', 'Resolved Issues', 'status')">
-                    <span class="stat-label">Resolved (Closed)</span><div class="stat-value" id="main-closed" style="color: var(--success);">0</div>
+                <div class="stat-card clickable" onclick="openFilteredList('DONE', 'Resolved Issues', 'status')">
+                    <div class="stat-label">Resolved</div><div class="stat-value" id="main-closed" style="color: var(--success);">0</div>
                 </div>
-                <div class="stat-card"><span class="stat-label">Resolution Rate</span><div class="stat-value" id="main-rate">0%</div></div>
+                <div class="stat-card">
+                    <div class="stat-label">Resolution Rate</div><div class="stat-value" id="main-rate">0%</div>
+                </div>
             </div>
 
             <div class="charts-row">
-                <div class="chart-container"><div class="chart-title">Incident Categories <i class="fas fa-hand-pointer" style="font-size: 0.8rem; color: var(--turquoise);"></i></div><canvas id="categoryChart" height="250"></canvas></div>
-                <div class="chart-container"><div class="chart-title">Priority Distribution <i class="fas fa-hand-pointer" style="font-size: 0.8rem; color: var(--turquoise);"></i></div><canvas id="priorityChart" height="250"></canvas></div>
+                <div class="chart-container"><div class="chart-title">Incident Categories <i class="fas fa-crosshairs"></i></div><canvas id="categoryChart"></canvas></div>
+                <div class="chart-container"><div class="chart-title">Priority Distribution <i class="fas fa-crosshairs"></i></div><canvas id="priorityChart"></canvas></div>
             </div>
 
             <div class="panel">
-                <div class="chart-title">Geographic Breakdown (Locations) <i class="fas fa-hand-pointer" style="font-size: 0.8rem; color: var(--turquoise);"></i></div>
-                <canvas id="locationChart" height="100"></canvas>
+                <div class="chart-title">Geographic Breakdown <i class="fas fa-crosshairs"></i></div>
+                <div style="height: 200px; position: relative;"><canvas id="locationChart"></canvas></div>
             </div>
         </div>
 
-        <!-- Additional Tabs -->
+        <!-- FIELD INTEGRATION -->
         <div id="view-per-site" class="tab-content">
-            <div style="display: flex; gap: 15px; margin-bottom: 30px;" id="site-filters"></div>
+            <div class="panel" style="margin-bottom: 20px;">
+                <div style="display: flex; gap: 15px;" id="site-filters">
+                    <button class="btn-action" onclick="filterSiteView('SITE')">Site Ops</button>
+                    <button class="btn-action" onclick="filterSiteView('OFFICE')">Office Centers</button>
+                    <button class="btn-action" onclick="filterSiteView('ACCOMMODATION')">Housing</button>
+                </div>
+            </div>
             <div class="analytics-grid" id="site-stats-grid"></div>
         </div>
 
+        <!-- OPERATION LOGS -->
         <div id="view-all-reports" class="tab-content">
             <div class="panel">
-                <div style="display: flex; gap: 15px; margin-bottom: 25px;"><input type="text" class="search-input" placeholder="Search..." id="report-search" oninput="applyFilters()"></div>
-                <div style="overflow-x: auto;"><table class="modern-table"><thead><tr><th>Ref</th><th>Reporter</th><th>Category</th><th>Location</th><th>Priority</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody id="reports-table-body"></tbody></table></div>
+                <div style="margin-bottom: 20px;"><input type="text" class="form-input" placeholder="Search reports..." id="report-search" oninput="applyFilters()"></div>
+                <div style="overflow-x: auto;"><table class="modern-table"><thead><tr><th>Ref</th><th>Reporter</th><th>Category</th><th>Location</th><th>Priority</th><th>Status</th><th>Actions</th></tr></thead><tbody id="reports-table-body"></tbody></table></div>
             </div>
         </div>
-        
-        <!-- Other views placeholder (keeping file light) -->
-        <div id="view-chat" class="tab-content"><div class="panel">Support Terminal View</div></div>
-        <div id="view-broadcasts" class="tab-content"><div class="panel">Signal Manager View</div></div>
-        <div id="view-hr-reports" class="tab-content"><div class="panel">Incident Report View</div></div>
-        <div id="view-hr-podcast" class="tab-content"><div class="panel">HR Podcast View</div></div>
+
+        <!-- OTHER VIEWS (Simplified for space) -->
+        <div id="view-chat" class="tab-content"><div class="panel"><h3 style="margin-bottom:20px;">Support Terminal</h3><p style="color:var(--text-dim);">Live chat interface with field officials.</p></div></div>
+        <div id="view-broadcasts" class="tab-content"><div class="panel"><h3 style="margin-bottom:20px;">Signal Manager</h3><p style="color:var(--text-dim);">Broadcast management and announcements.</p></div></div>
+        <div id="view-hr-reports" class="tab-content"><div class="panel"><h3 style="margin-bottom:20px;">Incident Report</h3><p style="color:var(--text-dim);">Safety and strategic reporting metrics.</p></div></div>
+        <div id="view-hr-podcast" class="tab-content"><div class="panel"><h3 style="margin-bottom:20px;">HR Podcast</h3><p style="color:var(--text-dim);">Listen to organizational strategically briefings.</p></div></div>
     </div>
 
     <!-- Edit Modal -->
     <div id="edit-modal" class="modal">
         <div class="modal-content">
-            <button class="close-panel" onclick="closeEditModal()"><i class="fas fa-times"></i></button>
-            <h2 style="margin-bottom: 25px; font-weight: 900;">Update Operational Record</h2>
-            <div style="display: flex; flex-direction: column; gap: 20px;">
-                <select class="filter-select" id="edit-status"><option value="OPEN">OPEN</option><option value="IN PROG">IN PROGRESS</option><option value="DONE">DONE</option></select>
-                <textarea class="search-input" id="edit-notes" placeholder="Internal notes..." style="height: 120px;"></textarea>
-                <button class="nav-item active" style="justify-content: center; padding: 15px;" onclick="saveReportChanges()">SAVE CHANGES</button>
+            <h3 style="margin-bottom:25px;">Update Record</h3>
+            <select class="form-input" id="edit-status"><option value="OPEN">OPEN</option><option value="IN PROG">IN PROGRESS</option><option value="DONE">DONE</option></select>
+            <textarea class="form-input" id="edit-notes" placeholder="Internal notes..." style="height: 100px;"></textarea>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-action" style="flex: 1; padding: 12px;" onclick="saveReportChanges()">Save Changes</button>
+                <button class="btn-action" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.05);" onclick="closeEditModal()">Cancel</button>
             </div>
         </div>
     </div>
@@ -186,8 +199,8 @@
         const db = firebase.firestore();
 
         let allReports = [];
-        let activeView = 'dashboard';
         let charts = {};
+        let activeView = 'dashboard';
         let activeReportId = null;
 
         function switchView(viewId, el) {
@@ -218,18 +231,16 @@
                 return true;
             });
 
-            let html = `<h2 style="font-weight: 900; margin-bottom: 25px; color: var(--turquoise);">${title}</h2>`;
+            let html = `<h2 style="font-weight: 800; margin-bottom: 25px; color: var(--turquoise);">${title}</h2>`;
             if(filtered.length === 0) {
-                html += `<div style="text-align: center; padding: 40px; color: var(--text-dim);">No matching records found.</div>`;
+                html += `<div style="text-align: center; padding: 40px; color: var(--text-dim);">No matching records.</div>`;
             } else {
                 html += `<table class="modern-table" style="font-size: 0.8rem;">
-                    <thead><tr><th>Ref</th><th>Details</th><th>Status</th></tr></thead>
-                    <tbody>`;
+                    <thead><tr><th>Ref</th><th>Details</th></tr></thead><tbody>`;
                 filtered.forEach(r => {
                     html += `<tr style="cursor: pointer;" onclick="openEditModal('${r.id}')">
                         <td style="color: var(--turquoise); font-weight: 800;">#${r.id.slice(-4)}</td>
-                        <td><div style="font-weight: 700;">${r.reporter || 'Official'}</div><div style="font-size: 0.7rem; color: var(--text-muted);">${r.location || r.site}</div></td>
-                        <td><span class="status-pill p-${(r.priority || 'Low').toLowerCase().slice(0,3)}">${r.status || 'OPEN'}</span></td>
+                        <td><div style="font-weight:700;">${r.reporter || 'Official'}</div><div style="font-size:0.7rem;color:var(--text-muted);">${r.location || r.site}</div></td>
                     </tr>`;
                 });
                 html += `</tbody></table>`;
@@ -239,36 +250,29 @@
         }
 
         function initCharts() {
-            const chartOptions = (title, type) => ({
-                responsive: true,
-                maintainAspectRatio: false,
-                onClick: (e, elements, chart) => {
-                    if (elements.length > 0) {
-                        const idx = elements[0].index;
-                        const label = chart.data.labels[idx];
-                        openFilteredList(label, `${label} Reports`, type);
-                    }
-                },
+            const commonOptions = (type) => ({
+                responsive: true, maintainAspectRatio: false,
+                onClick: (e, els, chart) => { if(els.length > 0) { const idx = els[0].index; const label = chart.data.labels[idx]; openFilteredList(label, `${label} Reports`, type); } },
                 onHover: (e, el) => e.native.target.style.cursor = el.length ? 'pointer' : 'default',
-                plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { weight: '600' } } } }
+                plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 10, weight: '600' } } } }
             });
 
             charts.category = new Chart(document.getElementById('categoryChart'), {
                 type: 'doughnut',
                 data: { labels: ['Safety', 'Service', 'Other'], datasets: [{ data: [0,0,0], backgroundColor: ['#ff5252', '#80d1e9', '#2e3192'], borderWidth: 0 }] },
-                options: chartOptions('Category', 'category')
+                options: { ...commonOptions('category'), cutout: '75%' }
             });
 
             charts.priority = new Chart(document.getElementById('priorityChart'), {
                 type: 'bar',
                 data: { labels: ['Critical', 'High', 'Medium', 'Low'], datasets: [{ data: [0,0,0,0], backgroundColor: ['#ff5252', '#ffab00', '#80d1e9', '#00e676'], borderRadius: 6 }] },
-                options: { ...chartOptions('Priority', 'priority'), plugins: { legend: { display: false } } }
+                options: { ...commonOptions('priority'), plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } } } }
             });
 
             charts.location = new Chart(document.getElementById('locationChart'), {
                 type: 'bar',
                 data: { labels: [], datasets: [{ data: [], backgroundColor: '#80d1e9', borderRadius: 4 }] },
-                options: { ...chartOptions('Location', 'location'), indexAxis: 'y', plugins: { legend: { display: false } } }
+                options: { ...commonOptions('location'), indexAxis: 'y', plugins: { legend: { display: false } } }
             });
         }
 
@@ -284,7 +288,6 @@
             const open = allReports.filter(r => (r.status || 'OPEN').toUpperCase() !== 'DONE').length;
             const closed = total - open;
             const rate = total > 0 ? Math.round((closed / total) * 100) : 0;
-
             document.getElementById('main-total').innerText = total;
             document.getElementById('main-open').innerText = open;
             document.getElementById('main-closed').innerText = closed;
@@ -294,30 +297,34 @@
             const pris = { Critical: 0, High: 0, Medium: 0, Low: 0 };
             const locs = {};
             allReports.forEach(r => {
-                cats[r.category || 'Other']++;
-                pris[r.priority || 'Low']++;
-                const l = r.location || r.site || 'Unknown';
-                locs[l] = (locs[l] || 0) + 1;
+                cats[r.category || 'Other']++; pris[r.priority || 'Low']++;
+                const l = r.location || r.site || 'Unknown'; locs[l] = (locs[l] || 0) + 1;
             });
 
-            charts.category.data.datasets[0].data = [cats.Safety, cats.Service, cats.Other];
-            charts.category.update();
-            charts.priority.data.datasets[0].data = [pris.Critical, pris.High, pris.Medium, pris.Low];
-            charts.priority.update();
+            charts.category.data.datasets[0].data = [cats.Safety, cats.Service, cats.Other]; charts.category.update();
+            charts.priority.data.datasets[0].data = [pris.Critical, pris.High, pris.Medium, pris.Low]; charts.priority.update();
             const sortedLocs = Object.entries(locs).sort((a,b) => b[1] - a[1]).slice(0, 5);
-            charts.location.data.labels = sortedLocs.map(l => l[0]);
-            charts.location.data.datasets[0].data = sortedLocs.map(l => l[1]);
-            charts.location.update();
+            charts.location.data.labels = sortedLocs.map(l => l[0]); charts.location.data.datasets[0].data = sortedLocs.map(l => l[1]); charts.location.update();
+        }
+
+        function updateSiteView() {
+            const container = document.getElementById('site-stats-grid');
+            container.innerHTML = '';
+            const locs = {};
+            allReports.forEach(r => { const l = r.location || r.site || 'Unknown'; locs[l] = (locs[l] || 0) + 1; });
+            Object.entries(locs).forEach(([name, count]) => {
+                container.innerHTML += `<div class="stat-card"><div class="stat-label">${name}</div><div class="stat-value" style="font-size: 1.8rem;">${count}</div></div>`;
+            });
         }
 
         function applyFilters() {
             const body = document.getElementById('reports-table-body');
             if(!body) return;
             body.innerHTML = '';
-            const search = (document.getElementById('report-search')?.value || '').toLowerCase();
+            const search = document.getElementById('report-search').value.toLowerCase();
             allReports.filter(r => (r.reporter || '').toLowerCase().includes(search) || r.id.toLowerCase().includes(search))
             .forEach(r => {
-                body.innerHTML += `<tr><td>#${r.id.slice(-4)}</td><td>${r.reporter || 'Official'}</td><td>${r.category}</td><td>${r.location || r.site}</td><td><span class="status-pill p-${(r.priority || 'Low').toLowerCase().slice(0,3)}">${r.priority}</span></td><td>${r.status || 'OPEN'}</td><td>${r.date || 'Today'}</td><td><button class="btn-action" onclick="openEditModal('${r.id}')">EDIT</button></td></tr>`;
+                body.innerHTML += `<tr><td>#${r.id.slice(-4)}</td><td>${r.reporter || 'Official'}</td><td>${r.category}</td><td>${r.location || r.site}</td><td><span class="status-pill p-${(r.priority || 'Low').toLowerCase().slice(0,3)}">${r.priority}</span></td><td>${r.status || 'OPEN'}</td><td><button class="btn-action" onclick="openEditModal('${r.id}')">Edit</button></td></tr>`;
             });
         }
 
@@ -333,10 +340,7 @@
         function saveReportChanges() {
             const s = document.getElementById('edit-status').value;
             const n = document.getElementById('edit-notes').value;
-            db.collection('reports').doc(activeReportId).update({ status: s, notes: n }).then(() => {
-                closeEditModal();
-                closeSidePanel();
-            });
+            db.collection('reports').doc(activeReportId).update({ status: s, notes: n }).then(() => { closeEditModal(); closeSidePanel(); });
         }
 
         window.onload = () => { initCharts(); initRealtimeSync(); };
