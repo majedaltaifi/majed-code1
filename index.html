@@ -2287,6 +2287,7 @@ function tr(key){const l=I18N[key];if(!l)return key;return l[lang]||l.en||key}
    ══════════════════════════════════════════ */
 let broadcastsDb=[];
 let unsubBroadcasts = null, unsubReports = null, unsubChats = null, unsubMsgs = null, unsubSupportPreview = null, activeRoom = null;
+let lastNotifiedMsgTime = {}; // Track last notified message timestamp per chat
 
 function syncBroadcasts() {
   if (unsubBroadcasts) unsubBroadcasts();
@@ -2332,6 +2333,26 @@ function syncAllChats() {
         badge.style.display = unreadCount > 0 ? 'flex' : 'none';
         badge.textContent = unreadCount > 0 ? unreadCount : '';
       }
+
+      // Check for new incoming messages to trigger in-app notifications
+      chats.forEach(d => {
+        const lastAt = (d.last_at && d.last_at.toMillis) ? d.last_at.toMillis() : 0;
+        const myID = String(currentUser.empNo);
+        if (lastAt > 0 && d.last_sender_id && d.last_sender_id !== myID) {
+          // If we have a new message that we didn't send
+          if (lastNotifiedMsgTime[d.id] && lastNotifiedMsgTime[d.id] < lastAt) {
+             let senderName = 'Someone';
+             if (d.id.includes('_Support')) {
+               senderName = 'Support';
+             } else if (d.memberNames) {
+               const otherId = d.members.find(m => m !== myID);
+               senderName = d.memberNames[otherId] || 'Employee';
+             }
+             addNotif(senderName, d.last_msg, 'chat');
+          }
+          lastNotifiedMsgTime[d.id] = lastAt;
+        }
+      });
       
       // Client-side sort to avoid index requirements for now
       chats.sort((a,b) => {
