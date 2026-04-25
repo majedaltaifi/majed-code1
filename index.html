@@ -29,8 +29,9 @@
   --text:#f0f2ff;--text-dim:rgba(240,242,255,.55);--text-muted:rgba(240,242,255,.32);
   --success:#00e676;--warning:#ffab00;--danger:#ff5252;
   --r:14px;--r-lg:20px;--r-xl:28px;
-  --nav-h:72px;--header-h:64px;
-  --sa-b:env(safe-area-inset-bottom,0px);
+  --nav-h: 56px;
+  --header-h: 64px;
+  --sa-b: env(safe-area-inset-bottom, 0px);
   --sa-t:env(safe-area-inset-top,0px);
   --font-ar:'DIN Next Arabic',system-ui,sans-serif;
   --font-en:'Futura PT',system-ui,sans-serif;
@@ -374,7 +375,26 @@ body{font-family:var(--font-ar);background:var(--bg);color:var(--text);font-size
 .about-block .logo-sm{height:28px;filter:brightness(0) invert(1);opacity:.4;margin-bottom:10px}
 
 /* ══════════ BOTTOM NAV ══════════ */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;margin:0 auto;width:100%;max-width:480px;z-index:1000;background:rgba(8,9,34,.98);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-top:1px solid var(--glass-border);display:flex;justify-content:space-around;align-items:center;padding:4px 4px var(--sa-b);height:calc(var(--nav-h) + var(--sa-b));transition:transform .3s var(--ease);will-change:transform}
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  z-index: 1000;
+  height: calc(var(--nav-h) + var(--sa-b));
+  padding: 4px 4px var(--sa-b);
+  background: rgba(8,9,34,.98);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  transition: transform .3s var(--ease);
+  will-change: transform;
+}
 .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 4px;border:none;background:none;cursor:pointer;color:var(--text-muted);font-family:inherit;transition:color .25s;min-width:0;position:relative}
 .nav-btn svg{width:22px;height:22px;transition:transform .3s cubic-bezier(.5,1.6,.4,1),filter .3s}
 .nav-btn .nav-lbl{font-size:.68rem;font-weight:600;white-space:nowrap;transition:opacity .25s}
