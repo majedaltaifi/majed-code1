@@ -1120,7 +1120,22 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
         <div id="search-results" class="search-results-overlay"></div>
       </div>
 
-        <!-- Support Chat List Item -->
+        <!-- Support Chat Shortcut -->
+        <div class="list" style="margin-top:20px; margin-bottom:10px">
+          <button class="list-item" onclick="openTechSupport()" style="border:1px solid rgba(128,209,233,0.15); background:rgba(128,209,233,0.05); border-radius:var(--r-lg)">
+            <div class="list-avatar" style="background:var(--nit-blue); color:white; box-shadow:0 0 15px rgba(46,49,146,0.3)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+            </div>
+            <div class="list-body">
+              <div class="list-top">
+                <div class="list-title" style="color:var(--turquoise); font-weight:700;">Support Team</div>
+                <div class="list-time">24/7</div>
+              </div>
+              <div class="list-msg">Direct line to management support</div>
+            </div>
+            <span class="action-arrow" style="margin-inline-start:10px; opacity:0.5">›</span>
+          </button>
+        </div>
         <div class="section-label" style="margin-top:20px;">Messages</div>
         <div id="chats-list-container" class="list">
           <!-- Dynamically populated by syncAllChats() -->
@@ -2331,18 +2346,17 @@ function syncAllChats() {
 
       let html = '';
       chats.forEach(d => {
-        let otherName = 'Support';
-        let otherID = 'Support';
+        if (d.id.includes('_Support')) return;
+        let otherName = 'Employee';
+        let otherID = '';
         
-        if (!d.id.includes('_Support')) {
-          const members = d.members || [];
-          members.forEach(m => {
-            if (m !== myID) {
-              otherID = m;
-              otherName = (d.memberNames && d.memberNames[m]) || 'Employee ' + m;
-            }
-          });
-        }
+        const members = d.members || [];
+        members.forEach(m => {
+          if (m !== myID) {
+            otherID = m;
+            otherName = (d.memberNames && d.memberNames[m]) || 'Employee ' + m;
+          }
+        });
         
         let timeStr = '';
         if (d.last_at) {
