@@ -2754,7 +2754,7 @@ function updateStats(){
 function renderRecentReports(){
   const wrap=document.getElementById('recent-reports');
   if(!wrap)return;
-  const reports=loadReports().slice().reverse().slice(0,3);
+  const reports=loadReports().slice(0,3);
   const t=T[lang],en=T.en;
   const label=document.getElementById('recent-label');
   const viewAll=document.getElementById('recent-view-all');
@@ -3029,7 +3029,7 @@ function animateCount(id,target){
    REPORTS TAB
    ══════════════════════════════════════════ */
 function renderReports(){
-  const reports=loadReports().slice().reverse();
+  const reports=loadReports();
   const q=(document.getElementById('reports-search')?.value||'').toLowerCase().trim();
   const filtered=q?reports.filter(r=>(r.ref||'').toLowerCase().includes(q)||(r.desc||'').toLowerCase().includes(q)):reports;
   const list=document.getElementById('reports-list');
