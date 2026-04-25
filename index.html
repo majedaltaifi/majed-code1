@@ -2089,27 +2089,51 @@ const SITES = [
   { id: 'QIDDIYA', locKey: 3, color: '#fbbf24', svg: 'siteSparkle' },
   { id: 'AMAALA', locKey: 4, color: '#f472b6', svg: 'sitePalm' },
   { id: 'LINE', locKey: 5, color: '#a78bfa', svg: 'siteLine' },
-  { id: 'RIYADH', locKey: 6, color: '#94a3b8', svg: 'siteLandmark' }
+  { id: 'RIYADH', locKey: 6, color: '#94a3b8', svg: 'siteLandmark' },
+  { id: 'ABHA', locKey: 5, color: '#f59e0b', svg: 'siteHq' },
+  { id: 'JAZAN', locKey: 63, color: '#10b981', svg: 'siteCity' },
+  { id: 'EGYPT', locKey: 26, color: '#ef4444', svg: 'siteLandmark' },
+  { id: 'KHOBAR', locLine: 10, color: '#3b82f6', svg: 'siteHq' },
+  { id: 'DAMMAM', locKey: 21, color: '#6366f1', svg: 'siteCity' },
+  { id: 'JUBAIL', locKey: 29, color: '#8b5cf6', svg: 'siteCity' },
+  { id: 'JAFURAH', locKey: 62, color: '#ec4899', svg: 'siteCity' },
+  { id: 'YANBU', locKey: 103, color: '#06b6d4', svg: 'siteCity' }
 ];
 
 const SITE_DESCS_AR = {
-  HQ: 'المقر الرئيسي لشركة نسما للبنية التحتية والتقنية - جدة.',
+  HQ: 'المقر الرئيسي لشركة نسمة للبنية التحتية والتقنية - جدة.',
   NEOM: 'مدينة المستقبل في تبوك - مشاريع البنية التحتية الذكية.',
   REDSEA: 'وجهة السياحة المتجددة - ربط جزر البحر الأحمر.',
   QIDDIYA: 'عاصمة الترفيه والرياضة والفنون - مشروع القدية.',
   AMAALA: 'مشروع آمالا - ريفييرا الشرق الأوسط.',
   LINE: 'مشروع ذا لاين - الثورة في الحياة الحضرية.',
-  RIYADH: 'مشاريع تطوير البنية التحتية في العاصمة الرياض.'
+  RIYADH: 'مشاريع تطوير البنية التحتية في العاصمة الرياض.',
+  ABHA: 'مكتب منطقة عسير - إدارة المشاريع الجنوبية.',
+  JAZAN: 'مشروع المدينة الطبية في جازان - خدمات تقنية متكاملة.',
+  EGYPT: 'المكتب الإقليمي في جمهورية مصر العربية - القاهرة.',
+  KHOBAR: 'مكتب المنطقة الشرقية الرئيسي - الخبر.',
+  DAMMAM: 'مشاريع تشغيل وصيانة البنية التحتية في الدمام.',
+  JUBAIL: 'مشاريع الجبيل الصناعية - شبكات الجهد العالي والمتوسط.',
+  JAFURAH: 'مشروع حقل الجافورة - حلول الطاقة والاتصالات.',
+  YANBU: 'مشاريع ينبع الصناعية - الدعم الفني واللوجستي.'
 };
 
 const SITE_DESCS_EN = {
   HQ: 'Headquarters of Nesma Infrastructure & Technology - Jeddah.',
-  NEOM: 'The city of the future in Tabuk - Smart infrastructure projects.',
-  REDSEA: 'Regenerative tourism destination - Connecting Red Sea islands.',
-  QIDDIYA: 'Capital of entertainment, sports, and arts - Qiddiya project.',
+  NEOM: 'Future city in Tabuk - Smart infrastructure projects.',
+  REDSEA: 'Regenerative tourism destination - Red Sea islands.',
+  QIDDIYA: 'Entertainment, sports, and arts capital - Qiddiya project.',
   AMAALA: 'Amaala Project - The Riviera of the Middle East.',
   LINE: 'The Line Project - Revolutionizing urban living.',
-  RIYADH: 'Infrastructure development projects in the capital, Riyadh.'
+  RIYADH: 'Infrastructure development projects in Riyadh.',
+  ABHA: 'Asir region office - Southern project management.',
+  JAZAN: 'Jazan Medical City project - Integrated tech services.',
+  EGYPT: 'Regional office in Egypt - Cairo.',
+  KHOBAR: 'Eastern Province main office - Al Khobar.',
+  DAMMAM: 'Infrastructure O&M projects in Dammam.',
+  JUBAIL: 'Jubail Industrial projects - HV/MV networks.',
+  JAFURAH: 'Jafurah field project - Energy & Telecom solutions.',
+  YANBU: 'Yanbu Industrial projects - Technical & Logistics support.'
 };
 
 
@@ -2995,7 +3019,7 @@ function openCompanyInfo(){
 
 function openSites(){
   const t=T[lang],en=T.en;
-  const descs=lang==='en'?SITE_DESCS_AR:SITE_DESCS_EN;
+  const descs = lang === 'ar' ? SITE_DESCS_AR : SITE_DESCS_EN;
   document.getElementById('sites-body').innerHTML=`
     <div class="section-label">${t.sitesTitle||en.sitesTitle}</div>
     ${SITES.map(s=>{
