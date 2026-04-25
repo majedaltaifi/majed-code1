@@ -3135,6 +3135,17 @@ function openTrackDetail(ref){
   const priIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
 
   const path=[r.subIssue?tr(r.subIssue):null,r.detail?tr(r.detail):null].filter(Boolean).join(' > ');
+  const dateStr = r.date || '—';
+  const timeStr = r.time || '—';
+  const freqLabel = r.frequency ? (t[r.frequency] || en[r.frequency] || r.frequency) : null;
+  const anonLabel = r.anon ? (t.anonYes || en.anonYes || 'Yes') : (t.anonNo || en.anonNo || 'No');
+  const ongoingLabel = r.ongoing ? (t.yes || en.yes || 'Yes') : (t.no || en.no || 'No');
+
+  const calIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+  const clkIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+  const repIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>';
+  const eyeIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+
 
   document.getElementById('track-body').innerHTML=`
     ${r.desc?`<div class="detail-card">
@@ -3147,10 +3158,27 @@ function openTrackDetail(ref){
       ${meta(tagIcon,t.categoryLabel||en.categoryLabel,catLabel.toLowerCase())}
       ${meta(priIcon,t.priorityLabelShort||en.priorityLabelShort,sv?sv.label:'—')}
     </div>
+    <div class="meta-grid" style="margin-top:-10px">
+      ${meta(calIcon,t.dateLabel||en.dateLabel||'Date',dateStr)}
+      ${meta(clkIcon,t.timeLabel||en.timeLabel||'Time',timeStr)}
+      ${meta(repIcon,t.freqLabel||en.freqLabel||'Frequency',freqLabel)}
+      ${meta(eyeIcon,t.anonLabel||en.anonLabel||'Anonymous',anonLabel)}
+    </div>
+    <div class="meta-grid" style="margin-top:-10px">
+       ${meta(tagIcon,t.ongoingLabel||en.ongoingLabel||'Ongoing',ongoingLabel)}
+    </div>
     ${path?`<div class="detail-card">
       <div class="dc-label">${t.issuePathLabel||en.issuePathLabel}</div>
       <div class="dc-value">${escapeHtml(path)}</div>
     </div>`:''}
+    ${(r.imageDatas && r.imageDatas.length) ? `
+    <div class="detail-card">
+      <div class="dc-label">${t.imagesLabel||en.imagesLabel||'Evidence Images'}</div>
+      <div class="dc-images" style="display:flex;gap:10px;overflow-x:auto;padding:5px 0">
+        ${r.imageDatas.map(img=>`<img src="${img}" style="width:120px;height:120px;object-fit:cover;border-radius:12px;border:1px solid var(--glass-border)">`).join('')}
+      </div>
+    </div>
+    ` : ''}
     <div class="big-tracker-card">
       <div class="bt-title">${t.statusTracker||en.statusTracker}</div>
       <div class="bt-steps">
