@@ -85,7 +85,7 @@
         .modern-table td:last-child { border-radius: 0 12px 12px 0; }
 
         .status-pill { padding: 6px 14px; border-radius: 8px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-        .p-critical { background: rgba(255, 82, 82, 0.15); color: var(--danger); border: 1px solid rgba(255, 82, 82, 0.2); }
+        .p-crit { background: rgba(255, 82, 82, 0.15); color: var(--danger); border: 1px solid rgba(255, 82, 82, 0.2); }
         .p-high { background: rgba(255, 171, 0, 0.15); color: var(--warning); border: 1px solid rgba(255, 171, 0, 0.2); }
         .p-med { background: rgba(128, 209, 233, 0.15); color: var(--turquoise); border: 1px solid rgba(128, 209, 233, 0.2); }
         .p-low { background: rgba(0, 230, 118, 0.15); color: var(--success); border: 1px solid rgba(0, 230, 118, 0.2); }
@@ -111,8 +111,14 @@
         .pulse-dot { animation: pulse-turquoise 2s infinite; }
         @keyframes pulse-turquoise { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(128, 209, 233, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(128, 209, 233, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(128, 209, 233, 0); } }
 
+        /* Side Panel Styles */
+        .side-panel { position: fixed; top: 0; right: -550px; width: 500px; height: 100vh; background: rgba(8, 9, 34, 0.95); backdrop-filter: blur(40px); border-left: 1px solid var(--border-glow); box-shadow: -20px 0 50px rgba(0,0,0,0.5); z-index: 2000; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); padding: 50px; overflow-y: auto; }
+        .side-panel.active { right: 0; }
+        .close-panel { position: absolute; top: 25px; right: 25px; background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; transition: 0.3s; }
+        .close-panel:hover { color: var(--danger); transform: rotate(90deg); }
+
         /* Modal Styles */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 1000; align-items: center; justify-content: center; }
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 3000; align-items: center; justify-content: center; }
         .modal-content { background: var(--bg-accent); border: 1px solid var(--border-glow); padding: 40px; border-radius: 28px; width: 100%; max-width: 500px; position: relative; }
     </style>
 </head>
@@ -121,6 +127,13 @@
     <div class="bg-layer">
         <div class="bg-orb bg-orb-1"></div>
         <div class="bg-orb bg-orb-2"></div>
+    </div>
+
+    <div class="side-panel" id="side-panel">
+        <button class="close-panel" onclick="closeSidePanel()"><i class="fas fa-times"></i></button>
+        <div id="side-panel-content">
+            <!-- Content Injected -->
+        </div>
     </div>
 
     <div class="sidebar">
@@ -407,6 +420,7 @@
     <!-- Edit Modal -->
     <div id="edit-modal" class="modal">
         <div class="modal-content">
+            <button class="close-panel" onclick="closeEditModal()"><i class="fas fa-times"></i></button>
             <h2 style="margin-bottom: 25px; font-weight: 900;">Edit Record</h2>
             <div style="display: flex; flex-direction: column; gap: 20px;">
                 <select class="filter-select" id="edit-status">
@@ -414,9 +428,8 @@
                     <option value="IN PROG">IN PROGRESS</option>
                     <option value="DONE">DONE</option>
                 </select>
-                <textarea class="search-input" id="edit-notes" placeholder="Notes..."></textarea>
-                <button class="nav-item active" style="justify-content: center;" onclick="saveReportChanges()">SAVE</button>
-                <button class="nav-item" style="justify-content: center;" onclick="closeEditModal()">CANCEL</button>
+                <textarea class="search-input" id="edit-notes" placeholder="Notes..." style="height: 120px;"></textarea>
+                <button class="nav-item active" style="justify-content: center; padding: 15px;" onclick="saveReportChanges()">SAVE CHANGES</button>
             </div>
         </div>
     </div>
@@ -443,6 +456,7 @@
         let allSessions = [];
         let activeView = 'dashboard';
         let charts = {};
+        let activeReportId = null;
 
         // --- Core Navigation ---
         function switchView(viewId, el) {
@@ -458,7 +472,7 @@
                 target.classList.add('active');
             }
             
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.sidebar .nav-item').forEach(n => n.classList.remove('active'));
             if(el) el.classList.add('active');
             
             document.getElementById('view-title').innerText = el ? el.innerText : viewId;
@@ -471,19 +485,49 @@
             if(viewId === 'all-reports') applyFilters();
         }
 
+        // --- Side Panel Logic ---
+        function openSidePanel() {
+            document.getElementById('side-panel').classList.add('active');
+        }
+        function closeSidePanel() {
+            document.getElementById('side-panel').classList.remove('active');
+        }
+
+        function openFilteredList(status, title) {
+            const content = document.getElementById('side-panel-content');
+            const filtered = allReports.filter(r => {
+                if(status === 'OPEN') return (r.status || 'OPEN').toUpperCase() !== 'DONE';
+                if(status === 'DONE') return (r.status || '').toUpperCase() === 'DONE';
+                return true;
+            });
+
+            let html = `<h2 style="font-weight: 900; margin-bottom: 25px; color: var(--turquoise); letter-spacing: -1px;">${title}</h2>`;
+            if(filtered.length === 0) {
+                html += `<div style="color: var(--text-dim); text-align: center; padding: 50px;">No records found.</div>`;
+            } else {
+                html += `<table class="modern-table" style="font-size: 0.85rem;">
+                    <thead><tr><th>Ref</th><th>Category</th><th>Status</th></tr></thead>
+                    <tbody>`;
+                filtered.forEach(r => {
+                    html += `<tr style="cursor: pointer;" onclick="openEditModal('${r.id}')">
+                        <td style="font-weight: 800; color: var(--turquoise);">#${r.id.slice(-4)}</td>
+                        <td>${r.category || 'Other'}</td>
+                        <td><span class="status-pill p-${(r.priority || 'Low').toLowerCase().slice(0,3)}">${r.status || 'OPEN'}</span></td>
+                    </tr>`;
+                });
+                html += `</tbody></table>`;
+            }
+            content.innerHTML = html;
+            openSidePanel();
+        }
+
         window.onload = () => {
             initRealtimeSync();
             initCharts();
-            // Handle URL Hash for "real page" feel
             const hash = window.location.hash.replace('#', '');
             if(hash) {
-                const navItems = {
-                    'dashboard': 0, 'per-site': 1, 'all-reports': 2, 
-                    'chat': 3, 'broadcasts': 4, 'hr-reports': 5, 'hr-podcast': 6
-                };
-                if(navItems[hash] !== undefined) {
-                    switchView(hash, document.querySelectorAll('.nav-item')[navItems[hash]]);
-                }
+                const navItems = { 'dashboard': 0, 'per-site': 1, 'all-reports': 2, 'chat': 3, 'broadcasts': 4, 'hr-reports': 5, 'hr-podcast': 6 };
+                if(navItems[hash] !== undefined) switchView(hash, document.querySelectorAll('.sidebar .nav-item')[navItems[hash]]);
             }
         };
 
@@ -491,6 +535,7 @@
             db.collection('reports').onSnapshot(snap => {
                 allReports = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 updateDashboards();
+                if(activeView === 'all-reports') applyFilters();
             });
             db.collection('chats').onSnapshot(snap => {
                 allSessions = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -499,10 +544,9 @@
 
         function updateDashboards() {
             const total = allReports.length;
-            const open = allReports.filter(r => (r.status || 'OPEN') !== 'DONE').length;
+            const open = allReports.filter(r => (r.status || 'OPEN').toUpperCase() !== 'DONE').length;
             const closed = total - open;
             const rate = total > 0 ? Math.round((closed / total) * 100) : 0;
-
             document.getElementById('main-total').innerText = total;
             document.getElementById('main-open').innerText = open;
             document.getElementById('main-closed').innerText = closed;
@@ -511,23 +555,20 @@
         }
 
         function initCharts() {
-            // Category Chart
             charts.category = new Chart(document.getElementById('categoryChart'), {
                 type: 'doughnut',
-                data: { labels: ['Safety', 'Service', 'Other'], datasets: [{ data: [0,0,0], backgroundColor: ['#ff5252', '#80d1e9', '#2e3192'] }] },
-                options: { cutout: '75%', plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } } }
+                data: { labels: ['Safety', 'Service', 'Other'], datasets: [{ data: [0,0,0], backgroundColor: ['#ff5252', '#80d1e9', '#2e3192'], borderWidth: 0 }] },
+                options: { cutout: '75%', plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { weight: '600' } } } } }
             });
-            // Priority Chart
             charts.priority = new Chart(document.getElementById('priorityChart'), {
                 type: 'bar',
-                data: { labels: ['Critical', 'High', 'Medium', 'Low'], datasets: [{ data: [0,0,0,0], backgroundColor: ['#ff5252', '#ffab00', '#80d1e9', '#00e676'] }] },
-                options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } } } }
+                data: { labels: ['Critical', 'High', 'Medium', 'Low'], datasets: [{ data: [0,0,0,0], backgroundColor: ['#ff5252', '#ffab00', '#80d1e9', '#00e676'], borderRadius: 6 }] },
+                options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' } }, x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.8)' } } } }
             });
-            // Location Chart
             charts.location = new Chart(document.getElementById('locationChart'), {
                 type: 'bar',
-                data: { labels: [], datasets: [{ data: [], backgroundColor: '#80d1e9' }] },
-                options: { indexAxis: 'y', plugins: { legend: { display: false } } }
+                data: { labels: [], datasets: [{ data: [], backgroundColor: '#80d1e9', borderRadius: 4 }] },
+                options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.5)' } }, y: { grid: { display: false }, ticks: { color: '#fff' } } } }
             });
         }
 
@@ -536,75 +577,44 @@
             const cats = { Safety: 0, Service: 0, Other: 0 };
             const pris = { Critical: 0, High: 0, Medium: 0, Low: 0 };
             const locs = {};
-
-            allReports.forEach(r => {
-                cats[r.category || 'Other']++;
-                pris[r.priority || 'Low']++;
-                const loc = r.location || r.site || 'Unknown';
-                locs[loc] = (locs[loc] || 0) + 1;
-            });
-
-            charts.category.data.datasets[0].data = [cats.Safety, cats.Service, cats.Other];
-            charts.category.update();
-
-            charts.priority.data.datasets[0].data = [pris.Critical, pris.High, pris.Medium, pris.Low];
-            charts.priority.update();
-
+            allReports.forEach(r => { cats[r.category || 'Other']++; pris[r.priority || 'Low']++; const loc = r.location || r.site || 'Unknown'; locs[loc] = (locs[loc] || 0) + 1; });
+            charts.category.data.datasets[0].data = [cats.Safety, cats.Service, cats.Other]; charts.category.update();
+            charts.priority.data.datasets[0].data = [pris.Critical, pris.High, pris.Medium, pris.Low]; charts.priority.update();
             const sortedLocs = Object.entries(locs).sort((a,b) => b[1] - a[1]).slice(0, 5);
-            charts.location.data.labels = sortedLocs.map(l => l[0]);
-            charts.location.data.datasets[0].data = sortedLocs.map(l => l[1]);
-            charts.location.update();
+            charts.location.data.labels = sortedLocs.map(l => l[0]); charts.location.data.datasets[0].data = sortedLocs.map(l => l[1]); charts.location.update();
         }
 
-        // --- Site Logic ---
         function updateSiteView() {
             const container = document.getElementById('site-stats-grid');
             container.innerHTML = '';
             const locs = {};
-            allReports.forEach(r => {
-                const l = r.location || r.site || 'Unknown';
-                locs[l] = (locs[l] || 0) + 1;
-            });
+            allReports.forEach(r => { const l = r.location || r.site || 'Unknown'; locs[l] = (locs[l] || 0) + 1; });
             Object.entries(locs).forEach(([name, count]) => {
-                container.innerHTML += `
-                    <div class="stat-card">
-                        <span class="stat-label">${name}</span>
-                        <div class="stat-value">${count}</div>
-                    </div>`;
+                container.innerHTML += `<div class="stat-card"><span class="stat-label">${name}</span><div class="stat-value" style="font-size: 2.2rem; font-weight: 900;">${count}</div></div>`;
             });
         }
 
-        // --- Logs Logic ---
         function applyFilters() {
             const body = document.getElementById('reports-table-body');
+            if(!body) return;
             body.innerHTML = '';
-            const search = document.getElementById('report-search').value.toLowerCase();
-            const loc = document.getElementById('filter-location').value;
-            const stat = document.getElementById('filter-status').value;
-
+            const search = (document.getElementById('report-search')?.value || '').toLowerCase();
+            const loc = document.getElementById('filter-location')?.value || 'all';
+            const stat = document.getElementById('filter-status')?.value || 'all';
             allReports.filter(r => {
-                const matchSearch = (r.reporter || '').toLowerCase().includes(search) || r.id.toLowerCase().includes(search);
+                const matchSearch = (r.reporter || '').toLowerCase().includes(search) || (r.id || '').toLowerCase().includes(search);
                 const matchLoc = loc === 'all' || (r.location || '').toUpperCase().includes(loc);
                 const matchStat = stat === 'all' || (r.status || 'OPEN').toUpperCase() === stat;
                 return matchSearch && matchLoc && matchStat;
             }).forEach(r => {
-                body.innerHTML += `
-                    <tr>
-                        <td>#${r.id.slice(-4)}</td>
-                        <td>${r.reporter || 'Field Official'}</td>
-                        <td>${r.category}</td>
-                        <td>${r.location || r.site}</td>
-                        <td><span class="status-pill p-${(r.priority || 'Low').toLowerCase().slice(0,3)}">${r.priority}</span></td>
-                        <td>${r.status || 'OPEN'}</td>
-                        <td>${r.date || 'Today'}</td>
-                        <td><button class="btn-action" onclick="openEditModal('${r.id}')">EDIT</button></td>
-                    </tr>`;
+                body.innerHTML += `<tr><td>#${r.id.slice(-4)}</td><td>${r.reporter || 'Field Official'}</td><td>${r.category}</td><td>${r.location || r.site}</td><td><span class="status-pill p-${(r.priority || 'Low').toLowerCase().slice(0,3)}">${r.priority}</span></td><td>${r.status || 'OPEN'}</td><td>${r.date || 'Today'}</td><td><button class="btn-action" onclick="openEditModal('${r.id}')">EDIT</button></td></tr>`;
             });
         }
 
         function openEditModal(id) {
             activeReportId = id;
             const r = allReports.find(x => x.id === id);
+            if(!r) return;
             document.getElementById('edit-status').value = r.status || 'OPEN';
             document.getElementById('edit-notes').value = r.notes || '';
             document.getElementById('edit-modal').style.display = 'flex';
@@ -615,6 +625,7 @@
             const n = document.getElementById('edit-notes').value;
             db.collection('reports').doc(activeReportId).update({ status: s, notes: n }).then(() => {
                 closeEditModal();
+                closeSidePanel();
             });
         }
     </script>
