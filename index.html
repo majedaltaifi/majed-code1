@@ -2936,8 +2936,8 @@ function renderBroadcasts(){
   if(!broadcastsDb || !broadcastsDb.length){wrap.style.display='none';return}
   wrap.style.display='block';
   row.innerHTML=broadcastsDb.map(b=>{
-    const title = (lang==='en' ? (b.titleAr || b.title) : (b.titleEn || b.title)) || b.title || 'Broadcast';
-    const label = (lang==='en' ? (b.labelAr || title) : (b.labelEn || b.titleEn || title)) || 'Nesma IT';
+    const title = b.title || 'Broadcast';
+    const label = b.label || 'Nesma IT';
     const icon = ICO[b.svg] || ICO.megaphone || ICO.broadcast;
     const color = b.iconColor || 'white';
     return `<div class="bc-item" onclick="openBroadcast('${b.id}')">
