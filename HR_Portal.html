@@ -338,9 +338,8 @@
                         <div class="step ${status === 'OPEN' || status === 'DONE' ? 'active' : ''}"><div class="step-circle"><i class="fas fa-cog fa-spin"></i></div><div class="step-lab">In Progress</div></div>
                         <div class="step ${status === 'DONE' ? 'active' : ''}"><div class="step-circle"><i class="fas fa-flag-checkered"></i></div><div class="step-lab">Resolved</div></div>
                     </div>
-                    <div style="display:flex; justify-content:center; margin-top:30px; gap:20px;">
-                        ${getStatusPill(status)}
-                        <button class="action-btn" onclick="toggleStatus('${r.id}', '${status}')">
+                    <div style="display:flex; justify-content:center; margin-top:30px;">
+                        <button class="action-btn" style="min-width: 250px; justify-content: center;" onclick="toggleStatus('${r.id}', '${status}')">
                             ${status === 'DONE' ? '<i class="fas fa-undo"></i> Re-open Task' : '<i class="fas fa-check"></i> Close Task'}
                         </button>
                     </div>
