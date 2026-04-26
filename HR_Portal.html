@@ -89,6 +89,8 @@
         .info-group { margin-bottom: 30px; }
         .info-lab { color: var(--text-muted); font-size: 0.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
         .info-val { color: #fff; font-size: 1.2rem; font-weight: 600; }
+        
+        .filter-badge { display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; border-radius: 100px; font-weight: 900; font-size: 1rem; text-transform: uppercase; margin-bottom: 30px; border: 1px solid currentColor; }
     </style>
 </head>
 <body>
@@ -125,7 +127,7 @@
 
         <div id="view-dashboard" class="tab-content active">
             <div class="analytics-grid">
-                <div class="stat-card clickable" onclick="switchView('all-reports', document.querySelectorAll('.nav-item')[2])">
+                <div class="stat-card clickable" onclick="openFilteredList('TOTAL', 'Operational Overview', 'status')">
                     <div class="stat-label">Total Reports</div><div class="stat-value" id="main-total">0</div>
                 </div>
                 <div class="stat-card clickable" onclick="openFilteredList('OPEN', 'Active Issues', 'status')">
@@ -255,19 +257,16 @@
             const search = (document.getElementById('report-search') ? document.getElementById('report-search').value.toLowerCase() : '');
             
             allReports.filter(r => {
-                const isAnon = (r.isAnonymous === true || !r.reporter);
                 const reporterName = (r.reporter || '').toLowerCase();
                 const description = (r.description || '').toLowerCase();
                 const location = (r.location || r.site || '').toLowerCase();
                 const id = r.id.toLowerCase();
-                
                 return id.includes(search) || reporterName.includes(search) || description.includes(search) || location.includes(search);
             })
             .forEach(r => {
                 const s = (r.status || 'OPEN').toUpperCase(); const isAnon = (r.isAnonymous === true || !r.reporter);
                 let loc = (r.location || r.site || 'Unknown');
                 if(loc.trim() === 'HQ — Jeddah') loc = 'Jeddah Main Office - Randa Tower';
-                
                 body.innerHTML += `<tr onclick="showReportDetail('${r.id}')"><td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td><td>${isAnon ? '<span style="opacity:0.4;">Anonymous</span>' : r.reporter}</td><td>${r.category}</td><td>${loc}</td><td><span class="status-pill ${s === 'DONE' ? 'status-done' : 'status-open'}">${s}</span></td><td onclick="event.stopPropagation()"><button class="action-btn" onclick="toggleStatus('${r.id}', '${s}')">${s === 'DONE' ? 'Open' : 'Close'}</button></td></tr>`;
             });
         }
@@ -276,25 +275,20 @@
             if(btn) { document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentUnitFilter = filter; }
             const grid = document.getElementById('unit-matrix-grid'); if(!grid) return; grid.innerHTML = '';
             const stats = {}; const discoveredUnits = new Set();
-            
             allReports.forEach(r => {
                 let name = (r.location || r.site || 'Unknown').trim();
                 if(name === 'HQ — Jeddah') name = 'Jeddah Main Office - Randa Tower';
-                
                 let category = 'SITE';
                 if (STATIC_OFFICES.some(o => o.toLowerCase() === name.toLowerCase())) category = 'OFFICE';
                 else if (STATIC_HOUSINGS.some(h => h.toLowerCase() === name.toLowerCase()) || name.toLowerCase().startsWith('housing')) category = 'HOUSING';
                 else category = 'SITE';
-                
                 if(!stats[name]) stats[name] = { total: 0, open: 0, done: 0, category: category };
                 stats[name].total++; if((r.status || 'OPEN').toUpperCase() === 'DONE') stats[name].done++; else stats[name].open++;
                 discoveredUnits.add(name);
             });
-
             STATIC_OFFICES.forEach(o => { if(!stats[o]) stats[o] = { total: 0, open: 0, done: 0, category: 'OFFICE' }; discoveredUnits.add(o); });
             STATIC_HOUSINGS.forEach(h => { if(!stats[h]) stats[h] = { total: 0, open: 0, done: 0, category: 'HOUSING' }; discoveredUnits.add(h); });
             STATIC_SITES.forEach(s => { if(!stats[s]) stats[s] = { total: 0, open: 0, done: 0, category: 'SITE' }; discoveredUnits.add(s); });
-
             Array.from(discoveredUnits).sort().forEach(name => {
                 const s = stats[name]; if (filter !== 'ALL' && s.category !== filter) return;
                 const rate = s.total > 0 ? Math.round((s.done / s.total) * 100) : 0;
@@ -305,19 +299,39 @@
         function openFilteredList(value, title, type) {
             const content = document.getElementById('side-panel-content');
             const filtered = allReports.filter(r => {
-                let loc = (r.location || r.site || '').trim();
-                if(loc === 'HQ — Jeddah') loc = 'Jeddah Main Office - Randa Tower';
-                const locLower = loc.toLowerCase();
+                const s = (r.status || 'OPEN').toUpperCase();
+                const p = (r.priority || 'Low').toLowerCase();
+                const c = (r.category || 'Other').toLowerCase();
+                const loc = (r.location || r.site || 'Unknown').trim();
                 const val = (value || '').toLowerCase().trim();
-                if(type === 'status') return (r.status || 'OPEN').toUpperCase() === value;
-                if(type === 'location') return locLower === val || locLower.includes(val);
+                
+                if(type === 'status' && value === 'TOTAL') return true;
+                if(type === 'status') return s === value;
+                if(type === 'priority') return p === val;
+                if(type === 'category') return c === val;
+                if(type === 'location') return loc.toLowerCase() === val || (loc === 'HQ — Jeddah' && val === 'jeddah main office - randa tower');
                 return true;
             });
-            let html = `<h2 style="font-size:2.5rem; font-weight:950; margin-bottom:40px; color:var(--turquoise);">${title}</h2>`;
-            if(filtered.length === 0) { html += `<div style="text-align:center; padding:80px; color:var(--text-dim); font-size:1.2rem;">No operational records found.</div>`; }
-            else {
-                html += `<table class="modern-table"><thead><tr><th>Ref</th><th>Category</th><th>Status</th></tr></thead><tbody>`;
-                filtered.forEach(r => { const s = (r.status || 'OPEN').toUpperCase(); html += `<tr onclick="showReportDetail('${r.id}')"><td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td><td>${r.category}</td><td>${s}</td></tr>`; });
+
+            let color = 'var(--turquoise)';
+            if(value === 'Critical' || value === 'Safety' || value === 'OPEN') color = 'var(--danger)';
+            if(value === 'High' || value === 'warning') color = 'var(--warning)';
+            if(value === 'DONE') color = 'var(--success)';
+
+            let html = `<div class="filter-badge" style="color:${color};"><i class="fas fa-filter"></i> ${type}: ${value}</div>`;
+            html += `<h2 style="font-size:2.5rem; font-weight:950; margin-bottom:40px; color:#fff;">${title}</h2>`;
+            
+            if(filtered.length === 0) {
+                html += `<div style="text-align:center; padding:80px; color:var(--text-dim); font-size:1.2rem;">No operational records found for this filter.</div>`;
+            } else {
+                html += `<div style="margin-bottom:20px; color:var(--text-muted); font-weight:700;">Showing ${filtered.length} reports</div>`;
+                html += `<table class="modern-table"><thead><tr><th>Ref</th><th>Category</th><th>Location</th><th>Status</th></tr></thead><tbody>`;
+                filtered.forEach(r => {
+                    const s = (r.status || 'OPEN').toUpperCase();
+                    let loc = (r.location || r.site || 'Unknown');
+                    if(loc.trim() === 'HQ — Jeddah') loc = 'Jeddah Main Office - Randa Tower';
+                    html += `<tr onclick="showReportDetail('${r.id}')"><td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td><td>${r.category}</td><td style="font-size:0.8rem;">${loc}</td><td><span class="status-pill ${s === 'DONE' ? 'status-done' : 'status-open'}">${s}</span></td></tr>`;
+                });
                 html += `</tbody></table>`;
             }
             content.innerHTML = html; openSidePanel();
@@ -326,12 +340,33 @@
         function initCharts() {
             const opt = (type) => ({
                 responsive: true, maintainAspectRatio: false,
-                onClick: (e, els, chart) => { if(els.length > 0) { const idx = els[0].index; const label = chart.data.labels[idx]; openFilteredList(label, `${label} Analysis`, type); } },
+                onClick: (e, els, chart) => {
+                    if(els.length > 0) {
+                        const idx = els[0].index;
+                        const label = chart.data.labels[idx];
+                        openFilteredList(label, `${label} Analysis`, type);
+                    }
+                },
                 plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 14, weight: '700' }, padding: 15 } } }
             });
-            charts.category = new Chart(document.getElementById('categoryChart'), { type: 'doughnut', data: { labels: ['Safety', 'Service', 'Other'], datasets: [{ data: [0,0,0], backgroundColor: ['#ff5252', '#80d1e9', '#2e3192'], borderWidth: 0 }] }, options: { ...opt('category'), cutout: '78%' } });
-            charts.priority = new Chart(document.getElementById('priorityChart'), { type: 'bar', data: { labels: ['Critical', 'High', 'Medium', 'Low'], datasets: [{ data: [0,0,0,0], backgroundColor: ['#ff5252', '#ffab00', '#80d1e9', '#00e676'], borderRadius: 12 }] }, options: { ...opt('priority'), plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#fff', font: { weight: '800' } } }, x: { ticks: { color: '#fff', font: { weight: '800' } } } } } });
-            charts.location = new Chart(document.getElementById('locationChart'), { type: 'bar', data: { labels: [], datasets: [{ data: [], backgroundColor: '#80d1e9', borderRadius: 8 }] }, options: { ...opt('location'), indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#fff', font: { weight: '800' } } }, y: { ticks: { color: '#fff', font: { weight: '800' } } } } } });
+
+            charts.category = new Chart(document.getElementById('categoryChart'), {
+                type: 'doughnut',
+                data: { labels: ['Safety', 'Service', 'Other'], datasets: [{ data: [0,0,0], backgroundColor: ['#ff5252', '#80d1e9', '#2e3192'], borderWidth: 0 }] },
+                options: { ...opt('category'), cutout: '78%' }
+            });
+
+            charts.priority = new Chart(document.getElementById('priorityChart'), {
+                type: 'bar',
+                data: { labels: ['Critical', 'High', 'Medium', 'Low'], datasets: [{ data: [0,0,0,0], backgroundColor: ['#ff5252', '#ffab00', '#80d1e9', '#00e676'], borderRadius: 12 }] },
+                options: { ...opt('priority'), plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#fff', font: { weight: '800' } } }, x: { ticks: { color: '#fff', font: { weight: '800' } } } } }
+            });
+
+            charts.location = new Chart(document.getElementById('locationChart'), {
+                type: 'bar',
+                data: { labels: [], datasets: [{ data: [], backgroundColor: '#80d1e9', borderRadius: 8 }] },
+                options: { ...opt('location'), indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#fff', font: { weight: '800' } } }, y: { ticks: { color: '#fff', font: { weight: '800' } } } } }
+            });
         }
 
         function syncAllData() {
@@ -343,18 +378,18 @@
             document.getElementById('main-open').innerText = open;
             document.getElementById('main-closed').innerText = closed;
             document.getElementById('main-rate').innerText = rate + '%';
-            const cats = { Safety: 0, Service: 0, Other: 0 };
-            const pris = { Critical: 0, High: 0, Medium: 0, Low: 0 };
+            const cats = { safety: 0, service: 0, other: 0 };
+            const pris = { critical: 0, high: 0, medium: 0, low: 0 };
             const locs = {};
             allReports.forEach(r => { 
-                cats[r.category || 'Other']++; 
-                pris[r.priority || 'Low']++; 
+                cats[(r.category || 'Other').toLowerCase()]++; 
+                pris[(r.priority || 'Low').toLowerCase()]++; 
                 let l = (r.location || r.site || 'Unknown').trim();
                 if(l === 'HQ — Jeddah') l = 'Jeddah Main Office - Randa Tower';
                 locs[l] = (locs[l] || 0) + 1; 
             });
-            if(charts.category) { charts.category.data.datasets[0].data = [cats.Safety, cats.Service, cats.Other]; charts.category.update(); }
-            if(charts.priority) { charts.priority.data.datasets[0].data = [pris.Critical, pris.High, pris.Medium, pris.Low]; charts.priority.update(); }
+            if(charts.category) { charts.category.data.datasets[0].data = [cats.safety, cats.service, cats.other]; charts.category.update(); }
+            if(charts.priority) { charts.priority.data.datasets[0].data = [pris.critical, pris.high, pris.medium, pris.low]; charts.priority.update(); }
             if(charts.location) { const sortedLocs = Object.entries(locs).sort((a,b) => b[1] - a[1]).slice(0, 8); charts.location.data.labels = sortedLocs.map(l => l[0]); charts.location.data.datasets[0].data = sortedLocs.map(l => l[1]); charts.location.update(); }
             if(activeView === 'per-site') updateUnitMatrix(currentUnitFilter);
             applyFilters();
