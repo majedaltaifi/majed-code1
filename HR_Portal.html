@@ -62,6 +62,19 @@
         .leg-item { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 0.85rem; }
         .leg-dot { width: 12px; height: 12px; border-radius: 50%; }
 
+        /* Modern Tabs & Search */
+        .controls-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 45px; gap: 30px; }
+        .tab-nav { display: flex; gap: 15px; }
+        .btn-tab { background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text-dim); padding: 16px 32px; border-radius: 20px; cursor: pointer; font-size: 1rem; font-weight: 800; transition: 0.4s; display: flex; align-items: center; gap: 12px; }
+        .btn-tab:hover { background: var(--surface-hover); color: #fff; transform: translateY(-2px); }
+        .btn-tab.active { background: linear-gradient(135deg, rgba(128, 209, 233, 0.2), rgba(46, 49, 146, 0.4)); border-color: var(--turquoise); color: var(--turquoise); box-shadow: 0 10px 25px rgba(0,0,0,0.3), 0 0 15px var(--turq-glow); }
+        
+        .search-wrapper { position: relative; flex: 1; max-width: 500px; }
+        .search-input-modern { width: 100%; padding: 18px 25px 18px 60px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 22px; color: #fff; font-size: 1.1rem; font-weight: 600; outline: none; transition: 0.4s; backdrop-filter: blur(10px); }
+        .search-input-modern:focus { border-color: var(--turquoise); background: rgba(255,255,255,0.06); box-shadow: 0 0 25px var(--turq-glow); }
+        .search-icon { position: absolute; left: 25px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 1.2rem; pointer-events: none; transition: 0.3s; }
+        .search-input-modern:focus + .search-icon { color: var(--turquoise); }
+
         .charts-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-bottom: 35px; }
         .chart-container { background: var(--surface); border: 1px solid var(--border); border-radius: 40px; padding: 40px; height: 480px; position: relative; transition: 0.4s; overflow: hidden; }
         .chart-title { font-size: 1.4rem; font-weight: 950; margin-bottom: 20px; color: #fff; display: flex; align-items: center; gap: 15px; }
@@ -174,11 +187,17 @@
         </div>
 
         <div id="view-per-site" class="tab-content">
-            <div class="tab-nav" style="display:flex; gap:20px; margin-bottom:45px;">
-                <button class="btn-tab active" onclick="updateUnitMatrix('ALL', this)">🌐 All Units</button>
-                <button class="btn-tab" onclick="updateUnitMatrix('SITE', this)">🏗️ Sites</button>
-                <button class="btn-tab" onclick="updateUnitMatrix('OFFICE', this)">🏢 Offices</button>
-                <button class="btn-tab" onclick="updateUnitMatrix('HOUSING', this)">🏠 Housing</button>
+            <div class="controls-row">
+                <div class="tab-nav">
+                    <button class="btn-tab active" onclick="updateUnitMatrix('ALL', this)">🌐 All Units</button>
+                    <button class="btn-tab" onclick="updateUnitMatrix('SITE', this)">🏗️ Sites</button>
+                    <button class="btn-tab" onclick="updateUnitMatrix('OFFICE', this)">🏢 Offices</button>
+                    <button class="btn-tab" onclick="updateUnitMatrix('HOUSING', this)">🏠 Housing</button>
+                </div>
+                <div class="search-wrapper">
+                    <input type="text" class="search-input-modern" placeholder="Search for any site, office, or city..." id="site-search-input" oninput="updateUnitMatrix(currentUnitFilter)">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
             </div>
             <div id="unit-matrix-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:30px;"></div>
         </div>
@@ -205,6 +224,7 @@
         let allReports = [];
         let charts = {};
         let activeView = 'dashboard';
+        let currentUnitFilter = 'ALL';
         let map;
         let markersGroup = L.layerGroup();
         const deterministicJitter = {};
@@ -251,7 +271,12 @@
         }
 
         function updateUnitMatrix(filter, btn) {
-            if(btn) { document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
+            if(btn) { 
+                document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active')); 
+                btn.classList.add('active'); 
+                currentUnitFilter = filter;
+            }
+            const search = document.getElementById('site-search-input').value.toLowerCase();
             const grid = document.getElementById('unit-matrix-grid'); if(!grid) return; grid.innerHTML = '';
             const stats = {}; const discoveredUnits = new Set();
             
@@ -270,7 +295,10 @@
             STATIC_SITES.forEach(s => { if(!stats[s]) stats[s] = { total: 0, open: 0, done: 0, category: 'SITE' }; discoveredUnits.add(s); });
 
             Array.from(discoveredUnits).sort().forEach(name => {
-                const s = stats[name]; if (filter !== 'ALL' && s.category !== filter) return;
+                const s = stats[name];
+                if (currentUnitFilter !== 'ALL' && s.category !== currentUnitFilter) return;
+                if (search && !name.toLowerCase().includes(search)) return;
+                
                 const rate = s.total > 0 ? Math.round((s.done / s.total) * 100) : 0;
                 grid.innerHTML += `
                     <div class="unit-card" onclick="openFilteredList('${name}', '${name}', 'location')">
@@ -309,7 +337,7 @@
             if(charts.openPriority) { charts.openPriority.data.datasets[0].data = [openPris.critical, openPris.high, openPris.medium, openPris.low]; charts.openPriority.update(); }
             if(charts.priority) { charts.priority.data.datasets[0].data = [pris.critical, pris.high, pris.medium, pris.low]; charts.priority.update(); }
             if(charts.location) { const sortedLocs = Object.entries(locs).sort((a,b) => b[1] - a[1]).slice(0, 10); charts.location.data.labels = sortedLocs.map(l => l[0]); charts.location.data.datasets[0].data = sortedLocs.map(l => l[1]); charts.location.update(); }
-            updateMarkers(); updateUnitMatrix('ALL'); applyFilters();
+            updateMarkers(); updateUnitMatrix(currentUnitFilter); applyFilters();
         }
 
         function applyFilters() { const body = document.getElementById('reports-table-body'); if(!body) return; body.innerHTML = ''; const search = (document.getElementById('report-search') ? document.getElementById('report-search').value.toLowerCase() : ''); allReports.filter(r => { const reporterName = (r.reporter || '').toLowerCase(); const description = (r.description || '').toLowerCase(); const location = (r.location || r.site || '').toLowerCase(); const id = r.id.toLowerCase(); return id.includes(search) || reporterName.includes(search) || description.includes(search) || location.includes(search); }).forEach(r => { const s = (r.status || 'OPEN').toUpperCase(); const isAnon = (r.isAnonymous === true || !r.reporter); let loc = (r.location || r.site || 'Unknown'); if(loc.trim() === 'HQ — Jeddah' || loc.trim() === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower'; body.innerHTML += `<tr onclick="showReportDetail('${r.id}')"><td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td><td>${isAnon ? '<span style="opacity:0.4;">Anonymous</span>' : r.reporter}</td><td><span class="pri-badge" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</span></td><td>${r.category}</td><td style="font-size:0.85rem;">${loc}</td><td><span class="status-pill ${s === 'DONE' ? 'status-done' : 'status-open'}">${s}</span></td><td onclick="event.stopPropagation()"><button class="action-btn" onclick="toggleStatus('${r.id}', '${s}')">${s === 'DONE' ? 'Open' : 'Close'}</button></td></tr>`; }); }
