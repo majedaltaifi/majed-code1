@@ -188,7 +188,7 @@
             'Housing - Tabuk Alraya', 'Housing - Yanbu Alttakhi', 'Housing- jeddah Alfrusiyah'
         ];
         const STATIC_SITES = [
-            'HQ — Jeddah', '10521300012 - KSP 8388', '10521300013 - KSP 8389', 'ABU Hadriyah 115 KV Extension with Rerouting in OHTL',
+            '10521300012 - KSP 8388', '10521300013 - KSP 8389', 'ABU Hadriyah 115 KV Extension with Rerouting in OHTL',
             'AL- Ahsa O&M', 'Abu Maan Substation', 'Aindar Project', 'Aindar Warehouse', 'Al-Bahr Substation', 'Asfan Main Warehouse',
             'BISHA - PV 380/132 KV BSP', 'Bayoniyah Substation', 'Buhaiyrat', 'CONSTRUCTION OF AL-MURJAN 132/13.8kV SUBSTATION # 8274 IN RIYADH CITY',
             'CONSTRUCTION OF HARAM-3 SS', 'CONSTRUCTION OF JAZERA ROYAL PALACE - THUWAL', 'Construction Of Farasan Island SS (132/33/13.8KV)',
@@ -265,7 +265,11 @@
             const stats = {}; const discoveredUnits = new Set();
             
             allReports.forEach(r => {
-                const name = (r.location || r.site || 'Unknown').trim();
+                let name = (r.location || r.site || 'Unknown').trim();
+                
+                // UNIFICATION LOGIC: Map HQ — Jeddah to Randa Tower Office
+                if(name === 'HQ — Jeddah') name = 'Jeddah Main Office - Randa Tower';
+                
                 let category = 'SITE';
                 if (STATIC_OFFICES.some(o => o.toLowerCase() === name.toLowerCase())) category = 'OFFICE';
                 else if (STATIC_HOUSINGS.some(h => h.toLowerCase() === name.toLowerCase()) || name.toLowerCase().startsWith('housing')) category = 'HOUSING';
@@ -290,10 +294,14 @@
         function openFilteredList(value, title, type) {
             const content = document.getElementById('side-panel-content');
             const filtered = allReports.filter(r => {
-                const loc = (r.location || r.site || '').toLowerCase().trim();
+                let loc = (r.location || r.site || '').trim();
+                if(loc === 'HQ — Jeddah') loc = 'Jeddah Main Office - Randa Tower';
+                
+                const locLower = loc.toLowerCase();
                 const val = (value || '').toLowerCase().trim();
+                
                 if(type === 'status') return (r.status || 'OPEN').toUpperCase() === value;
-                if(type === 'location') return loc === val || loc.includes(val);
+                if(type === 'location') return locLower === val || locLower.includes(val);
                 return true;
             });
             let html = `<h2 style="font-size:2.5rem; font-weight:950; margin-bottom:40px; color:var(--turquoise);">${title}</h2>`;
@@ -329,7 +337,13 @@
             const cats = { Safety: 0, Service: 0, Other: 0 };
             const pris = { Critical: 0, High: 0, Medium: 0, Low: 0 };
             const locs = {};
-            allReports.forEach(r => { cats[r.category || 'Other']++; pris[r.priority || 'Low']++; const l = (r.location || r.site || 'Unknown').trim(); locs[l] = (locs[l] || 0) + 1; });
+            allReports.forEach(r => { 
+                cats[r.category || 'Other']++; 
+                pris[r.priority || 'Low']++; 
+                let l = (r.location || r.site || 'Unknown').trim();
+                if(l === 'HQ — Jeddah') l = 'Jeddah Main Office - Randa Tower';
+                locs[l] = (locs[l] || 0) + 1; 
+            });
             if(charts.category) { charts.category.data.datasets[0].data = [cats.Safety, cats.Service, cats.Other]; charts.category.update(); }
             if(charts.priority) { charts.priority.data.datasets[0].data = [pris.Critical, pris.High, pris.Medium, pris.Low]; charts.priority.update(); }
             if(charts.location) { const sortedLocs = Object.entries(locs).sort((a,b) => b[1] - a[1]).slice(0, 8); charts.location.data.labels = sortedLocs.map(l => l[0]); charts.location.data.datasets[0].data = sortedLocs.map(l => l[1]); charts.location.update(); }
@@ -344,7 +358,7 @@
                 .filter(r => {
                     const l = (r.location || r.site || '').trim();
                     const isValid = l && !GARBAGE.includes(l) && !(/^\d+$/.test(l) && !l.includes('HQ') && !l.includes('KSP'));
-                    const isWhiteListed = STATIC_SITES.some(s => s.toLowerCase() === l.toLowerCase()) || STATIC_HOUSINGS.some(h => h.toLowerCase() === l.toLowerCase()) || STATIC_OFFICES.some(o => o.toLowerCase() === l.toLowerCase());
+                    const isWhiteListed = l === 'HQ — Jeddah' || STATIC_SITES.some(s => s.toLowerCase() === l.toLowerCase()) || STATIC_HOUSINGS.some(h => h.toLowerCase() === l.toLowerCase()) || STATIC_OFFICES.some(o => o.toLowerCase() === l.toLowerCase());
                     return isValid || isWhiteListed;
                 });
                 syncAllData(); 
