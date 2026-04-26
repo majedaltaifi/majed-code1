@@ -197,6 +197,25 @@
 
         .marker-pulse { animation: marker-pulse 2s infinite; }
         @keyframes marker-pulse { 0% { box-shadow: 0 0 0 0px rgba(255, 82, 82, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(255, 82, 82, 0); } 100% { box-shadow: 0 0 0 0px rgba(255, 82, 82, 0); } }
+        
+        .unread-indicator {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 14px;
+            height: 14px;
+            background: var(--danger);
+            border-radius: 50%;
+            border: 2px solid var(--bg-accent);
+            z-index: 10;
+            box-shadow: 0 0 10px var(--danger);
+            animation: pulse-red 2s infinite;
+        }
+        @keyframes pulse-red {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 82, 82, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 82, 82, 0); }
+        }
     </style>
 </head>
 <body>
@@ -867,11 +886,11 @@
                 item.innerHTML = `
                 <div style="position:relative;">
                     <div class="conv-avatar" style="background:${c.reportId ? '#fbbf24' : 'var(--turquoise)'}">${name.charAt(0)}</div>
-                    ${hasUnread ? '<div style="position:absolute; top:-5px; right:-5px; width:12px; height:12px; background:var(--danger); border-radius:50%; border:2px solid var(--bg-accent);"></div>' : ''}
+                    ${hasUnread ? '<div class="unread-indicator"></div>' : ''}
                 </div>
                 <div class="conv-info">
-                    <div class="conv-name" style="${hasUnread ? 'font-weight:900; color:#fff;' : ''}">${name}</div>
-                    <div class="conv-last" style="${hasUnread ? 'color:var(--text-main); font-weight:700;' : ''}">${isMe ? 'You: ' : ''}${c.last_msg || ''}</div>
+                    <div class="conv-name" style="${hasUnread ? 'font-weight:900; color:var(--turquoise);' : ''}">${name}</div>
+                    <div class="conv-last" style="${hasUnread ? 'color:#fff; font-weight:700;' : ''}">${isMe ? 'You: ' : ''}${c.last_msg || ''}</div>
                 </div>
                 `;
                 list.appendChild(item);

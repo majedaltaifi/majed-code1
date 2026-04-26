@@ -3570,16 +3570,16 @@ async function sendMessage() {
     const updateData = {
       last_at: firebase.firestore.FieldValue.serverTimestamp(),
       last_msg: text,
-      last_sender_id: myId,
-      unread: {}
+      last_sender_id: myId
     };
+    
     if (otherId) {
-      updateData.unread[otherId] = firebase.firestore.FieldValue.increment(1);
+      updateData[`unread.${otherId}`] = firebase.firestore.FieldValue.increment(1);
     } else if (activeChatId.includes('Support') || activeChatId.startsWith('NIT-')) {
-      updateData.unread['Support'] = firebase.firestore.FieldValue.increment(1);
+      updateData[`unread.Support`] = firebase.firestore.FieldValue.increment(1);
     }
     
-    await db.collection('chats').doc(activeChatId).set(updateData, { merge: true });
+    await db.collection('chats').doc(activeChatId).update(updateData);
   } catch(e) {
     console.error("Send error:", e);
     alert("Fail to send: " + e.message);
