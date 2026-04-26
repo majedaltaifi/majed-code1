@@ -335,10 +335,12 @@
                 html += `<div style="text-align:center; padding:80px; color:var(--text-dim); font-size:1.2rem;">No operational records found.</div>`;
             } else {
                 html += `<div style="margin-bottom:20px; color:var(--text-muted); font-weight:700;">Showing ${filtered.length} reports</div>`;
-                html += `<table class="modern-table"><thead><tr><th>Ref</th><th>Priority</th><th>Category</th><th>Status</th></tr></thead><tbody>`;
+                html += `<table class="modern-table"><thead><tr><th>Ref</th><th>Priority</th><th>Category</th><th>Location</th><th>Status</th></tr></thead><tbody>`;
                 filtered.forEach(r => {
                     const s = (r.status || 'OPEN').toUpperCase();
-                    html += `<tr onclick="showReportDetail('${r.id}')"><td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td><td><span class="pri-badge" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</span></td><td>${r.category}</td><td><span class="status-pill ${s === 'DONE' ? 'status-done' : 'status-open'}">${s}</span></td></tr>`;
+                    let loc = (r.location || r.site || 'Unknown');
+                    if(loc.trim() === 'HQ — Jeddah') loc = 'Jeddah Main Office - Randa Tower';
+                    html += `<tr onclick="showReportDetail('${r.id}')"><td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td><td><span class="pri-badge" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</span></td><td>${r.category}</td><td style="font-size:0.75rem;">${loc}</td><td><span class="status-pill ${s === 'DONE' ? 'status-done' : 'status-open'}">${s}</span></td></tr>`;
                 });
                 html += `</tbody></table>`;
             }
