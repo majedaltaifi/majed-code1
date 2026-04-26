@@ -286,7 +286,15 @@
         <div id="view-chat" class="tab-content">
             <div class="chat-container">
                 <div class="chat-sidebar">
-                    <div class="chat-sidebar-header">Support Conversations</div>
+                    <div class="chat-sidebar-header">
+                        <div style="margin-bottom:15px;">Support Terminal</div>
+                        <div style="position:relative;">
+                            <i class="fas fa-search" style="position:absolute; left:15px; top:13px; font-size:0.8rem; opacity:0.4;"></i>
+                            <input type="text" id="support-chat-search" placeholder="Search name or report..." 
+                                   style="width:100%; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:12px; padding:10px 15px 10px 35px; color:#fff; font-size:0.85rem;"
+                                   oninput="renderSupportConversations()">
+                        </div>
+                    </div>
                     <div class="conv-list" id="support-conv-list">
                         <div style="text-align:center; padding:50px; color:var(--text-dim);">Loading chats...</div>
                     </div>
@@ -746,42 +754,52 @@
 
         let activeSupportChatId = null;
         let unsubCurrentChat = null;
+        let allSupportConversations = [];
 
         function syncSupportChats() {
             db.collection('chats')
               .where('isSupport', '==', true)
               .onSnapshot(snap => {
-                  const list = document.getElementById('support-conv-list');
-                  if(!list) return;
-                  if(snap.empty) {
-                      list.innerHTML = '<div style="text-align:center; padding:50px; color:var(--text-dim);">No support chats found.</div>';
-                      return;
-                  }
-                  
-                  // Sort client-side to avoid needing a composite index
-                  const docs = snap.docs.map(d => ({id: d.id, ...d.data()}))
-                                   .sort((a, b) => new Date(b.lastAt) - new Date(a.lastAt));
-
-                  list.innerHTML = '';
-                  docs.forEach(c => {
-                      const isMe = c.lastBy === 'Support';
-                      const name = c.reportId ? `Report #${c.reportId.slice(-4)}` : (c.reporterName || 'Support Request');
-                      const item = document.createElement('div');
-                      item.className = `conv-item ${activeSupportChatId === c.id ? 'active' : ''}`;
-                      item.onclick = () => openSupportConversation(c.id, name);
-                      item.innerHTML = `
-                        <div class="conv-avatar" style="background:${c.reportId ? '#fbbf24' : 'var(--turquoise)'}">${name.charAt(0)}</div>
-                        <div class="conv-info">
-                            <div class="conv-name">${name}</div>
-                            <div class="conv-last">${isMe ? 'You: ' : ''}${c.lastMsg || ''}</div>
-                        </div>
-                      `;
-                      list.appendChild(item);
-                  });
+                  allSupportConversations = snap.docs.map(d => ({id: d.id, ...d.data()}))
+                                               .sort((a, b) => new Date(b.lastAt) - new Date(a.lastAt));
+                  renderSupportConversations();
               }, err => {
                   console.error("Support Sync Error:", err);
                   document.getElementById('support-conv-list').innerHTML = '<div style="color:red; padding:20px;">Sync Error. Check console.</div>';
               });
+        }
+
+        function renderSupportConversations() {
+            const list = document.getElementById('support-conv-list');
+            if(!list) return;
+            
+            const q = (document.getElementById('support-chat-search').value || '').toLowerCase().trim();
+            const filtered = q ? allSupportConversations.filter(c => {
+                const name = (c.reportId ? `Report #${c.reportId}` : (c.reporterName || '')).toLowerCase();
+                return name.includes(q);
+            }) : allSupportConversations;
+
+            if(filtered.length === 0) {
+                list.innerHTML = `<div style="text-align:center; padding:50px; color:var(--text-dim);">${q ? 'No matches found.' : 'No support chats found.'}</div>`;
+                return;
+            }
+
+            list.innerHTML = '';
+            filtered.forEach(c => {
+                const isMe = c.lastBy === 'Support';
+                const name = c.reportId ? `Report #${c.reportId.slice(-4)}` : (c.reporterName || 'Support Request');
+                const item = document.createElement('div');
+                item.className = `conv-item ${activeSupportChatId === c.id ? 'active' : ''}`;
+                item.onclick = () => openSupportConversation(c.id, name);
+                item.innerHTML = `
+                <div class="conv-avatar" style="background:${c.reportId ? '#fbbf24' : 'var(--turquoise)'}">${name.charAt(0)}</div>
+                <div class="conv-info">
+                    <div class="conv-name">${name}</div>
+                    <div class="conv-last">${isMe ? 'You: ' : ''}${c.lastMsg || ''}</div>
+                </div>
+                `;
+                list.appendChild(item);
+            });
         }
 
         async function openReportChat(reportId, reporterName) {
