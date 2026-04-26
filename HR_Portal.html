@@ -249,9 +249,16 @@
             allReports.forEach(r => {
                 const name = (r.location || r.site || 'Unknown').trim();
                 let category = 'SITE';
-                if (STATIC_OFFICES.some(o => o.toLowerCase() === name.toLowerCase())) category = 'OFFICE';
-                else if (STATIC_HOUSINGS.some(h => h.toLowerCase() === name.toLowerCase()) || name.toLowerCase().startsWith('housing')) category = 'HOUSING';
-                else if ((r.type || '').toUpperCase() === 'SITE' || name.includes('HQ') || name.includes('KSP')) category = 'SITE';
+                
+                // CATEGORIZATION LOGIC
+                if (STATIC_OFFICES.some(o => o.toLowerCase() === name.toLowerCase())) {
+                    category = 'OFFICE';
+                } else if (STATIC_HOUSINGS.some(h => h.toLowerCase() === name.toLowerCase()) || name.toLowerCase().startsWith('housing')) {
+                    category = 'HOUSING';
+                } else {
+                    // EVERYTHING ELSE GOES TO SITES (if it's verified)
+                    category = 'SITE';
+                }
                 
                 if(!stats[name]) stats[name] = { total: 0, open: 0, done: 0, category: category };
                 stats[name].total++; if((r.status || 'OPEN').toUpperCase() === 'DONE') stats[name].done++; else stats[name].open++;
