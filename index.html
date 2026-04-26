@@ -2405,10 +2405,12 @@ function syncAllChats() {
         let otherName = 'Employee';
         let otherID = '';
         
-        if (d.reportId) {
-          otherName = 'Report #' + d.reportId.slice(-4);
+        // Prioritize Report ID for the name if it's a report chat
+        const rid = d.reportId || (d.id && d.id.startsWith('NIT-') ? d.id : null);
+        if (rid) {
+          otherName = 'Report #' + rid.slice(-4);
           otherID = 'Support';
-        } else if (d.id.includes('_Support')) {
+        } else if (d.id && d.id.includes('_Support')) {
           otherName = 'Support';
           otherID = 'Support';
         } else {
