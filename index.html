@@ -2331,8 +2331,8 @@ function syncBroadcasts() {
 
 
 function syncAllChats() {
-  if (!currentUser || currentUser.guest) return;
-  const myID = String(currentUser.empNo);
+  const user = currentUser || loadUser();
+  const myID = user ? String(user.empNo || 'GUEST') : 'GUEST';
   
   const myReports = loadReports().map(r => r.id);
   
@@ -2345,7 +2345,8 @@ function syncAllChats() {
       const badge = document.getElementById('chat-badge');
       if (!container) return;
       
-      const myID = currentUser ? String(currentUser.empNo) : 'GUEST';
+      const user = currentUser || loadUser();
+      const myID = user ? String(user.empNo || 'GUEST') : 'GUEST';
       const myReports = loadReports().map(r => r.id);
       
       const chats = [];
@@ -2372,7 +2373,8 @@ function syncAllChats() {
       // Check for new incoming messages to trigger in-app notifications
       chats.forEach(d => {
         const lastAt = (d.last_at && d.last_at.toMillis) ? d.last_at.toMillis() : 0;
-        const myID = String(currentUser.empNo);
+      const user = currentUser || loadUser();
+      const myID = user ? String(user.empNo || 'GUEST') : 'GUEST';
         if (lastAt > 0 && d.last_sender_id && d.last_sender_id !== myID) {
           // If we have a new message that we didn't send
           if (lastNotifiedMsgTime[d.id] && lastNotifiedMsgTime[d.id] < lastAt) {
@@ -3441,7 +3443,7 @@ async function openChatWith(id, name) {
   
   const user = currentUser || loadUser();
   if (user) {
-    const myId = String(user.empNo || user.employeeId);
+    const myId = user ? String(user.empNo || user.employeeId || 'GUEST') : 'GUEST';
     const isSup = id.includes('_Support') || id.startsWith('NIT-');
     const chatDoc = await db.collection('chats').doc(id).get();
     

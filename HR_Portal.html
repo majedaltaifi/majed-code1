@@ -965,21 +965,19 @@
             const members = chatData.members || [];
             const empNo = members.find(m => m !== 'Support');
             
-            let newUnread = {};
-            if (empNo && empNo !== 'Reporter') {
-                const currentUnread = (chatData.unread && chatData.unread[empNo]) || 0;
-                newUnread[empNo] = currentUnread + 1;
-            } else if (chatData.reportId) {
-                const currentUnread = (chatData.unread && chatData.unread['GUEST']) || 0;
-                newUnread['GUEST'] = currentUnread + 1;
-            }
-
-            await db.collection('chats').doc(activeSupportChatId).update({
+            const updateData = {
                 last_msg: txt,
                 last_at: now,
-                last_sender_id: 'Support',
-                unread: newUnread
-            });
+                last_sender_id: 'Support'
+            };
+            
+            if (empNo && empNo !== 'Reporter') {
+                updateData[`unread.${empNo}`] = firebase.firestore.FieldValue.increment(1);
+            } else if (chatData.reportId) {
+                updateData[`unread.GUEST`] = firebase.firestore.FieldValue.increment(1);
+            }
+
+            await db.collection('chats').doc(activeSupportChatId).update(updateData);
         }
 
         let allEmployees = [];
