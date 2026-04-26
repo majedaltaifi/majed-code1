@@ -902,7 +902,7 @@
                     box.innerHTML = '';
                     snap.docs.forEach(doc => {
                         const m = doc.data();
-                        const isMe = m.by === 'Support';
+                        const isMe = m.senderId === 'Support';
                         box.innerHTML += `
                             <div class="msg-row ${isMe ? 'me' : 'them'}">
                                 <div class="msg-bubble">
@@ -927,7 +927,7 @@
             const now = firebase.firestore.FieldValue.serverTimestamp();
             inp.value = '';
             
-            const msg = { text: txt, at: new Date().toISOString(), by: 'Support' };
+            const msg = { text: txt, at: new Date().toISOString(), senderId: 'Support', senderName: 'Admin' };
             await db.collection('chats').doc(activeSupportChatId).collection('messages').add(msg);
             
             // Get current unread for the employee to increment it

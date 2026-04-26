@@ -3495,7 +3495,7 @@ function initChatSystem() {
 
   const myId = String(user.empNo || user.employeeId);
   chatUnsub = db.collection('chats').doc(activeChatId).collection('messages')
-    .orderBy('timestamp', 'asc')
+    .orderBy('at', 'asc')
     .onSnapshot(snap => {
       const msgsDiv = document.getElementById('chat-msgs');
       if (!msgsDiv) return;
@@ -3546,7 +3546,7 @@ async function sendMessage() {
     text,
     senderId: myId,
     senderName: user.name,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    at: new Date().toISOString()
   };
 
   try {
