@@ -937,9 +937,12 @@
             const empNo = members.find(m => m !== 'Support');
             
             let newUnread = {};
-            if (empNo) {
+            if (empNo && empNo !== 'Reporter') {
                 const currentUnread = (chatData.unread && chatData.unread[empNo]) || 0;
                 newUnread[empNo] = currentUnread + 1;
+            } else if (chatData.reportId) {
+                const currentUnread = (chatData.unread && chatData.unread['GUEST']) || 0;
+                newUnread['GUEST'] = currentUnread + 1;
             }
 
             await db.collection('chats').doc(activeSupportChatId).update({

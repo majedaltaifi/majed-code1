@@ -2405,7 +2405,10 @@ function syncAllChats() {
         let otherName = 'Employee';
         let otherID = '';
         
-        if (d.id.includes('_Support')) {
+        if (d.reportId) {
+          otherName = 'Report #' + d.reportId.slice(-4);
+          otherID = 'Support';
+        } else if (d.id.includes('_Support')) {
           otherName = 'Support';
           otherID = 'Support';
         } else {
