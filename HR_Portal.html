@@ -144,6 +144,13 @@
         .action-btn { background: var(--turquoise); color: var(--nit-deep); border: none; padding: 12px 24px; border-radius: 16px; font-weight: 800; cursor: pointer; font-size: 1rem; transition: 0.3s; display: inline-flex; align-items: center; gap: 10px; }
         .action-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(128, 209, 233, 0.3); }
 
+        .filter-bar { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 40px; background: rgba(255,255,255,0.02); padding: 25px; border-radius: 24px; border: 1px solid var(--border); align-items: flex-end; }
+        .filter-group { display: flex; flex-direction: column; gap: 10px; }
+        .filter-label { font-size: 0.7rem; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; padding-left: 5px; }
+        .filter-select { background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 14px; color: #fff; padding: 12px 20px; font-size: 0.9rem; font-weight: 600; outline: none; transition: 0.3s; cursor: pointer; min-width: 160px; }
+        .filter-select:focus { border-color: var(--turquoise); box-shadow: 0 0 15px var(--turq-glow); }
+        .filter-select option { background: var(--bg-accent); color: #fff; }
+
         .marker-pulse { animation: marker-pulse 2s infinite; }
         @keyframes marker-pulse { 0% { box-shadow: 0 0 0 0px rgba(255, 82, 82, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(255, 82, 82, 0); } 100% { box-shadow: 0 0 0 0px rgba(255, 82, 82, 0); } }
     </style>
@@ -232,10 +239,53 @@
         </div>
 
         <div id="view-all-reports" class="tab-content">
+            <h1 style="margin-bottom: 20px; font-weight: 900; color: var(--turquoise);">All Reports (Updated)</h1>
             <div class="panel">
-                <div style="display: flex; gap: 20px; margin-bottom: 40px; justify-content: space-between; align-items: center;">
-                    <input type="text" class="form-input" style="width: 500px; padding: 18px 30px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 18px; color: #fff; font-size: 1rem; outline:none;" placeholder="Search all history (Reporter, Description, Location, ID)..." id="report-search" oninput="applyFilters()">
-                    <div style="color:var(--text-muted); font-weight:700;">Operational Database History</div>
+                <div class="filter-bar">
+                    <div class="filter-group" style="flex: 2; min-width: 300px;">
+                        <div class="filter-label">Search Context</div>
+                        <div class="search-wrapper" style="max-width: none;">
+                            <input type="text" class="search-input-modern" style="padding: 14px 20px 14px 55px; font-size: 1rem;" placeholder="ID, Reporter, Description..." id="report-search" oninput="applyFilters()">
+                            <i class="fas fa-search search-icon" style="left: 20px;"></i>
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <div class="filter-label">Priority</div>
+                        <select id="filter-priority" class="filter-select" onchange="applyFilters()">
+                            <option value="ALL">All Levels</option>
+                            <option value="CRITICAL">Critical</option>
+                            <option value="HIGH">High</option>
+                            <option value="MEDIUM">Medium</option>
+                            <option value="LOW">Low</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <div class="filter-label">Category</div>
+                        <select id="filter-category" class="filter-select" onchange="applyFilters()">
+                            <option value="ALL">All Categories</option>
+                            <option value="SAFETY">Safety</option>
+                            <option value="SERVICE">Service</option>
+                            <option value="VIOLATION">Violation</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <div class="filter-label">Status</div>
+                        <select id="filter-status" class="filter-select" onchange="applyFilters()">
+                            <option value="ALL">All Status</option>
+                            <option value="OPEN">Active</option>
+                            <option value="DONE">Resolved</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <div class="filter-label">Sort By</div>
+                        <select id="filter-sort" class="filter-select" onchange="applyFilters()">
+                            <option value="NEWEST">Newest First</option>
+                            <option value="OLDEST">Oldest First</option>
+                        </select>
+                    </div>
+                    <button class="action-btn" style="padding: 14px; background: rgba(255,52,52,0.1); color: var(--danger); border: 1px solid rgba(255,52,52,0.2);" onclick="resetFilters()">
+                        <i class="fas fa-undo"></i>
+                    </button>
                 </div>
                 <div style="overflow-x: auto;"><table class="modern-table"><thead><tr><th>Ref</th><th>Reporter</th><th>Priority</th><th>Category</th><th>Location</th><th>Status</th><th>Actions</th></tr></thead><tbody id="reports-table-body"></tbody></table></div>
             </div>
@@ -277,19 +327,38 @@
 
         function showReportDetail(id) {
             const r = allReports.find(x => x.id === id); if(!r) return;
-            const isAnon = (r.isAnonymous === true || !r.reporter);
+            // Handle aliases for compatibility
+            const isAnon = (r.isAnonymous === true || r.anon === true || !r.reporter);
+            const description = r.description || r.desc || 'No description provided by the employee.';
             const status = (r.status || 'OPEN').toUpperCase();
+            const ongoing = r.isViolationOngoing || (r.ongoing ? 'Yes' : 'No');
+            const time = r.approxTime || r.time || 'N/A';
+            const empNo = r.employeeId || r.emp_no || 'N/A';
+            const reporterName = r.reporter || r.emp_name || 'Guest';
+
             let loc = (r.location || r.site || 'Unknown'); if(loc.trim() === 'HQ — Jeddah' || loc.trim() === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower';
             
+            // Multiple images support
+            let imagesHtml = '';
+            if (r.imageDatas && r.imageDatas.length > 0) {
+                imagesHtml = `<div class="dc-images" style="display:flex; gap:15px; overflow-x:auto; padding:10px 0;">
+                    ${r.imageDatas.map(img => `<img src="${img}" class="evidence-img" style="width:200px; height:200px; object-fit:cover; border-radius:15px; border:1px solid var(--border); cursor:pointer;" onclick="window.open('${img}')">`).join('')}
+                </div>`;
+            } else if (r.imageUrl || r.image) {
+                imagesHtml = `<img src="${r.imageUrl || r.image}" class="evidence-img">`;
+            } else {
+                imagesHtml = `<div class="no-evidence"><i class="fas fa-image" style="font-size:3rem; display:block; margin-bottom:15px;"></i> No image evidence provided.</div>`;
+            }
+
             let html = `
                 <div class="detail-header">
                     <div class="detail-id">#${r.id}</div>
                     <div class="detail-title">${r.category || 'Incident Report'}</div>
-                    <p style="color: var(--text-dim); line-height: 1.6; font-size: 1.1rem; margin-top: 20px;">${r.description || 'No description provided by the employee.'}</p>
+                    <p style="color: var(--text-dim); line-height: 1.6; font-size: 1.1rem; margin-top: 20px;">${description}</p>
                 </div>
 
                 <div class="evidence-viewer">
-                    ${(r.imageUrl || r.image) ? `<img src="${r.imageUrl || r.image}" class="evidence-img">` : `<div class="no-evidence"><i class="fas fa-image" style="font-size:3rem; display:block; margin-bottom:15px;"></i> No image evidence provided.</div>`}
+                    ${imagesHtml}
                 </div>
 
                 <div class="info-section">
@@ -304,10 +373,10 @@
                         </div>
                     ` : `
                         <div class="reporter-card">
-                            <div class="reporter-avatar">${r.reporter ? r.reporter.charAt(0) : 'U'}</div>
+                            <div class="reporter-avatar" style="background: var(--turquoise); color: var(--nit-deep); border-radius:15px; display:flex; align-items:center; justify-content:center; width:60px; height:60px; font-weight:900; font-size:1.5rem;">${reporterName.charAt(0)}</div>
                             <div class="reporter-info">
-                                <div class="reporter-name">${r.reporter}</div>
-                                <div class="reporter-id">Employee ID: ${r.employeeId || 'N/A'}</div>
+                                <div class="reporter-name">${reporterName}</div>
+                                <div class="reporter-id">Employee ID: ${empNo}</div>
                             </div>
                         </div>
                         <div class="detail-grid" style="margin-top:20px;">
@@ -323,8 +392,8 @@
                         <div class="detail-item"><div class="detail-icon"><i class="fas fa-map-marker-alt"></i></div><div class="detail-content"><div class="detail-label">Site / Project</div><div class="detail-value">${loc}</div></div></div>
                         <div class="detail-item"><div class="detail-icon"><i class="fas fa-calendar-alt"></i></div><div class="detail-content"><div class="detail-label">Date Reported</div><div class="detail-value">${r.date || 'N/A'}</div></div></div>
                         <div class="detail-item"><div class="detail-icon"><i class="fas fa-sync"></i></div><div class="detail-content"><div class="detail-label">Frequency</div><div class="detail-value">${r.frequency || 'N/A'}</div></div></div>
-                        <div class="detail-item"><div class="detail-icon"><i class="fas fa-exclamation-triangle"></i></div><div class="detail-content"><div class="detail-label">Ongoing?</div><div class="detail-value">${r.isViolationOngoing || 'N/A'}</div></div></div>
-                        <div class="detail-item"><div class="detail-icon"><i class="fas fa-clock"></i></div><div class="detail-content"><div class="detail-label">Approx. Time</div><div class="detail-value">${r.approxTime || 'N/A'}</div></div></div>
+                        <div class="detail-item"><div class="detail-icon"><i class="fas fa-exclamation-triangle"></i></div><div class="detail-content"><div class="detail-label">Ongoing?</div><div class="detail-value">${ongoing}</div></div></div>
+                        <div class="detail-item"><div class="detail-icon"><i class="fas fa-clock"></i></div><div class="detail-content"><div class="detail-label">Approx. Time</div><div class="detail-value">${time}</div></div></div>
                         <div class="detail-item"><div class="detail-icon"><i class="fas fa-fire"></i></div><div class="detail-content"><div class="detail-label">Priority</div><div class="detail-value" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</div></div></div>
                     </div>
                 </div>
@@ -428,8 +497,75 @@
             updateMarkers(); updateUnitMatrix(currentUnitFilter); applyFilters();
         }
 
-        function applyFilters() { const body = document.getElementById('reports-table-body'); if(!body) return; body.innerHTML = ''; const search = (document.getElementById('report-search') ? document.getElementById('report-search').value.toLowerCase() : ''); allReports.filter(r => { const reporterName = (r.reporter || '').toLowerCase(); const description = (r.description || '').toLowerCase(); const location = (r.location || r.site || '').toLowerCase(); const id = r.id.toLowerCase(); return id.includes(search) || reporterName.includes(search) || description.includes(search) || location.includes(search); }).forEach(r => { const s = (r.status || 'OPEN').toUpperCase(); const isAnon = (r.isAnonymous === true || !r.reporter); let loc = (r.location || r.site || 'Unknown'); if(loc.trim() === 'HQ — Jeddah' || loc.trim() === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower'; body.innerHTML += `<tr onclick="showReportDetail('${r.id}')"><td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td><td>${isAnon ? '<span style="opacity:0.4;">Anonymous</span>' : r.reporter}</td><td><span class="pri-badge" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</span></td><td>${r.category}</td><td style="font-size:0.85rem;">${loc}</td><td>${getStatusPill(s)}</td><td onclick="event.stopPropagation()"><button class="action-btn" style="padding: 8px 16px; font-size: 0.8rem;" onclick="toggleStatus('${r.id}', '${s}')">${s === 'DONE' ? 'Open' : 'Close'}</button></td></tr>`; }); }
-        function initRealtimeSync() { db.collection('reports').onSnapshot(snap => { const GARBAGE = ['1', '0', '66', '2', '92', '58', '106', '112', '113', 'SITE', 'site']; allReports = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(r => { const l = (r.location || r.site || '').trim(); const isValid = l && !GARBAGE.includes(l) && !(/^\d+$/.test(l) && !l.includes('HQ') && !l.includes('KSP')); const isWhiteListed = l === 'HQ — Jeddah' || l === 'Jeddah - New Office' || STATIC_SITES.some(s => s.toLowerCase() === l.toLowerCase()) || STATIC_HOUSINGS.some(h => h.toLowerCase() === l.toLowerCase()) || STATIC_OFFICES.some(o => o.toLowerCase() === l.toLowerCase()); return isValid || isWhiteListed; }); syncAllData(); }); }
+        function resetFilters() {
+            document.getElementById('report-search').value = '';
+            document.getElementById('filter-priority').value = 'ALL';
+            document.getElementById('filter-category').value = 'ALL';
+            document.getElementById('filter-status').value = 'ALL';
+            document.getElementById('filter-sort').value = 'NEWEST';
+            applyFilters();
+        }
+
+        function getUnixTime(x) {
+            if (x.created_at && x.created_at.toMillis) return x.created_at.toMillis();
+            if (x.at) { const d = new Date(x.at); return isNaN(d.getTime()) ? 0 : d.getTime(); }
+            return 0;
+        }
+
+        function applyFilters() { 
+            const body = document.getElementById('reports-table-body'); 
+            if(!body) return; 
+            body.innerHTML = ''; 
+            
+            const search = (document.getElementById('report-search') ? document.getElementById('report-search').value.toLowerCase() : ''); 
+            const priFilter = document.getElementById('filter-priority').value;
+            const catFilter = document.getElementById('filter-category').value;
+            const statFilter = document.getElementById('filter-status').value;
+            const sortOrder = document.getElementById('filter-sort').value;
+
+            let filtered = allReports.filter(r => {
+                const s = (r.status || 'OPEN').toUpperCase();
+                const p = (r.priority || 'Low').toUpperCase();
+                const c = (r.category || 'Other').toUpperCase();
+                
+                const matchesSearch = r.id.toLowerCase().includes(search) || 
+                                     (r.reporter || '').toLowerCase().includes(search) || 
+                                     (r.description || r.desc || '').toLowerCase().includes(search) || 
+                                     (r.location || r.site || '').toLowerCase().includes(search);
+                
+                const matchesPri = priFilter === 'ALL' || p === priFilter;
+                const matchesCat = catFilter === 'ALL' || c === catFilter;
+                const matchesStat = statFilter === 'ALL' || s === statFilter;
+                
+                return matchesSearch && matchesPri && matchesCat && matchesStat;
+            });
+
+            // Sorting
+            filtered.sort((a, b) => {
+                const ta = getUnixTime(a);
+                const tb = getUnixTime(b);
+                return sortOrder === 'NEWEST' ? tb - ta : ta - tb;
+            });
+
+            filtered.forEach(r => { 
+                const s = (r.status || 'OPEN').toUpperCase(); 
+                const isAnon = (r.isAnonymous === true || !r.reporter); 
+                let loc = (r.location || r.site || 'Unknown'); if(loc.trim() === 'HQ — Jeddah' || loc.trim() === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower'; 
+                body.innerHTML += `<tr onclick="showReportDetail('${r.id}')"><td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td><td>${isAnon ? '<span style="opacity:0.4;">Anonymous</span>' : r.reporter}</td><td><span class="pri-badge" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</span></td><td>${r.category}</td><td style="font-size:0.85rem;">${loc}</td><td>${getStatusPill(s)}</td><td onclick="event.stopPropagation()"><button class="action-btn" style="padding: 8px 16px; font-size: 0.8rem;" onclick="toggleStatus('${r.id}', '${s}')">${s === 'DONE' ? 'Open' : 'Close'}</button></td></tr>`; 
+            }); 
+        }
+        function initRealtimeSync() { db.collection('reports').onSnapshot(snap => { const GARBAGE = ['1', '0', '66', '2', '92', '58', '106', '112', '113', 'SITE', 'site']; allReports = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(r => { const l = (r.location || r.site || '').trim(); const isValid = l && !GARBAGE.includes(l) && !(/^\d+$/.test(l) && !l.includes('HQ') && !l.includes('KSP')); const isWhiteListed = l === 'HQ — Jeddah' || l === 'Jeddah - New Office' || STATIC_SITES.some(s => s.toLowerCase() === l.toLowerCase()) || STATIC_HOUSINGS.some(h => h.toLowerCase() === l.toLowerCase()) || STATIC_OFFICES.some(o => o.toLowerCase() === l.toLowerCase()); return isValid || isWhiteListed; }); 
+        
+        // Robust sort by date descending (newest first)
+        allReports.sort((a, b) => {
+            const getT = (x) => {
+                if (x.created_at && x.created_at.toMillis) return x.created_at.toMillis();
+                if (x.at) { const d = new Date(x.at); return isNaN(d.getTime()) ? 0 : d.getTime(); }
+                return 0;
+            };
+            return getT(b) - getT(a);
+        });
+        syncAllData(); }); }
         window.onload = () => { initCharts(); initRealMap(); initRealtimeSync(); };
     </script>
 </body>
