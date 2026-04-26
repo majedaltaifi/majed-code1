@@ -215,6 +215,7 @@
             if(el) el.classList.add('active');
             document.getElementById('view-title').innerText = el ? el.innerText : viewId;
             if(viewId === 'per-site') updateUnitMatrix(currentUnitFilter);
+            if(viewId === 'all-reports') applyFilters();
         }
 
         async function purgeNoLocationReports() {
@@ -235,6 +236,9 @@
             await db.collection('reports').doc(id).update({ status: next });
         }
 
+        function openSidePanel() { document.getElementById('side-panel').classList.add('active'); }
+        function closeSidePanel() { document.getElementById('side-panel').classList.remove('active'); }
+
         function showReportDetail(id) {
             const r = allReports.find(x => x.id === id); if(!r) return;
             const isAnon = (r.isAnonymous === true || !r.reporter);
@@ -248,14 +252,23 @@
 
         function applyFilters() {
             const body = document.getElementById('reports-table-body'); if(!body) return; body.innerHTML = '';
-            const search = document.getElementById('report-search').value.toLowerCase();
+            const search = (document.getElementById('report-search') ? document.getElementById('report-search').value.toLowerCase() : '');
+            
             allReports.filter(r => {
                 const isAnon = (r.isAnonymous === true || !r.reporter);
-                return (r.id.toLowerCase().includes(search) || (!isAnon && (r.reporter || '').toLowerCase().includes(search)) || (r.description || '').toLowerCase().includes(search));
+                const reporterName = (r.reporter || '').toLowerCase();
+                const description = (r.description || '').toLowerCase();
+                const location = (r.location || r.site || '').toLowerCase();
+                const id = r.id.toLowerCase();
+                
+                return id.includes(search) || reporterName.includes(search) || description.includes(search) || location.includes(search);
             })
             .forEach(r => {
                 const s = (r.status || 'OPEN').toUpperCase(); const isAnon = (r.isAnonymous === true || !r.reporter);
-                body.innerHTML += `<tr onclick="showReportDetail('${r.id}')"><td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td><td>${isAnon ? '<span style="opacity:0.4;">Anonymous</span>' : r.reporter}</td><td>${r.category}</td><td>${r.location || r.site}</td><td><span class="status-pill ${s === 'DONE' ? 'status-done' : 'status-open'}">${s}</span></td><td onclick="event.stopPropagation()"><button class="action-btn" onclick="toggleStatus('${r.id}', '${s}')">${s === 'DONE' ? 'Open' : 'Close'}</button></td></tr>`;
+                let loc = (r.location || r.site || 'Unknown');
+                if(loc.trim() === 'HQ — Jeddah') loc = 'Jeddah Main Office - Randa Tower';
+                
+                body.innerHTML += `<tr onclick="showReportDetail('${r.id}')"><td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td><td>${isAnon ? '<span style="opacity:0.4;">Anonymous</span>' : r.reporter}</td><td>${r.category}</td><td>${loc}</td><td><span class="status-pill ${s === 'DONE' ? 'status-done' : 'status-open'}">${s}</span></td><td onclick="event.stopPropagation()"><button class="action-btn" onclick="toggleStatus('${r.id}', '${s}')">${s === 'DONE' ? 'Open' : 'Close'}</button></td></tr>`;
             });
         }
 
@@ -266,8 +279,6 @@
             
             allReports.forEach(r => {
                 let name = (r.location || r.site || 'Unknown').trim();
-                
-                // UNIFICATION LOGIC: Map HQ — Jeddah to Randa Tower Office
                 if(name === 'HQ — Jeddah') name = 'Jeddah Main Office - Randa Tower';
                 
                 let category = 'SITE';
@@ -296,10 +307,8 @@
             const filtered = allReports.filter(r => {
                 let loc = (r.location || r.site || '').trim();
                 if(loc === 'HQ — Jeddah') loc = 'Jeddah Main Office - Randa Tower';
-                
                 const locLower = loc.toLowerCase();
                 const val = (value || '').toLowerCase().trim();
-                
                 if(type === 'status') return (r.status || 'OPEN').toUpperCase() === value;
                 if(type === 'location') return locLower === val || locLower.includes(val);
                 return true;
@@ -348,7 +357,7 @@
             if(charts.priority) { charts.priority.data.datasets[0].data = [pris.Critical, pris.High, pris.Medium, pris.Low]; charts.priority.update(); }
             if(charts.location) { const sortedLocs = Object.entries(locs).sort((a,b) => b[1] - a[1]).slice(0, 8); charts.location.data.labels = sortedLocs.map(l => l[0]); charts.location.data.datasets[0].data = sortedLocs.map(l => l[1]); charts.location.update(); }
             if(activeView === 'per-site') updateUnitMatrix(currentUnitFilter);
-            if(activeView === 'all-reports') applyFilters();
+            applyFilters();
         }
 
         function initRealtimeSync() { 
