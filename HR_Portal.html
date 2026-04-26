@@ -60,7 +60,6 @@
 
         .map-section { background: var(--surface); border: 1px solid var(--border); border-radius: 40px; margin-bottom: 35px; position: relative; overflow: hidden; height: 650px; }
         #real-map { width: 100%; height: 100%; z-index: 10; background: var(--bg); }
-        .map-overlay { position: absolute; top: 30px; left: 40px; z-index: 100; pointer-events: none; }
         .map-legend { position: absolute; bottom: 30px; right: 40px; z-index: 100; background: rgba(8, 9, 34, 0.8); backdrop-filter: blur(20px); padding: 20px; border-radius: 20px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
         .leg-item { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 0.85rem; }
         .leg-dot { width: 12px; height: 12px; border-radius: 50%; }
@@ -85,6 +84,12 @@
         .modern-table th { text-align: left; padding: 15px 25px; color: var(--text-muted); font-size: 0.9rem; font-weight: 900; text-transform: uppercase; }
         .modern-table td { padding: 20px 25px; background: rgba(255,255,255,0.03); font-size: 1rem; font-weight: 600; cursor: pointer; border: none; }
         .modern-table tr:hover td { background: rgba(255,255,255,0.06); }
+
+        .status-pill { padding: 8px 18px; border-radius: 100px; font-size: 0.85rem; font-weight: 900; text-transform: uppercase; display: inline-flex; align-items: center; gap: 8px; letter-spacing: 1px; transition: 0.3s; }
+        .status-open { background: rgba(255, 171, 0, 0.1); color: var(--warning); border: 1px solid rgba(255, 171, 0, 0.3); box-shadow: 0 0 15px rgba(255, 171, 0, 0.1); }
+        .status-done { background: rgba(0, 230, 118, 0.1); color: var(--success); border: 1px solid rgba(0, 230, 118, 0.3); box-shadow: 0 0 15px rgba(0, 230, 118, 0.1); }
+        .status-pill i { font-size: 0.9rem; }
+        .pri-badge { padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; border: 1px solid currentColor; }
 
         .detail-header { margin-bottom: 40px; }
         .detail-id { font-size: 0.85rem; font-weight: 900; color: var(--turquoise); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
@@ -120,11 +125,6 @@
         .step-lab { font-size: 0.8rem; font-weight: 900; text-transform: uppercase; color: var(--text-muted); }
         .step.active .step-lab { color: #fff; }
 
-        .status-pill { padding: 8px 16px; border-radius: 12px; font-size: 0.8rem; font-weight: 900; text-transform: uppercase; }
-        .status-open { background: rgba(255, 171, 0, 0.15); color: var(--warning); border: 1px solid var(--warning); }
-        .status-done { background: rgba(0, 230, 118, 0.15); color: var(--success); border: 1px solid var(--success); }
-        .pri-badge { padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; border: 1px solid currentColor; }
-
         .charts-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-bottom: 35px; }
         .chart-container { background: var(--surface); border: 1px solid var(--border); border-radius: 40px; padding: 40px; height: 480px; position: relative; transition: 0.4s; overflow: hidden; }
         .chart-title { font-size: 1.4rem; font-weight: 950; margin-bottom: 20px; color: #fff; display: flex; align-items: center; gap: 15px; }
@@ -140,6 +140,9 @@
         .unit-progress-lab { display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 900; margin-bottom: 12px; }
         .unit-progress-bar { height: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; }
         .unit-progress-fill { height: 100%; background: linear-gradient(to right, var(--nit-blue), var(--turquoise)); border-radius: 10px; transition: width 1s ease-out; box-shadow: 0 0 15px var(--turq-glow); }
+
+        .action-btn { background: var(--turquoise); color: var(--nit-deep); border: none; padding: 12px 24px; border-radius: 16px; font-weight: 800; cursor: pointer; font-size: 1rem; transition: 0.3s; display: inline-flex; align-items: center; gap: 10px; }
+        .action-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(128, 209, 233, 0.3); }
 
         .marker-pulse { animation: marker-pulse 2s infinite; }
         @keyframes marker-pulse { 0% { box-shadow: 0 0 0 0px rgba(255, 82, 82, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(255, 82, 82, 0); } 100% { box-shadow: 0 0 0 0px rgba(255, 82, 82, 0); } }
@@ -231,10 +234,10 @@
         <div id="view-all-reports" class="tab-content">
             <div class="panel">
                 <div style="display: flex; gap: 20px; margin-bottom: 40px; justify-content: space-between; align-items: center;">
-                    <input type="text" class="form-input" style="width: 400px; padding: 18px 30px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 18px; color: #fff; font-size: 1rem;" placeholder="Search history..." id="report-search" oninput="applyFilters()">
-                    <button class="action-btn" style="background:var(--danger); color:#fff;" onclick="purgeNoLocationReports()">🗑️ Purge Invalid Data</button>
+                    <input type="text" class="form-input" style="width: 500px; padding: 18px 30px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 18px; color: #fff; font-size: 1rem; outline:none;" placeholder="Search all history (Reporter, Description, Location, ID)..." id="report-search" oninput="applyFilters()">
+                    <div style="color:var(--text-muted); font-weight:700;">Operational Database History</div>
                 </div>
-                <div style="overflow-x: auto;"><table class="modern-table"><thead><tr><th>Ref</th><th>Reporter</th><th>Priority</th><th>Category</th><th>Location</th><th>Status</th></tr></thead><tbody id="reports-table-body"></tbody></table></div>
+                <div style="overflow-x: auto;"><table class="modern-table"><thead><tr><th>Ref</th><th>Reporter</th><th>Priority</th><th>Category</th><th>Location</th><th>Status</th><th>Actions</th></tr></thead><tbody id="reports-table-body"></tbody></table></div>
             </div>
         </div>
     </div>
@@ -257,32 +260,20 @@
 
         const STATIC_OFFICES = ['Abha Office', 'Alkhobar Main Office', 'Egypt Office', 'Jeddah - Tawuniya Office', 'Jeddah Main Office - Randa Tower', 'New Riyadh Office', 'PRC ID Office', 'Riyadh Main Office', 'Saudi Aramco - Yanbu Office'];
         const STATIC_HOUSINGS = ['Housing - Albeda Ameer Faisal', 'Housing - Albeda Muath Bin Asad', 'Housing - Alkhobar Thuqbah', 'Housing - Alqaysumah Alhidayah', 'Housing - Bisha Aljunaynah', 'Housing - Dammam Madinat Alumal', 'Housing - Duba Ibn Alhafiz', 'Housing - Duba Qutn Bin Haritah', 'Housing - Farasan', 'Housing - Hafr Albatin Aljamiah', 'Housing - Hafr Albatin Alsinayyah', 'Housing - Haqel', 'Housing - Jeddah Nuzha', 'Housing - Jeddah Rehaily', 'Housing - Khamis Mushait Tendaha', 'Housing - Makkah Waly Alahad', 'Housing - Medinah Muzainab', 'Housing - Medinah Warqan', 'Housing - Qatif Alsinayyah', 'Housing - Rabigh Alfransiyah Sharqi', 'Housing - Rabigh Alnaeem', 'Housing - Riyadh Almonsiyah', 'Housing - Riyadh Almurjan', 'Housing - Safwa AlMuruj', 'Housing - Tabuk Alraya', 'Housing - Yanbu Alttakhi', 'Housing- jeddah Alfrusiyah'];
-        const STATIC_SITES = ['10521300012 - KSP 8388', '10521300013 - KSP 8389', 'ABU Hadriyah 115 KV Extension with Rerouting in OHTL', 'AL- Ahsa O&M', 'Abu Maan Substation', 'Aindar Project', 'Aindar Warehouse', 'Al-Bahr Substation', 'Asfan Main Warehouse', 'BISHA - PV 380/132 KV BSP', 'Bayoniyah Substation', 'Buhaiyrat', 'CONSTRUCTION OF AL-MURJAN 132/13.8kV SUBSTATION # 8274 IN RIYADH CITY', 'CONSTRUCTION OF HARAM-3 SS', 'CONSTRUCTION OF JAZERA ROYAL PALACE - THUWAL', 'Construction Of Farasan Island SS (132/33/13.8KV)', 'Dammam O&M', 'Dammam Port', 'Dana-2 Substation', 'Diriyah Gate Project Substation # 8171', 'Diriyah Gate Project Substation # 8242', 'FM Dammam', 'HV Jubail Intertie', 'Hada-2 (Andalus) Substation', 'Hafar AL- Batin O&M', 'Hafr Albatin Unified', 'Iman General Hospital', 'Interconnection Of Nawariyah SS', 'Jafurah', 'Jazan Medical City', 'Jazan Port', 'Jazan Warehouse', 'Jubail 7AB', 'Jubail North', 'Jubail South East', 'Khobar Corniche Substation', 'King Fahad Causeway', 'MEDNO Island Reinforcement', 'Madaya', 'Madinah Warehouse', 'Modon Asir', 'NIC EV2', 'NIC NORTH', 'Neom PSSA And PSSB (OHTL)', 'Neom Security System O&M', 'New Dammam Warehouse', 'North Khobar', 'North Thuqbah', 'PMAH', 'POWER SUPPLY TO HAFAR AL-BATIN', 'Qalah Substation', 'Qatif Shati Substation', 'RUMAH 380 KV BSP', 'Rabigh Substation', 'Ras Tanura 0810606', 'Riyadh warehouse', 'Ryadhiyah Substation', 'SAMHA OHTL', 'SESP - Training Institute', 'Samif Workshop', 'Saudi Aramco - Madinah Bulk Plant', 'Saudi Aramco - North Jeddah Bulk Plant', 'Saudi Aramco - Petro Rabigh', 'Saudi Aramco - Yanbu Bulk Plant', 'Senaeya-2 Substation', 'Sheraa Substation', 'Switchgear Room at Al-Baha CPS Substation', 'Tabuk (ISP) Warehouse', 'Tabuk (OSP) Warehouse', 'Taiba West Substation', 'Thuwal Warehouse', 'Tuwaiq warehouse', 'Udailiyah Site - Aramco Project (VCP)', 'Uruba Substation', 'WALY ALAHAD-3 110-13.8kV SS', 'Wadi Al-Dhahran Substation', 'Wadi Safar - Security & ICT', 'Wasalat Workshop', 'ZATCA', 'Zatca HQ'];
+        const STATIC_SITES = ['10521300012 - KSP 8388', '10521300013 - KSP 8389', 'ABU Hadriyah 115 KV Extension with Rerouting in OHTL', 'AL- Ahsa O&M', 'Abu Maan Substation', 'Aindar Project', 'Aindar Warehouse', 'Al-Bahr Substation', 'Asfan Main Warehouse', 'BISHA - PV 380/132 KV BSP', 'Bayoniyah Substation', 'Buhaiyrat', 'CONSTRUCTION OF AL-MURJAN 132/13.8kV SUBSTATION # 8274 IN RIYADH CITY', 'CONSTRUCTION OF HARAM-3 SS', 'CONSTRUCTION OF JAZERA ROYAL PALACE - THUWAL', 'Construction Of Farasan Island SS (132/33/13.8KV)', 'Dammam O&M', 'Dammam Port', 'Dana-2 Substation', 'Diriyah Gate Project Substation # 8171', 'Diriyah Gate Project Substation # 8242', 'FM Dammam', 'HV Jubail Intertie', 'Hada-2 (Andalus) Substation', 'Hafar AL- Batin O&M', 'Hafr Albatin Unified', 'Iman Hospital', 'Interconnection Of Nawariyah SS', 'Jafurah', 'Jazan Medical City', 'Jazan Port', 'Jazan Warehouse', 'Jubail 7AB', 'Jubail North', 'Jubail South East', 'Khobar Corniche Substation', 'King Fahad Causeway', 'MEDNO Island Reinforcement', 'Madaya', 'Madinah Warehouse', 'Modon Asir', 'NIC EV2', 'NIC NORTH', 'Neom PSSA And PSSB (OHTL)', 'Neom Security System O&M', 'New Dammam Warehouse', 'North Khobar', 'North Thuqbah', 'PMAH', 'POWER SUPPLY TO HAFAR AL-BATIN', 'Qalah Substation', 'Qatif Shati Substation', 'RUMAH 380 KV BSP', 'Rabigh Substation', 'Ras Tanura 0810606', 'Riyadh warehouse', 'Ryadhiyah Substation', 'SAMHA OHTL', 'SESP - Training Institute', 'Samif Workshop', 'Saudi Aramco - Madinah Bulk Plant', 'Saudi Aramco - North Jeddah Bulk Plant', 'Saudi Aramco - Petro Rabigh', 'Saudi Aramco - Yanbu Bulk Plant', 'Senaeya-2 Substation', 'Sheraa Substation', 'Switchgear Room at Al-Baha CPS Substation', 'Tabuk (ISP) Warehouse', 'Tabuk (OSP) Warehouse', 'Taiba West Substation', 'Thuwal Warehouse', 'Tuwaiq warehouse', 'Udailiyah Site - Aramco Project (VCP)', 'Uruba Substation', 'WALY ALAHAD-3 110-13.8kV SS', 'Wadi Al-Dhahran Substation', 'Wadi Safar - Security & ICT', 'Wasalat Workshop', 'ZATCA', 'Zatca HQ'];
         const CITY_LAT_LNG = { 'Riyadh': [24.7136, 46.6753], 'Jeddah': [21.4858, 39.1925], 'Dammam': [26.4207, 50.0888], 'Alkhobar': [26.2172, 50.1971], 'Abha': [18.2161, 42.5053], 'Tabuk': [28.3835, 36.5662], 'Medinah': [24.4672, 39.6024], 'Jazan': [16.8892, 42.5511], 'Hafr Albatin': [28.4328, 45.9708], 'Rabigh': [22.8066, 39.0272], 'Yanbu': [24.0891, 38.0637], 'Al-Ahsa': [25.3781, 49.5911], 'Bisha': [19.9841, 42.6036], 'Duba': [27.3486, 35.6923], 'Thuwal': [22.2858, 39.1172], 'Qatif': [26.5441, 50.0033], 'Jubail': [26.9600, 49.6582], 'Khamis': [18.3000, 42.7292], 'Makkah': [21.3891, 39.8579], 'Neom': [28.1000, 35.1000] };
 
-        function switchView(viewId, el) { 
-            activeView = viewId; 
-            document.querySelectorAll('.tab-content').forEach(v => {
-                v.classList.remove('active');
-                v.style.display = 'none';
-            }); 
-            const target = document.getElementById('view-' + viewId);
-            if(target) {
-                target.classList.add('active');
-                target.style.display = 'block';
-            }
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); 
-            if(el) el.classList.add('active'); 
-            document.getElementById('view-title').innerText = el ? el.innerText : viewId; 
-            if(viewId === 'per-site') updateUnitMatrix('ALL'); 
-            if(viewId === 'all-reports') applyFilters(); 
-            if(viewId === 'dashboard' && map) setTimeout(() => map.invalidateSize(), 100); 
-        }
-
+        function switchView(viewId, el) { activeView = viewId; document.querySelectorAll('.tab-content').forEach(v => { v.classList.remove('active'); v.style.display = 'none'; }); const target = document.getElementById('view-' + viewId); if(target) { target.classList.add('active'); target.style.display = 'block'; } document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); if(el) el.classList.add('active'); document.getElementById('view-title').innerText = el ? el.innerText : viewId; if(viewId === 'per-site') updateUnitMatrix('ALL'); if(viewId === 'all-reports') applyFilters(); if(viewId === 'dashboard' && map) setTimeout(() => map.invalidateSize(), 100); }
         async function toggleStatus(id, current) { const next = current === 'DONE' ? 'OPEN' : 'DONE'; await db.collection('reports').doc(id).update({ status: next }); }
         function openSidePanel() { document.getElementById('side-panel').classList.add('active'); }
         function closeSidePanel() { document.getElementById('side-panel').classList.remove('active'); }
         function getPriorityStyle(p) { const lowP = (p || 'Low').toLowerCase(); if(lowP === 'critical') return 'color: var(--danger);'; if(lowP === 'high') return 'color: var(--warning);'; if(lowP === 'medium') return 'color: var(--turquoise);'; return 'color: var(--success);'; }
+
+        function getStatusPill(status) {
+            const s = (status || 'OPEN').toUpperCase();
+            if(s === 'DONE') return `<span class="status-pill status-done"><i class="fas fa-check-circle"></i> Resolved</span>`;
+            return `<span class="status-pill status-open"><i class="fas fa-clock"></i> Active</span>`;
+        }
 
         function showReportDetail(id) {
             const r = allReports.find(x => x.id === id); if(!r) return;
@@ -347,9 +338,12 @@
                         <div class="step ${status === 'OPEN' || status === 'DONE' ? 'active' : ''}"><div class="step-circle"><i class="fas fa-cog fa-spin"></i></div><div class="step-lab">In Progress</div></div>
                         <div class="step ${status === 'DONE' ? 'active' : ''}"><div class="step-circle"><i class="fas fa-flag-checkered"></i></div><div class="step-lab">Resolved</div></div>
                     </div>
-                    <button class="action-btn" style="width:100%; padding:20px; font-size:1rem; margin-top:30px;" onclick="toggleStatus('${r.id}', '${status}')">
-                        ${status === 'DONE' ? 'Re-open Incident' : 'Mark as Resolved / Close Task'}
-                    </button>
+                    <div style="display:flex; justify-content:center; margin-top:30px; gap:20px;">
+                        ${getStatusPill(status)}
+                        <button class="action-btn" onclick="toggleStatus('${r.id}', '${status}')">
+                            ${status === 'DONE' ? '<i class="fas fa-undo"></i> Re-open Task' : '<i class="fas fa-check"></i> Close Task'}
+                        </button>
+                    </div>
                 </div>
             `;
             document.getElementById('side-panel-content').innerHTML = html; openSidePanel();
@@ -361,7 +355,7 @@
             let color = 'var(--turquoise)'; if(value === 'Critical' || value === 'Safety' || value === 'OPEN') color = 'var(--danger)'; if(value === 'High' || value === 'warning') color = 'var(--warning)'; if(value === 'DONE') color = 'var(--success)';
             let html = `<div class="filter-badge" style="color:${color}; margin-bottom:15px;"><i class="fas fa-filter"></i> ${type}: ${value}</div><h2 style="font-size:2.8rem; font-weight:950; margin-bottom:30px; color:#fff;">${title}</h2>`;
             if(filtered.length === 0) { html += `<div style="text-align:center; padding:80px; color:var(--text-dim); font-size:1.2rem;">No records found.</div>`; }
-            else { html += `<div style="margin-bottom:25px; color:var(--text-muted); font-weight:700;">Showing ${filtered.length} reports</div><table class="modern-table"><thead><tr><th>Ref</th><th>Priority</th><th>Category</th><th>Location</th><th>Status</th></tr></thead><tbody>`; filtered.forEach(r => { const s = (r.status || 'OPEN').toUpperCase(); let loc = (r.location || r.site || 'Unknown'); if(loc.trim() === 'HQ — Jeddah' || loc.trim() === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower'; html += `<tr onclick="showReportDetail('${r.id}')"><td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td><td><span class="pri-badge" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</span></td><td>${r.category}</td><td style="font-size:0.85rem;">${loc}</td><td><span class="status-pill ${s === 'DONE' ? 'status-done' : 'status-open'}">${s}</span></td></tr>`; }); html += `</tbody></table>`; }
+            else { html += `<div style="margin-bottom:25px; color:var(--text-muted); font-weight:700;">Showing ${filtered.length} reports</div><table class="modern-table"><thead><tr><th>Ref</th><th>Priority</th><th>Category</th><th>Location</th><th>Status</th></tr></thead><tbody>`; filtered.forEach(r => { const s = (r.status || 'OPEN').toUpperCase(); let loc = (r.location || r.site || 'Unknown'); if(loc.trim() === 'HQ — Jeddah' || loc.trim() === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower'; html += `<tr onclick="showReportDetail('${r.id}')"><td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td><td><span class="pri-badge" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</span></td><td>${r.category}</td><td style="font-size:0.85rem;">${loc}</td><td>${getStatusPill(s)}</td></tr>`; }); html += `</tbody></table>`; }
             content.innerHTML = html; openSidePanel();
         }
 
@@ -435,7 +429,7 @@
             updateMarkers(); updateUnitMatrix(currentUnitFilter); applyFilters();
         }
 
-        function applyFilters() { const body = document.getElementById('reports-table-body'); if(!body) return; body.innerHTML = ''; const search = (document.getElementById('report-search') ? document.getElementById('report-search').value.toLowerCase() : ''); allReports.filter(r => { const reporterName = (r.reporter || '').toLowerCase(); const description = (r.description || '').toLowerCase(); const location = (r.location || r.site || '').toLowerCase(); const id = r.id.toLowerCase(); return id.includes(search) || reporterName.includes(search) || description.includes(search) || location.includes(search); }).forEach(r => { const s = (r.status || 'OPEN').toUpperCase(); const isAnon = (r.isAnonymous === true || !r.reporter); let loc = (r.location || r.site || 'Unknown'); if(loc.trim() === 'HQ — Jeddah' || loc.trim() === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower'; body.innerHTML += `<tr onclick="showReportDetail('${r.id}')"><td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td><td>${isAnon ? '<span style="opacity:0.4;">Anonymous</span>' : r.reporter}</td><td><span class="pri-badge" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</span></td><td>${r.category}</td><td style="font-size:0.85rem;">${loc}</td><td><span class="status-pill ${s === 'DONE' ? 'status-done' : 'status-open'}">${s}</span></td><td onclick="event.stopPropagation()"><button class="action-btn" onclick="toggleStatus('${r.id}', '${s}')">${s === 'DONE' ? 'Open' : 'Close'}</button></td></tr>`; }); }
+        function applyFilters() { const body = document.getElementById('reports-table-body'); if(!body) return; body.innerHTML = ''; const search = (document.getElementById('report-search') ? document.getElementById('report-search').value.toLowerCase() : ''); allReports.filter(r => { const reporterName = (r.reporter || '').toLowerCase(); const description = (r.description || '').toLowerCase(); const location = (r.location || r.site || '').toLowerCase(); const id = r.id.toLowerCase(); return id.includes(search) || reporterName.includes(search) || description.includes(search) || location.includes(search); }).forEach(r => { const s = (r.status || 'OPEN').toUpperCase(); const isAnon = (r.isAnonymous === true || !r.reporter); let loc = (r.location || r.site || 'Unknown'); if(loc.trim() === 'HQ — Jeddah' || loc.trim() === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower'; body.innerHTML += `<tr onclick="showReportDetail('${r.id}')"><td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td><td>${isAnon ? '<span style="opacity:0.4;">Anonymous</span>' : r.reporter}</td><td><span class="pri-badge" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</span></td><td>${r.category}</td><td style="font-size:0.85rem;">${loc}</td><td>${getStatusPill(s)}</td><td onclick="event.stopPropagation()"><button class="action-btn" style="padding: 8px 16px; font-size: 0.8rem;" onclick="toggleStatus('${r.id}', '${s}')">${s === 'DONE' ? 'Open' : 'Close'}</button></td></tr>`; }); }
         function initRealtimeSync() { db.collection('reports').onSnapshot(snap => { const GARBAGE = ['1', '0', '66', '2', '92', '58', '106', '112', '113', 'SITE', 'site']; allReports = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(r => { const l = (r.location || r.site || '').trim(); const isValid = l && !GARBAGE.includes(l) && !(/^\d+$/.test(l) && !l.includes('HQ') && !l.includes('KSP')); const isWhiteListed = l === 'HQ — Jeddah' || l === 'Jeddah - New Office' || STATIC_SITES.some(s => s.toLowerCase() === l.toLowerCase()) || STATIC_HOUSINGS.some(h => h.toLowerCase() === l.toLowerCase()) || STATIC_OFFICES.some(o => o.toLowerCase() === l.toLowerCase()); return isValid || isWhiteListed; }); syncAllData(); }); }
         window.onload = () => { initCharts(); initRealMap(); initRealtimeSync(); };
     </script>
