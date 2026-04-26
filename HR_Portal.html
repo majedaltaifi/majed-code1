@@ -73,50 +73,50 @@
         .search-input-modern { width: 100%; padding: 18px 25px 18px 60px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 22px; color: #fff; font-size: 1.1rem; font-weight: 600; outline: none; transition: 0.4s; backdrop-filter: blur(10px); }
         .search-input-modern:focus { border-color: var(--turquoise); background: rgba(255,255,255,0.06); box-shadow: 0 0 25px var(--turq-glow); }
         .search-icon { position: absolute; left: 25px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 1.2rem; pointer-events: none; transition: 0.3s; }
-        .search-input-modern:focus + .search-icon { color: var(--turquoise); }
 
-        .charts-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-bottom: 35px; }
-        .chart-container { background: var(--surface); border: 1px solid var(--border); border-radius: 40px; padding: 40px; height: 480px; position: relative; transition: 0.4s; overflow: hidden; }
-        .chart-title { font-size: 1.4rem; font-weight: 950; margin-bottom: 20px; color: #fff; display: flex; align-items: center; gap: 15px; }
-
-        .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 40px; padding: 50px; backdrop-filter: blur(20px); margin-bottom: 35px; }
-        .chart-title-sub { font-size: 1.8rem; font-weight: 950; margin-bottom: 30px; color: #fff; display: flex; align-items: center; gap: 15px; }
-
-        .side-panel { position: fixed; top: 0; right: -750px; width: 700px; height: 100vh; background: rgba(8, 9, 34, 0.99); backdrop-filter: blur(60px); border-left: 1px solid var(--border-glow); box-shadow: -40px 0 100px rgba(0,0,0,0.8); z-index: 2000; transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1); padding: 80px 50px; overflow-y: auto; }
+        /* Side Panel / Detail Styles */
+        .side-panel { position: fixed; top: 0; right: -850px; width: 800px; height: 100vh; background: rgba(8, 9, 34, 0.99); backdrop-filter: blur(60px); border-left: 1px solid var(--border-glow); box-shadow: -40px 0 100px rgba(0,0,0,0.8); z-index: 2000; transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1); padding: 60px 40px; overflow-y: auto; scrollbar-width: thin; }
         .side-panel.active { right: 0; }
-        .close-btn { position: absolute; top: 40px; right: 40px; background: none; border: none; color: var(--text-muted); font-size: 2rem; cursor: pointer; }
+        .close-btn { position: absolute; top: 30px; right: 30px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: 0.3s; z-index: 100; }
+        .close-btn:hover { background: var(--danger); border-color: var(--danger); transform: rotate(90deg); }
 
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .modern-table { width: 100%; border-collapse: separate; border-spacing: 0 12px; }
-        .modern-table th { text-align: left; padding: 15px 25px; color: var(--text-muted); font-size: 0.9rem; font-weight: 900; text-transform: uppercase; }
-        .modern-table td { padding: 20px 25px; background: rgba(255,255,255,0.03); font-size: 1rem; font-weight: 600; cursor: pointer; }
-        .modern-table tr:hover td { background: rgba(255,255,255,0.06); }
+        .detail-header { margin-bottom: 40px; }
+        .detail-id { font-size: 0.85rem; font-weight: 900; color: var(--turquoise); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
+        .detail-title { font-size: 2.8rem; font-weight: 950; color: #fff; line-height: 1.1; margin-bottom: 15px; }
 
-        .status-pill { padding: 8px 16px; border-radius: 12px; font-size: 0.8rem; font-weight: 900; text-transform: uppercase; }
-        .status-open { background: rgba(255, 171, 0, 0.15); color: var(--warning); border: 1px solid var(--warning); }
-        .status-done { background: rgba(0, 230, 118, 0.15); color: var(--success); border: 1px solid var(--success); }
-        .pri-badge { padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; border: 1px solid currentColor; }
-        .action-btn { background: var(--turquoise); color: var(--nit-deep); border: none; padding: 10px 18px; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 0.8rem; transition: 0.3s; }
-        .filter-badge { display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; border-radius: 100px; font-weight: 900; font-size: 1rem; text-transform: uppercase; margin-bottom: 30px; border: 1px solid currentColor; }
+        .evidence-viewer { width: 100%; border-radius: 30px; overflow: hidden; margin-bottom: 35px; border: 1px solid var(--border); background: #000; position: relative; }
+        .evidence-img { width: 100%; max-height: 500px; object-fit: contain; display: block; }
+        .no-evidence { padding: 80px; text-align: center; color: var(--text-muted); font-weight: 800; font-size: 1.1rem; }
+
+        .info-section { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 30px; padding: 30px; margin-bottom: 25px; }
+        .section-title { font-size: 1rem; font-weight: 900; color: var(--turquoise); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; display: flex; align-items: center; gap: 12px; }
         
-        /* Unit Card Styles */
+        .detail-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .detail-item { display: flex; align-items: center; gap: 15px; padding: 15px; background: rgba(255,255,255,0.02); border-radius: 18px; border: 1px solid rgba(255,255,255,0.05); }
+        .detail-icon { width: 45px; height: 45px; border-radius: 12px; background: rgba(128, 209, 233, 0.1); color: var(--turquoise); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+        .detail-content { display: flex; flex-direction: column; }
+        .detail-label { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+        .detail-value { font-size: 1.1rem; font-weight: 700; color: #fff; }
+
+        .reporter-card { display: flex; align-items: center; gap: 25px; padding: 25px; background: linear-gradient(135deg, rgba(46, 49, 146, 0.2), rgba(128, 209, 233, 0.05)); border-radius: 25px; border: 1px solid var(--border-glow); }
+        .reporter-avatar { width: 70px; height: 70px; border-radius: 20px; background: var(--turquoise); color: var(--nit-deep); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; }
+        .anon-avatar { background: var(--text-muted); }
+        .reporter-info { flex: 1; }
+        .reporter-name { font-size: 1.4rem; font-weight: 950; color: #fff; margin-bottom: 5px; }
+        .reporter-id { font-size: 0.9rem; font-weight: 700; color: var(--turquoise); }
+
+        .status-tracker { display: flex; justify-content: space-between; align-items: center; padding: 40px 20px; position: relative; }
+        .tracker-line { position: absolute; top: 50%; left: 10%; right: 10%; height: 2px; background: var(--border); z-index: 1; transform: translateY(-50%); }
+        .tracker-progress { position: absolute; top: 50%; left: 10%; height: 2px; background: var(--success); z-index: 2; transform: translateY(-50%); transition: 0.6s; }
+        .step { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+        .step-circle { width: 50px; height: 50px; border-radius: 50%; background: var(--bg-accent); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: var(--text-muted); transition: 0.4s; }
+        .step.active .step-circle { border-color: var(--success); color: var(--success); background: rgba(0, 230, 118, 0.1); box-shadow: 0 0 20px rgba(0, 230, 118, 0.3); }
+        .step-lab { font-size: 0.8rem; font-weight: 900; text-transform: uppercase; color: var(--text-muted); }
+        .step.active .step-lab { color: #fff; }
+
         .unit-card { background: var(--surface); border: 1px solid var(--border); border-radius: 28px; padding: 35px; transition: 0.4s; cursor: pointer; display: flex; flex-direction: column; gap: 25px; position: relative; overflow: hidden; backdrop-filter: blur(10px); }
         .unit-card:hover { border-color: var(--border-glow); transform: translateY(-8px); background: var(--surface-hover); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-        .unit-card-header { display: flex; justify-content: space-between; align-items: flex-start; }
-        .unit-card-title { font-size: 1.3rem; font-weight: 950; color: #fff; line-height: 1.3; flex: 1; }
-        .unit-card-badge { padding: 6px 14px; border-radius: 12px; font-size: 0.75rem; font-weight: 950; text-transform: uppercase; background: rgba(128, 209, 233, 0.1); color: var(--turquoise); border: 1px solid var(--border-glow); }
-        .unit-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 15px; }
-        .unit-stat-box { display: flex; flex-direction: column; gap: 8px; }
-        .unit-stat-lab { font-size: 0.8rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-        .unit-stat-val { font-size: 2.2rem; font-weight: 950; color: #fff; text-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .unit-progress-area { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
-        .unit-progress-lab { display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 900; margin-bottom: 12px; }
-        .unit-progress-bar { height: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; }
-        .unit-progress-fill { height: 100%; background: linear-gradient(to right, var(--nit-blue), var(--turquoise)); border-radius: 10px; transition: width 1s ease-out; box-shadow: 0 0 15px var(--turq-glow); }
-
-        .marker-pulse { animation: marker-pulse 2s infinite; }
-        @keyframes marker-pulse { 0% { box-shadow: 0 0 0 0px rgba(255, 82, 82, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(255, 82, 82, 0); } 100% { box-shadow: 0 0 0 0px rgba(255, 82, 82, 0); } }
+        .unit-stat-val { font-size: 2.2rem; font-weight: 950; color: #fff; }
     </style>
 </head>
 <body>
@@ -243,21 +243,81 @@
         function showReportDetail(id) {
             const r = allReports.find(x => x.id === id); if(!r) return;
             const isAnon = (r.isAnonymous === true || !r.reporter);
-            let html = `<h2 style="font-size:2.5rem; font-weight:950; margin-bottom:40px; color:var(--turquoise);">Report Details</h2><div class="info-group"><div class="info-lab">Reference ID</div><div class="info-val">#${r.id}</div></div><div class="info-group"><div class="info-lab">Description</div><div class="info-val" style="line-height:1.6; font-size:1rem;">${r.description || 'No description provided.'}</div></div><div class="info-group"><div class="info-lab">Reporter</div><div class="info-val">${isAnon ? 'Anonymous Employee' : r.reporter}</div></div>`;
-            if(!isAnon) { html += `<div class="info-group"><div class="info-lab">Contact Email</div><div class="info-val">${r.email || 'N/A'}</div></div><div class="info-group"><div class="info-lab">Contact Phone</div><div class="info-val">${r.phone || 'N/A'}</div></div>`; }
-            html += `<div class="info-group"><div class="info-lab">Priority / Status</div><div class="info-val" style="display:flex; gap:10px; align-items:center;"><span class="pri-badge" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</span><span class="status-pill ${r.status === 'DONE' ? 'status-done' : 'status-open'}">${r.status || 'OPEN'}</span></div></div>`;
-            if(r.imageUrl || r.image) { html += `<div class="info-group"><div class="info-lab">Evidence Image</div><img src="${r.imageUrl || r.image}" class="detail-img" alt="Evidence"></div>`; }
-            html += `<div style="margin-top:50px;"><button class="action-btn" style="width:100%;" onclick="toggleStatus('${r.id}', '${r.status || 'OPEN'}')">Toggle Status (Open/Close)</button></div>`;
+            const status = (r.status || 'OPEN').toUpperCase();
+            let loc = (r.location || r.site || 'Unknown'); if(loc.trim() === 'HQ — Jeddah' || loc.trim() === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower';
+            
+            let html = `
+                <div class="detail-header">
+                    <div class="detail-id">#${r.id}</div>
+                    <div class="detail-title">${r.category || 'Incident Report'}</div>
+                    <p style="color: var(--text-dim); line-height: 1.6; font-size: 1.1rem; margin-top: 20px;">${r.description || 'No description provided by the employee.'}</p>
+                </div>
+
+                <div class="evidence-viewer">
+                    ${(r.imageUrl || r.image) ? `<img src="${r.imageUrl || r.image}" class="evidence-img">` : `<div class="no-evidence"><i class="fas fa-image" style="font-size:3rem; display:block; margin-bottom:15px;"></i> No image evidence provided.</div>`}
+                </div>
+
+                <div class="info-section">
+                    <div class="section-title"><i class="fas fa-user-shield"></i> Reporter Information</div>
+                    ${isAnon ? `
+                        <div class="reporter-card">
+                            <div class="reporter-avatar anon-avatar"><i class="fas fa-user-secret"></i></div>
+                            <div class="reporter-info">
+                                <div class="reporter-name">Anonymous Report</div>
+                                <div class="reporter-id">Privacy Protected by System</div>
+                            </div>
+                        </div>
+                    ` : `
+                        <div class="reporter-card">
+                            <div class="reporter-avatar">${r.reporter ? r.reporter.charAt(0) : 'U'}</div>
+                            <div class="reporter-info">
+                                <div class="reporter-name">${r.reporter}</div>
+                                <div class="reporter-id">Employee ID: ${r.employeeId || 'N/A'}</div>
+                            </div>
+                        </div>
+                        <div class="detail-grid" style="margin-top:20px;">
+                            <div class="detail-item"><div class="detail-icon"><i class="fas fa-phone"></i></div><div class="detail-content"><div class="detail-label">Phone</div><div class="detail-value">${r.phone || 'N/A'}</div></div></div>
+                            <div class="detail-item"><div class="detail-icon"><i class="fas fa-envelope"></i></div><div class="detail-content"><div class="detail-label">Email</div><div class="detail-value" style="font-size:0.85rem;">${r.email || 'N/A'}</div></div></div>
+                        </div>
+                    `}
+                </div>
+
+                <div class="info-section">
+                    <div class="section-title"><i class="fas fa-info-circle"></i> Incident Metadata</div>
+                    <div class="detail-grid">
+                        <div class="detail-item"><div class="detail-icon"><i class="fas fa-map-marker-alt"></i></div><div class="detail-content"><div class="detail-label">Site / Project</div><div class="detail-value">${loc}</div></div></div>
+                        <div class="detail-item"><div class="detail-icon"><i class="fas fa-calendar-alt"></i></div><div class="detail-content"><div class="detail-label">Date Reported</div><div class="detail-value">${r.date || 'N/A'}</div></div></div>
+                        <div class="detail-item"><div class="detail-icon"><i class="fas fa-sync"></i></div><div class="detail-content"><div class="detail-label">Frequency</div><div class="detail-value">${r.frequency || 'N/A'}</div></div></div>
+                        <div class="detail-item"><div class="detail-icon"><i class="fas fa-exclamation-triangle"></i></div><div class="detail-content"><div class="detail-label">Ongoing?</div><div class="detail-value">${r.isViolationOngoing || 'N/A'}</div></div></div>
+                        <div class="detail-item"><div class="detail-icon"><i class="fas fa-clock"></i></div><div class="detail-content"><div class="detail-label">Approx. Time</div><div class="detail-value">${r.approxTime || 'N/A'}</div></div></div>
+                        <div class="detail-item"><div class="detail-icon"><i class="fas fa-fire"></i></div><div class="detail-content"><div class="detail-label">Priority</div><div class="detail-value" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</div></div></div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <div class="section-title"><i class="fas fa-tasks"></i> Operational Status</div>
+                    <div class="status-tracker">
+                        <div class="tracker-line"></div>
+                        <div class="tracker-progress" style="width: ${status === 'DONE' ? '90%' : '45%'}"></div>
+                        <div class="step active"><div class="step-circle"><i class="fas fa-check"></i></div><div class="step-lab">Submitted</div></div>
+                        <div class="step ${status === 'OPEN' || status === 'DONE' ? 'active' : ''}"><div class="step-circle"><i class="fas fa-cog fa-spin"></i></div><div class="step-lab">In Progress</div></div>
+                        <div class="step ${status === 'DONE' ? 'active' : ''}"><div class="step-circle"><i class="fas fa-flag-checkered"></i></div><div class="step-lab">Resolved</div></div>
+                    </div>
+                    <button class="action-btn" style="width:100%; padding:20px; font-size:1rem; margin-top:30px;" onclick="toggleStatus('${r.id}', '${status}')">
+                        ${status === 'DONE' ? 'Re-open Incident' : 'Mark as Resolved / Close Task'}
+                    </button>
+                </div>
+            `;
             document.getElementById('side-panel-content').innerHTML = html; openSidePanel();
         }
 
         function openFilteredList(value, title, type) {
             const content = document.getElementById('side-panel-content');
-            const filtered = allReports.filter(r => { const s = (r.status || 'OPEN').toUpperCase(); const p = (r.priority || 'Low').toLowerCase(); const c = (r.category || 'Other').toLowerCase(); const loc = (r.location || r.site || 'Unknown').trim(); const val = (value || '').toLowerCase().trim(); if(type === 'status' && value === 'TOTAL') return true; if(type === 'status') return s === value; if(type === 'priority') return p === val; if(type === 'category') return c === val; if(type === 'location') return loc.toLowerCase() === val || (loc === 'HQ — Jeddah' && val === 'jeddah main office - randa tower'); return true; });
+            const filtered = allReports.filter(r => { const s = (r.status || 'OPEN').toUpperCase(); const p = (r.priority || 'Low').toLowerCase(); const c = (r.category || 'Other').toLowerCase(); const loc = (r.location || r.site || 'Unknown').trim(); const val = (value || '').toLowerCase().trim(); if(type === 'status' && value === 'TOTAL') return true; if(type === 'status') return s === value; if(type === 'priority') return p === val; if(type === 'category') return c === val; if(type === 'location') return loc.toLowerCase() === val || (loc === 'HQ — Jeddah' && val === 'jeddah main office - randa tower') || (loc === 'Jeddah - New Office' && val === 'jeddah main office - randa tower'); return true; });
             let color = 'var(--turquoise)'; if(value === 'Critical' || value === 'Safety' || value === 'OPEN') color = 'var(--danger)'; if(value === 'High' || value === 'warning') color = 'var(--warning)'; if(value === 'DONE') color = 'var(--success)';
             let html = `<div class="filter-badge" style="color:${color};"><i class="fas fa-filter"></i> ${type}: ${value}</div><h2 style="font-size:2.5rem; font-weight:950; margin-bottom:40px; color:#fff;">${title}</h2>`;
             if(filtered.length === 0) { html += `<div style="text-align:center; padding:80px; color:var(--text-dim); font-size:1.2rem;">No records found.</div>`; }
-            else { html += `<div style="margin-bottom:20px; color:var(--text-muted); font-weight:700;">Showing ${filtered.length} reports</div><table class="modern-table"><thead><tr><th>Ref</th><th>Priority</th><th>Category</th><th>Location</th><th>Status</th></tr></thead><tbody>`; filtered.forEach(r => { const s = (r.status || 'OPEN').toUpperCase(); let loc = (r.location || r.site || 'Unknown'); if(loc.trim() === 'HQ — Jeddah') loc = 'Jeddah Main Office - Randa Tower'; html += `<tr onclick="showReportDetail('${r.id}')"><td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td><td><span class="pri-badge" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</span></td><td>${r.category}</td><td style="font-size:0.75rem;">${loc}</td><td><span class="status-pill ${s === 'DONE' ? 'status-done' : 'status-open'}">${s}</span></td></tr>`; }); html += `</tbody></table>`; }
+            else { html += `<div style="margin-bottom:20px; color:var(--text-muted); font-weight:700;">Showing ${filtered.length} reports</div><table class="modern-table"><thead><tr><th>Ref</th><th>Priority</th><th>Category</th><th>Location</th><th>Status</th></tr></thead><tbody>`; filtered.forEach(r => { const s = (r.status || 'OPEN').toUpperCase(); let loc = (r.location || r.site || 'Unknown'); if(loc.trim() === 'HQ — Jeddah' || loc.trim() === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower'; html += `<tr onclick="showReportDetail('${r.id}')"><td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td><td><span class="pri-badge" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</span></td><td>${r.category}</td><td style="font-size:0.75rem;">${loc}</td><td><span class="status-pill ${s === 'DONE' ? 'status-done' : 'status-open'}">${s}</span></td></tr>`; }); html += `</tbody></table>`; }
             content.innerHTML = html; openSidePanel();
         }
 
@@ -271,15 +331,10 @@
         }
 
         function updateUnitMatrix(filter, btn) {
-            if(btn) { 
-                document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active')); 
-                btn.classList.add('active'); 
-                currentUnitFilter = filter;
-            }
+            if(btn) { document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentUnitFilter = filter; }
             const search = document.getElementById('site-search-input').value.toLowerCase();
             const grid = document.getElementById('unit-matrix-grid'); if(!grid) return; grid.innerHTML = '';
             const stats = {}; const discoveredUnits = new Set();
-            
             allReports.forEach(r => {
                 let name = (r.location || r.site || 'Unknown').trim();
                 if(name === 'HQ — Jeddah' || name === 'Jeddah - New Office') name = 'Jeddah Main Office - Randa Tower';
@@ -298,14 +353,10 @@
                 const s = stats[name];
                 if (currentUnitFilter !== 'ALL' && s.category !== currentUnitFilter) return;
                 if (search && !name.toLowerCase().includes(search)) return;
-                
                 const rate = s.total > 0 ? Math.round((s.done / s.total) * 100) : 0;
                 grid.innerHTML += `
                     <div class="unit-card" onclick="openFilteredList('${name}', '${name}', 'location')">
-                        <div class="unit-card-header">
-                            <div class="unit-card-title">${name}</div>
-                            <div class="unit-card-badge">${s.category}</div>
-                        </div>
+                        <div class="unit-card-header"><div class="unit-card-title">${name}</div><div class="unit-card-badge">${s.category}</div></div>
                         <div class="unit-stats-grid">
                             <div class="unit-stat-box"><div class="unit-stat-lab">Total</div><div class="unit-stat-val">${s.total}</div></div>
                             <div class="unit-stat-box"><div class="unit-stat-lab">Open</div><div class="unit-stat-val" style="color:var(--warning);">${s.open}</div></div>
