@@ -246,7 +246,6 @@
         </div>
 
         <div id="view-all-reports" class="tab-content">
-            <h1 style="margin-bottom: 20px; font-weight: 900; color: var(--turquoise);">All Reports (Updated)</h1>
             <div class="panel">
                 <div class="filter-bar">
                     <div class="filter-group" style="flex: 2; min-width: 300px;">
@@ -413,22 +412,6 @@
                         <div class="detail-item"><div class="detail-icon"><i class="fas fa-exclamation-triangle"></i></div><div class="detail-content"><div class="detail-label">Ongoing Issue?</div><div class="detail-value" style="color:${ongoing === 'Yes' ? 'var(--danger)' : 'var(--success)'}">${ongoing}</div></div></div>
                         <div class="detail-item"><div class="detail-icon"><i class="fas fa-fire"></i></div><div class="detail-content"><div class="detail-label">Severity Level</div><div class="detail-value" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</div></div></div>
                         <div class="detail-item"><div class="detail-icon"><i class="fas fa-fingerprint"></i></div><div class="detail-content"><div class="detail-label">Reference ID</div><div class="detail-value" style="font-size:0.8rem; opacity:0.6;">${r.id}</div></div></div>
-                    </div>
-                </div>
-
-                <div class="info-section">
-                    <div class="section-title"><i class="fas fa-tasks"></i> Operational Progress</div>
-                    <div class="status-tracker">
-                        <div class="tracker-line"></div>
-                        <div class="tracker-progress" style="width: ${status === 'DONE' ? '90%' : '45%'}"></div>
-                        <div class="step active"><div class="step-circle"><i class="fas fa-check"></i></div><div class="step-lab">Submitted</div></div>
-                        <div class="step ${status === 'OPEN' || status === 'DONE' ? 'active' : ''}"><div class="step-circle"><i class="fas fa-cog fa-spin"></i></div><div class="step-lab">In Progress</div></div>
-                        <div class="step ${status === 'DONE' ? 'active' : ''}"><div class="step-circle"><i class="fas fa-flag-checkered"></i></div><div class="step-lab">Resolved</div></div>
-                    </div>
-                    <div style="display:flex; justify-content:center; margin-top:30px;">
-                        <button class="action-btn" style="min-width: 250px; justify-content: center;" onclick="toggleStatus('${r.id}', '${status}')">
-                            ${status === 'DONE' ? '<i class="fas fa-undo"></i> Re-open Task' : '<i class="fas fa-check"></i> Close Task'}
-                        </button>
                     </div>
                 </div>
             `;
