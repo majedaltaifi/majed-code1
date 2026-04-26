@@ -187,6 +187,24 @@
             'Housing - Rabigh Alnaeem', 'Housing - Riyadh Almonsiyah', 'Housing - Riyadh Almurjan', 'Housing - Safwa AlMuruj',
             'Housing - Tabuk Alraya', 'Housing - Yanbu Alttakhi', 'Housing- jeddah Alfrusiyah'
         ];
+        const STATIC_SITES = [
+            'HQ — Jeddah', '10521300012 - KSP 8388', '10521300013 - KSP 8389', 'ABU Hadriyah 115 KV Extension with Rerouting in OHTL',
+            'AL- Ahsa O&M', 'Abu Maan Substation', 'Aindar Project', 'Aindar Warehouse', 'Al-Bahr Substation', 'Asfan Main Warehouse',
+            'BISHA - PV 380/132 KV BSP', 'Bayoniyah Substation', 'Buhaiyrat', 'CONSTRUCTION OF AL-MURJAN 132/13.8kV SUBSTATION # 8274 IN RIYADH CITY',
+            'CONSTRUCTION OF HARAM-3 SS', 'CONSTRUCTION OF JAZERA ROYAL PALACE - THUWAL', 'Construction Of Farasan Island SS (132/33/13.8KV)',
+            'Dammam O&M', 'Dammam Port', 'Dana-2 Substation', 'Diriyah Gate Project Substation # 8171', 'Diriyah Gate Project Substation # 8242',
+            'FM Dammam', 'HV Jubail Intertie', 'Hada-2 (Andalus) Substation', 'Hafar AL- Batin O&M', 'Hafr Albatin Unified',
+            'Iman General Hospital', 'Interconnection Of Nawariyah SS', 'Jafurah', 'Jazan Medical City', 'Jazan Port', 'Jazan Warehouse',
+            'Jubail 7AB', 'Jubail North', 'Jubail South East', 'Khobar Corniche Substation', 'King Fahad Causeway', 'MEDNO Island Reinforcement',
+            'Madaya', 'Madinah Warehouse', 'Modon Asir', 'NIC EV2', 'NIC NORTH', 'Neom PSSA And PSSB (OHTL)', 'Neom Security System O&M',
+            'New Dammam Warehouse', 'North Khobar', 'North Thuqbah', 'PMAH', 'POWER SUPPLY TO HAFAR AL-BATIN', 'Qalah Substation',
+            'Qatif Shati Substation', 'RUMAH 380 KV BSP', 'Rabigh Substation', 'Ras Tanura 0810606', 'Riyadh warehouse', 'Ryadhiyah Substation',
+            'SAMHA OHTL', 'SESP - Training Institute', 'Samif Workshop', 'Saudi Aramco - Madinah Bulk Plant', 'Saudi Aramco - North Jeddah Bulk Plant',
+            'Saudi Aramco - Petro Rabigh', 'Saudi Aramco - Yanbu Bulk Plant', 'Senaeya-2 Substation', 'Sheraa Substation',
+            'Switchgear Room at Al-Baha CPS Substation', 'Tabuk (ISP) Warehouse', 'Tabuk (OSP) Warehouse', 'Taiba West Substation',
+            'Thuwal Warehouse', 'Tuwaiq warehouse', 'Udailiyah Site - Aramco Project (VCP)', 'Uruba Substation', 'WALY ALAHAD-3 110-13.8kV SS',
+            'Wadi Al-Dhahran Substation', 'Wadi Safar - Security & ICT', 'Wasalat Workshop', 'ZATCA', 'Zatca HQ'
+        ];
 
         function switchView(viewId, el) {
             activeView = viewId;
@@ -249,16 +267,9 @@
             allReports.forEach(r => {
                 const name = (r.location || r.site || 'Unknown').trim();
                 let category = 'SITE';
-                
-                // CATEGORIZATION LOGIC
-                if (STATIC_OFFICES.some(o => o.toLowerCase() === name.toLowerCase())) {
-                    category = 'OFFICE';
-                } else if (STATIC_HOUSINGS.some(h => h.toLowerCase() === name.toLowerCase()) || name.toLowerCase().startsWith('housing')) {
-                    category = 'HOUSING';
-                } else {
-                    // EVERYTHING ELSE GOES TO SITES (if it's verified)
-                    category = 'SITE';
-                }
+                if (STATIC_OFFICES.some(o => o.toLowerCase() === name.toLowerCase())) category = 'OFFICE';
+                else if (STATIC_HOUSINGS.some(h => h.toLowerCase() === name.toLowerCase()) || name.toLowerCase().startsWith('housing')) category = 'HOUSING';
+                else category = 'SITE';
                 
                 if(!stats[name]) stats[name] = { total: 0, open: 0, done: 0, category: category };
                 stats[name].total++; if((r.status || 'OPEN').toUpperCase() === 'DONE') stats[name].done++; else stats[name].open++;
@@ -267,6 +278,7 @@
 
             STATIC_OFFICES.forEach(o => { if(!stats[o]) stats[o] = { total: 0, open: 0, done: 0, category: 'OFFICE' }; discoveredUnits.add(o); });
             STATIC_HOUSINGS.forEach(h => { if(!stats[h]) stats[h] = { total: 0, open: 0, done: 0, category: 'HOUSING' }; discoveredUnits.add(h); });
+            STATIC_SITES.forEach(s => { if(!stats[s]) stats[s] = { total: 0, open: 0, done: 0, category: 'SITE' }; discoveredUnits.add(s); });
 
             Array.from(discoveredUnits).sort().forEach(name => {
                 const s = stats[name]; if (filter !== 'ALL' && s.category !== filter) return;
@@ -332,7 +344,7 @@
                 .filter(r => {
                     const l = (r.location || r.site || '').trim();
                     const isValid = l && !GARBAGE.includes(l) && !(/^\d+$/.test(l) && !l.includes('HQ') && !l.includes('KSP'));
-                    const isWhiteListed = l.includes('HQ') || l.includes('KSP') || STATIC_HOUSINGS.some(h => h.toLowerCase() === l.toLowerCase()) || STATIC_OFFICES.some(o => o.toLowerCase() === l.toLowerCase());
+                    const isWhiteListed = STATIC_SITES.some(s => s.toLowerCase() === l.toLowerCase()) || STATIC_HOUSINGS.some(h => h.toLowerCase() === l.toLowerCase()) || STATIC_OFFICES.some(o => o.toLowerCase() === l.toLowerCase());
                     return isValid || isWhiteListed;
                 });
                 syncAllData(); 
