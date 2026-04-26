@@ -618,7 +618,60 @@
             return getT(b) - getT(a);
         });
         syncAllData(); }); }
-        window.onload = () => { initCharts(); initRealMap(); initRealtimeSync(); };
+        function syncBroadcasts() {
+            db.collection('broadcasts').orderBy('at', 'desc').onSnapshot(snap => {
+                const list = document.getElementById('broadcasts-container');
+                if(!list) return;
+                list.innerHTML = '';
+                const icons = {
+                    megaphone: { i: 'bullhorn', c: '#80d1e9' }, // Turquoise
+                    calendarCheck: { i: 'calendar-check', c: '#10b981' }, // Green
+                    trophy: { i: 'trophy', c: '#fbbf24' }, // Gold
+                    alert: { i: 'exclamation-circle', c: '#ef4444' } // Red
+                };
+                
+                snap.docs.forEach(doc => {
+                    const b = doc.data();
+                    const ic = icons[b.svg] || icons.megaphone;
+                    list.innerHTML += `
+                        <div class="panel" style="border: 1px solid rgba(255,255,255,0.05); background: rgba(15,23,42,0.4); position: relative; padding: 20px; border-radius: 20px; transition: 0.3s; display: flex; align-items: center; gap: 18px;">
+                            <div style="width: 52px; height: 52px; background: color-mix(in srgb, ${ic.c} 12%, transparent); border: 1px solid color-mix(in srgb, ${ic.c} 25%, transparent); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: ${ic.c}; font-size: 1.3rem; flex-shrink: 0; box-shadow: 0 0 15px color-mix(in srgb, ${ic.c} 10%, transparent);">
+                                <i class="fas fa-${ic.i}"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; opacity: 0.7;">${b.label} ${b.pinned ? '<i class="fas fa-thumbtack" style="color:#fbbf24; margin-left:5px;"></i>' : ''}</div>
+                                <div style="font-size: 1.1rem; font-weight: 900; color: #fff; margin-top: 2px;">${b.title}</div>
+                            </div>
+                            <button onclick="deleteBroadcast('${doc.id}')" style="background: rgba(255,52,52,0.1); color: #ef4444; border: none; width: 36px; height: 36px; border-radius: 12px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; font-size: 0.9rem;" onmouseover="this.style.background='#ef4444'; this.style.color='#fff'">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        async function addBroadcast() {
+            const label = document.getElementById('bc-label').value;
+            const title = document.getElementById('bc-title').value;
+            const pinned = document.getElementById('bc-pinned').checked;
+            const svg = document.querySelector('input[name="bc-icon"]:checked').value;
+            if(!label || !title) return alert("Please fill Title and Content");
+            try {
+                await db.collection('broadcasts').add({ label, title, content: title, svg, pinned, at: new Date().toISOString() });
+                document.getElementById('bc-label').value = '';
+                document.getElementById('bc-title').value = '';
+                document.getElementById('bc-pinned').checked = false;
+                alert("Published Successfully!");
+            } catch (e) { alert("Error: " + e.message); }
+        }
+
+        async function deleteBroadcast(id) {
+            if(!confirm("Delete this news?")) return;
+            try { await db.collection('broadcasts').doc(id).delete(); } catch (e) { alert(e.message); }
+        }
+
+        window.onload = () => { initCharts(); initRealMap(); initRealtimeSync(); syncBroadcasts(); };
     </script>
 </body>
 </html>
