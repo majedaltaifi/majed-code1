@@ -2334,31 +2334,33 @@ function syncAllChats() {
   if (!currentUser || currentUser.guest) return;
   const myID = String(currentUser.empNo);
   
+  const myReports = loadReports().map(r => r.id);
+  
   if (unsubSupportPreview) unsubSupportPreview();
   
+  // Listen for chats I am a member of OR chats for my reports
   unsubSupportPreview = db.collection('chats')
-    .where('members', 'array-contains', myID)
     .onSnapshot(snap => {
       const container = document.getElementById('chats-list-container');
       const badge = document.getElementById('chat-badge');
       if (!container) return;
       
-      let unreadCount = 0;
-      
-      if (snap.empty) {
-        container.innerHTML = '<div style="padding:20px;text-align:center;opacity:0.4;">No messages yet.</div>';
-        if (badge) badge.style.display = 'none';
-        return;
-      }
+      const myID = currentUser ? String(currentUser.empNo) : 'GUEST';
+      const myReports = loadReports().map(r => r.id);
       
       const chats = [];
+      let unreadCount = 0;
+      
       snap.forEach(doc => {
         const d = doc.data();
-        chats.push({id: doc.id, ...d});
+        const isMember = d.members && d.members.includes(myID);
+        const isMyReport = d.reportId && myReports.includes(d.reportId);
         
-        // Accurate unread logic: check the unread count for myID
-        if (d.unread && d.unread[myID] > 0) {
-           unreadCount++;
+        if (isMember || isMyReport) {
+            chats.push({id: doc.id, ...d});
+            if (d.unread && d.unread[myID] > 0) {
+               unreadCount++;
+            }
         }
       });
       
@@ -3505,7 +3507,7 @@ function initChatSystem() {
 
       const fragment = document.createDocumentFragment();
       msgs.forEach(m => {
-        const isMe = String(m.senderId) === String(myId);
+        const isMe = String(m.senderId) === String(myId) || (myId === 'GUEST' && m.senderId !== 'Support');
         const msgDiv = document.createElement('div');
         msgDiv.className = `msg ${isMe ? 'me' : 'them'}`;
         
