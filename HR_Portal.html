@@ -924,15 +924,29 @@
             const txt = inp.value.trim();
             if(!txt || !activeSupportChatId) return;
             
-            const now = new Date().toISOString();
+            const now = firebase.firestore.FieldValue.serverTimestamp();
             inp.value = '';
             
-            const msg = { text: txt, at: now, by: 'Support' };
+            const msg = { text: txt, at: new Date().toISOString(), by: 'Support' };
             await db.collection('chats').doc(activeSupportChatId).collection('messages').add(msg);
+            
+            // Get current unread for the employee to increment it
+            const chatSnap = await db.collection('chats').doc(activeSupportChatId).get();
+            const chatData = chatSnap.data();
+            const members = chatData.members || [];
+            const empNo = members.find(m => m !== 'Support');
+            
+            let newUnread = {};
+            if (empNo) {
+                const currentUnread = (chatData.unread && chatData.unread[empNo]) || 0;
+                newUnread[empNo] = currentUnread + 1;
+            }
+
             await db.collection('chats').doc(activeSupportChatId).update({
                 last_msg: txt,
                 last_at: now,
-                last_sender_id: 'Support'
+                last_sender_id: 'Support',
+                unread: newUnread
             });
         }
 

@@ -2387,11 +2387,15 @@ function syncAllChats() {
         }
       });
       
-      // Client-side sort to avoid index requirements for now
+      // Robust sorting: Handle both Firestore Timestamps and ISO Strings
       chats.sort((a,b) => {
-        const ta = (a.last_at && a.last_at.toMillis) ? a.last_at.toMillis() : 0;
-        const tb = (b.last_at && b.last_at.toMillis) ? b.last_at.toMillis() : 0;
-        return tb - ta;
+        const getT = (x) => {
+          if (!x) return 0;
+          if (x.toMillis) return x.toMillis();
+          const d = new Date(x);
+          return isNaN(d.getTime()) ? 0 : d.getTime();
+        };
+        return getT(b.last_at) - getT(a.last_at);
       });
 
       let html = '';
