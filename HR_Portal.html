@@ -749,6 +749,7 @@
 
         function syncSupportChats() {
             db.collection('chats')
+              .where('isSupport', '==', true)
               .orderBy('lastAt', 'desc')
               .onSnapshot(snap => {
                   const list = document.getElementById('support-conv-list');
@@ -766,7 +767,7 @@
                       item.className = `conv-item ${activeSupportChatId === doc.id ? 'active' : ''}`;
                       item.onclick = () => openSupportConversation(doc.id, name);
                       item.innerHTML = `
-                        <div class="conv-avatar">${name.charAt(0)}</div>
+                        <div class="conv-avatar" style="background:${c.reportId ? '#fbbf24' : 'var(--turquoise)'}">${name.charAt(0)}</div>
                         <div class="conv-info">
                             <div class="conv-name">${name}</div>
                             <div class="conv-last">${isMe ? 'You: ' : ''}${c.lastMsg || ''}</div>

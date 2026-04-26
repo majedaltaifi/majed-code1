@@ -3415,7 +3415,7 @@ window.addEventListener('click', (e) => {
 let activeChatId = null;
 let activeChatName = 'Support';
 
-function openChatWith(id, name) {
+async function openChatWith(id, name) {
   activeChatId = id;
   activeChatName = name;
   const overlay = document.getElementById('screen-chat');
@@ -3423,13 +3423,27 @@ function openChatWith(id, name) {
   const titleEl = overlay.querySelector('.sheet-title');
   if (titleEl) titleEl.textContent = name;
   
-  // Mark as read when opening
   const user = currentUser || loadUser();
   if (user) {
     const myId = String(user.empNo || user.employeeId);
-    db.collection('chats').doc(id).set({
-      unread: { [myId]: 0 }
-    }, { merge: true }).catch(e => console.error("Mark read error:", e));
+    const isSup = id.includes('_Support') || id.startsWith('NIT-');
+    const chatDoc = await db.collection('chats').doc(id).get();
+    
+    if(!chatDoc.exists) {
+        await db.collection('chats').doc(id).set({
+            members: [myId, 'Support'],
+            name: name,
+            isSupport: isSup,
+            reporterName: (isSup && !id.startsWith('NIT-')) ? (user.name || 'Employee') : null,
+            reportId: id.startsWith('NIT-') ? id : null,
+            lastMsg: '',
+            lastAt: new Date().toISOString(),
+            lastBy: myId,
+            unread: { [myId]: 0, 'Support': 1 }
+        });
+    } else {
+        db.collection('chats').doc(id).set({ unread: { [myId]: 0 } }, { merge: true });
+    }
   }
   
   initChatSystem();
