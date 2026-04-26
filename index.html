@@ -2219,11 +2219,10 @@ const ICO={
   envAccom:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12l9-9 9 9v9a2 2 0 0 1-2 2h-4v-6h-6v6H5a2 2 0 0 1-2-2z"/></svg>'
 };
 
-
 /* ══════════════════════════════════════════
    ISSUE HIERARCHY (Majed's structure, translated)
    Environment → Category → SubIssue → [Details]
-   ═══════════════════════════════════════ */
+   ══════════════════════════════════════════ */
 const ISSUE_HIERARCHY={
   SITE:{
     Safety:{
@@ -3036,42 +3035,6 @@ function openTechSupport(){
   const myId = String(user.empNo || '');
   openChatWith(myId + '_Support', 'Support');
 }
-        function syncBroadcasts() {
-            db.collection('broadcasts').orderBy('at', 'desc').onSnapshot(snap => {
-                const broadcasts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                const list = document.getElementById('broadcasts-list');
-                if(!list) return;
-                list.innerHTML = '';
-                
-                const iconMap = {
-                    megaphone: { i: 'megaphone', c: '#80d1e9' },
-                    calendarCheck: { i: 'calendarCheck', c: '#10b981' },
-                    trophy: { i: 'trophy', c: '#fbbf24' },
-                    alert: { i: 'alert', c: '#ef4444' }
-                };
-
-                broadcasts.forEach(b => {
-                    const ic = iconMap[b.svg] || iconMap.megaphone;
-                    const item = document.createElement('div');
-                    item.className = 'broadcast-item';
-                    item.onclick = () => openBroadcastDetail(b);
-                    // Use ICO mapping if exists, else fallback to standard icons
-                    const svg = ICO[ic.i] || ICO.megaphone || `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>`;
-                    
-                    item.innerHTML = `
-                        <div class="bc-icon" style="background: color-mix(in srgb, ${ic.c} 10%, transparent); border: 1px solid color-mix(in srgb, ${ic.c} 20%, transparent); color: ${ic.c}; box-shadow: 0 0 10px color-mix(in srgb, ${ic.c} 5%, transparent);">
-                            ${svg}
-                        </div>
-                        <div class="bc-info">
-                            <div class="bc-label">${b.label}</div>
-                            <div class="bc-title">${b.title}</div>
-                        </div>
-                    `;
-                    list.appendChild(item);
-                });
-            });
-        }
-
 function buildCatGrid(){
   const t=T[lang],cats=t.supportCats||T.en.supportCats;
   document.getElementById('cat-grid').innerHTML=cats.map(c=>{
