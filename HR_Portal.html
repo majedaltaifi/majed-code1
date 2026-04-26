@@ -847,7 +847,7 @@
                 <div class="conv-avatar" style="background:${c.reportId ? '#fbbf24' : 'var(--turquoise)'}">${name.charAt(0)}</div>
                 <div class="conv-info">
                     <div class="conv-name">${name}</div>
-                    <div class="conv-last">${isMe ? 'You: ' : ''}${c.lastMsg || ''}</div>
+                    <div class="conv-last">${isMe ? 'You: ' : ''}${c.last_msg || ''}</div>
                 </div>
                 `;
                 list.appendChild(item);
@@ -860,9 +860,9 @@
                 reporterName: name,
                 isSupport: true,
                 members: ['Support', empNo],
-                lastMsg: 'Admin started a conversation',
-                lastAt: new Date().toISOString(),
-                lastBy: 'Support'
+                last_msg: 'Admin started a conversation',
+                last_at: new Date().toISOString(),
+                last_sender_id: 'Support'
             }, { merge: true });
             
             switchView('chat', document.querySelector('.nav-item[onclick*="chat"]'));
@@ -877,9 +877,9 @@
                 reporterName: reporterName,
                 isSupport: true,
                 members: ['Support', 'Reporter'],
-                lastMsg: 'Chat initiated by Admin',
-                lastAt: new Date().toISOString(),
-                lastBy: 'Support'
+                last_msg: 'Chat initiated by Admin',
+                last_at: new Date().toISOString(),
+                last_sender_id: 'Support'
             }, { merge: true });
             
             switchView('chat', document.querySelector('.nav-item[onclick*="chat"]'));
@@ -930,9 +930,9 @@
             const msg = { text: txt, at: now, by: 'Support' };
             await db.collection('chats').doc(activeSupportChatId).collection('messages').add(msg);
             await db.collection('chats').doc(activeSupportChatId).update({
-                lastMsg: txt,
-                lastAt: now,
-                lastBy: 'Support'
+                last_msg: txt,
+                last_at: now,
+                last_sender_id: 'Support'
             });
         }
 
@@ -964,19 +964,6 @@
             `).join('');
         }
 
-        async function openEmployeeChat(empNo, name) {
-            const roomId = empNo + '_Support';
-            await db.collection('chats').doc(roomId).set({
-                reporterName: name,
-                isSupport: true,
-                members: ['Support', empNo],
-                lastMsg: 'Admin started a conversation',
-                lastAt: new Date().toISOString(),
-                lastBy: 'Support'
-            }, { merge: true });
-            switchView('chat', document.querySelector('.nav-item[onclick*="chat"]'));
-            openSupportConversation(roomId, name);
-        }
 
         window.onload = () => { initCharts(); initRealMap(); initRealtimeSync(); syncBroadcasts(); syncSupportChats(); syncEmployees(); };
     </script>
