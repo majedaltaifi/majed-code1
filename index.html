@@ -2329,6 +2329,7 @@ function syncBroadcasts() {
   }, err => console.error("Broadcast Sync Error:", err));
 }
 
+
 function syncAllChats() {
   if (!currentUser || currentUser.guest) return;
   const myID = String(currentUser.empNo);
@@ -3333,8 +3334,12 @@ function openTrackDetail(ref){
       ${qrSvg(ref,180)}
       <div class="qr-label">${ref}</div>
     </div>
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="btn btn-secondary" onclick="window.print()" style="flex:1;gap:6px">
+    <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px">
+      <button class="btn btn-primary" onclick="openChatWith('${ref}', 'Report Support')" style="background:var(--turquoise); color:var(--nit-deep); font-weight:800; gap:8px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Chat with Management regarding this report</span>
+      </button>
+      <button class="btn btn-secondary" onclick="window.print()" style="gap:6px; opacity:0.7;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
         <span>${t.exportPdf||en.exportPdf}</span>
       </button>
