@@ -652,12 +652,13 @@
         }
 
         async function addBroadcast() {
-            const label = document.getElementById('bc-label').value;
-            const title = document.getElementById('bc-title').value;
+            const label = document.getElementById('bc-label').value; // This is the Header
+            const title = document.getElementById('bc-title').value; // This is the Main Content
             const pinned = document.getElementById('bc-pinned').checked;
             const svg = document.querySelector('input[name="bc-icon"]:checked').value;
-            if(!label || !title) return alert("Please fill Title and Content");
+            if(!label || !title) return alert("Please fill Header and Content");
             try {
+                // In index.html: label is top text, title is bottom text.
                 await db.collection('broadcasts').add({ label, title, content: title, svg, pinned, at: new Date().toISOString() });
                 document.getElementById('bc-label').value = '';
                 document.getElementById('bc-title').value = '';
