@@ -7,7 +7,9 @@
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
     <style>
         :root {
@@ -53,23 +55,16 @@
         .stat-label { font-size: 0.8rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
         .stat-value { font-size: 4rem; font-weight: 950; color: #fff; line-height: 1; letter-spacing: -2px; }
 
-        .map-section { background: var(--surface); border: 1px solid var(--border); border-radius: 40px; padding: 50px; margin-bottom: 35px; position: relative; overflow: hidden; height: 600px; display: flex; justify-content: center; align-items: center; }
-        .map-svg { width: 100%; height: 100%; max-width: 900px; filter: drop-shadow(0 0 30px rgba(0,0,0,0.5)); }
-        .map-point { cursor: pointer; transition: 0.3s; fill: var(--turquoise); filter: drop-shadow(0 0 8px var(--turquoise)); }
-        .map-point:hover { fill: #fff; transform: scale(1.5); filter: drop-shadow(0 0 15px #fff); }
-        .map-point.has-reports { fill: var(--danger); filter: drop-shadow(0 0 8px var(--danger)); animation: pulse-red 2s infinite; }
-        @keyframes pulse-red { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .map-section { background: var(--surface); border: 1px solid var(--border); border-radius: 40px; margin-bottom: 35px; position: relative; overflow: hidden; height: 650px; }
+        #real-map { width: 100%; height: 100%; z-index: 10; background: var(--bg); }
+        .map-overlay { position: absolute; top: 30px; left: 40px; z-index: 100; pointer-events: none; }
+        .map-legend { position: absolute; bottom: 30px; right: 40px; z-index: 100; background: rgba(8, 9, 34, 0.8); backdrop-filter: blur(20px); padding: 20px; border-radius: 20px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+        .leg-item { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 0.85rem; }
+        .leg-dot { width: 12px; height: 12px; border-radius: 50%; }
 
         .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 35px; margin-bottom: 50px; }
         .chart-container { background: var(--surface); border: 1px solid var(--border); border-radius: 40px; padding: 45px; height: 500px; position: relative; transition: 0.4s; overflow: hidden; }
         .chart-title { font-size: 1.5rem; font-weight: 950; margin-bottom: 20px; color: #fff; display: flex; align-items: center; gap: 15px; }
-
-        .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 40px; padding: 50px; backdrop-filter: blur(20px); }
-        .chart-title-sub { font-size: 1.5rem; font-weight: 950; margin-bottom: 40px; color: #fff; }
-
-        .unit-matrix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
-        .unit-box { background: var(--surface); border: 1px solid var(--border); border-radius: 28px; padding: 35px; transition: 0.3s; position: relative; cursor: pointer; }
-        .unit-count { position: absolute; top: 25px; right: 30px; font-size: 2.5rem; font-weight: 950; color: var(--turquoise); text-shadow: 0 0 20px var(--turq-glow); }
 
         .side-panel { position: fixed; top: 0; right: -750px; width: 700px; height: 100vh; background: rgba(8, 9, 34, 0.99); backdrop-filter: blur(60px); border-left: 1px solid var(--border-glow); box-shadow: -40px 0 100px rgba(0,0,0,0.8); z-index: 2000; transition: 0.6s cubic-bezier(0.4, 0, 0.2, 1); padding: 80px 50px; overflow-y: auto; }
         .side-panel.active { right: 0; }
@@ -88,15 +83,14 @@
         .status-pill { padding: 8px 16px; border-radius: 12px; font-size: 0.8rem; font-weight: 900; text-transform: uppercase; }
         .status-open { background: rgba(255, 171, 0, 0.15); color: var(--warning); border: 1px solid var(--warning); }
         .status-done { background: rgba(0, 230, 118, 0.15); color: var(--success); border: 1px solid var(--success); }
-        
         .pri-badge { padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; border: 1px solid currentColor; }
         .action-btn { background: var(--turquoise); color: var(--nit-deep); border: none; padding: 10px 18px; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 0.8rem; transition: 0.3s; }
-        .action-btn:hover { transform: scale(1.05); filter: brightness(1.1); }
-        .detail-img { width: 100%; border-radius: 20px; margin-top: 25px; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-        .info-group { margin-bottom: 30px; }
-        .info-lab { color: var(--text-muted); font-size: 0.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-        .info-val { color: #fff; font-size: 1.2rem; font-weight: 600; }
         .filter-badge { display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; border-radius: 100px; font-weight: 900; font-size: 1rem; text-transform: uppercase; margin-bottom: 30px; border: 1px solid currentColor; }
+        
+        /* Custom Marker Styles */
+        .custom-marker { border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
+        .marker-pulse { animation: marker-pulse 2s infinite; }
+        @keyframes marker-pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.3); opacity: 0.6; } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body>
@@ -146,12 +140,13 @@
             </div>
 
             <div class="map-section">
-                <div style="position: absolute; top: 30px; left: 40px; z-index: 10;"><h3 style="font-weight: 950; font-size: 1.5rem; color: #fff;"><i class="fas fa-map-marked-alt"></i> Geographic Operations Map</h3><p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">Interactive field presence across the Kingdom.</p></div>
-                <svg viewBox="0 0 1000 800" class="map-svg" id="ksa-map">
-                    <!-- Basic KSA Outline (Stylized) -->
-                    <path d="M120,150 L250,350 L190,480 L310,780 L320,700 L380,620 L530,420 L750,400 L800,310 L650,180 Z" fill="rgba(255,255,255,0.02)" stroke="var(--border)" stroke-width="2"></path>
-                    <g id="map-markers"></g>
-                </svg>
+                <div class="map-overlay"><h3 style="font-weight: 950; font-size: 1.5rem; color: #fff; text-shadow: 0 4px 10px rgba(0,0,0,0.8);"><i class="fas fa-satellite"></i> Live Operations Map</h3><p style="color: #fff; font-size: 0.9rem; margin-top: 5px; text-shadow: 0 2px 5px rgba(0,0,0,0.8);">Real-time geographic synchronization.</p></div>
+                <div id="real-map"></div>
+                <div class="map-legend">
+                    <div class="leg-item"><div class="leg-dot" style="background: var(--success);"></div> Office (Green)</div>
+                    <div class="leg-item"><div class="leg-dot" style="background: var(--nit-blue);"></div> Site (Blue)</div>
+                    <div class="leg-item"><div class="leg-dot" style="background: var(--danger);"></div> Housing (Red)</div>
+                </div>
             </div>
 
             <div class="charts-row">
@@ -193,18 +188,19 @@
         let charts = {};
         let activeView = 'dashboard';
         let currentUnitFilter = 'ALL';
+        let map;
+        let markersGroup = L.layerGroup();
 
         const STATIC_OFFICES = ['Abha Office', 'Alkhobar Main Office', 'Egypt Office', 'Jeddah - New Office', 'Jeddah - Tawuniya Office', 'Jeddah Main Office - Randa Tower', 'New Riyadh Office', 'PRC ID Office', 'Riyadh Main Office', 'Saudi Aramco - Yanbu Office'];
         const STATIC_HOUSINGS = ['Housing - Albeda Ameer Faisal', 'Housing - Albeda Muath Bin Asad', 'Housing - Alkhobar Thuqbah', 'Housing - Alqaysumah Alhidayah', 'Housing - Bisha Aljunaynah', 'Housing - Dammam Madinat Alumal', 'Housing - Duba Ibn Alhafiz', 'Housing - Duba Qutn Bin Haritah', 'Housing - Farasan', 'Housing - Hafr Albatin Aljamiah', 'Housing - Hafr Albatin Alsinayyah', 'Housing - Haqel', 'Housing - Jeddah Nuzha', 'Housing - Jeddah Rehaily', 'Housing - Khamis Mushait Tendaha', 'Housing - Makkah Waly Alahad', 'Housing - Medinah Muzainab', 'Housing - Medinah Warqan', 'Housing - Qatif Alsinayyah', 'Housing - Rabigh Alfransiyah Sharqi', 'Housing - Rabigh Alnaeem', 'Housing - Riyadh Almonsiyah', 'Housing - Riyadh Almurjan', 'Housing - Safwa AlMuruj', 'Housing - Tabuk Alraya', 'Housing - Yanbu Alttakhi', 'Housing- jeddah Alfrusiyah'];
         const STATIC_SITES = ['10521300012 - KSP 8388', '10521300013 - KSP 8389', 'ABU Hadriyah 115 KV Extension with Rerouting in OHTL', 'AL- Ahsa O&M', 'Abu Maan Substation', 'Aindar Project', 'Aindar Warehouse', 'Al-Bahr Substation', 'Asfan Main Warehouse', 'BISHA - PV 380/132 KV BSP', 'Bayoniyah Substation', 'Buhaiyrat', 'CONSTRUCTION OF AL-MURJAN 132/13.8kV SUBSTATION # 8274 IN RIYADH CITY', 'CONSTRUCTION OF HARAM-3 SS', 'CONSTRUCTION OF JAZERA ROYAL PALACE - THUWAL', 'Construction Of Farasan Island SS (132/33/13.8KV)', 'Dammam O&M', 'Dammam Port', 'Dana-2 Substation', 'Diriyah Gate Project Substation # 8171', 'Diriyah Gate Project Substation # 8242', 'FM Dammam', 'HV Jubail Intertie', 'Hada-2 (Andalus) Substation', 'Hafar AL- Batin O&M', 'Hafr Albatin Unified', 'Iman General Hospital', 'Interconnection Of Nawariyah SS', 'Jafurah', 'Jazan Medical City', 'Jazan Port', 'Jazan Warehouse', 'Jubail 7AB', 'Jubail North', 'Jubail South East', 'Khobar Corniche Substation', 'King Fahad Causeway', 'MEDNO Island Reinforcement', 'Madaya', 'Madinah Warehouse', 'Modon Asir', 'NIC EV2', 'NIC NORTH', 'Neom PSSA And PSSB (OHTL)', 'Neom Security System O&M', 'New Dammam Warehouse', 'North Khobar', 'North Thuqbah', 'PMAH', 'POWER SUPPLY TO HAFAR AL-BATIN', 'Qalah Substation', 'Qatif Shati Substation', 'RUMAH 380 KV BSP', 'Rabigh Substation', 'Ras Tanura 0810606', 'Riyadh warehouse', 'Ryadhiyah Substation', 'SAMHA OHTL', 'SESP - Training Institute', 'Samif Workshop', 'Saudi Aramco - Madinah Bulk Plant', 'Saudi Aramco - North Jeddah Bulk Plant', 'Saudi Aramco - Petro Rabigh', 'Saudi Aramco - Yanbu Bulk Plant', 'Senaeya-2 Substation', 'Sheraa Substation', 'Switchgear Room at Al-Baha CPS Substation', 'Tabuk (ISP) Warehouse', 'Tabuk (OSP) Warehouse', 'Taiba West Substation', 'Thuwal Warehouse', 'Tuwaiq warehouse', 'Udailiyah Site - Aramco Project (VCP)', 'Uruba Substation', 'WALY ALAHAD-3 110-13.8kV SS', 'Wadi Al-Dhahran Substation', 'Wadi Safar - Security & ICT', 'Wasalat Workshop', 'ZATCA', 'Zatca HQ'];
 
-        // Geographic area mapping for points
-        const CITY_COORDS = {
-            'Riyadh': {x: 530, y: 420}, 'Jeddah': {x: 190, y: 480}, 'Dammam': {x: 800, y: 310}, 'Alkhobar': {x: 810, y: 320},
-            'Abha': {x: 320, y: 700}, 'Tabuk': {x: 120, y: 150}, 'Medinah': {x: 250, y: 350}, 'Jazan': {x: 310, y: 780},
-            'Hafr Albatin': {x: 650, y: 180}, 'Rabigh': {x: 160, y: 400}, 'Yanbu': {x: 140, y: 360}, 'Al-Ahsa': {x: 750, y: 400},
-            'Bisha': {x: 380, y: 620}, 'Duba': {x: 80, y: 180}, 'Thuwal': {x: 175, y: 440}, 'Qatif': {x: 780, y: 280},
-            'Jubail': {x: 760, y: 240}, 'Khamis': {x: 340, y: 720}, 'Makkah': {x: 210, y: 520}, 'Neom': {x: 50, y: 100}
+        const CITY_LAT_LNG = {
+            'Riyadh': [24.7136, 46.6753], 'Jeddah': [21.4858, 39.1925], 'Dammam': [26.4207, 50.0888], 'Alkhobar': [26.2172, 50.1971],
+            'Abha': [18.2161, 42.5053], 'Tabuk': [28.3835, 36.5662], 'Medinah': [24.4672, 39.6024], 'Jazan': [16.8892, 42.5511],
+            'Hafr Albatin': [28.4328, 45.9708], 'Rabigh': [22.8066, 39.0272], 'Yanbu': [24.0891, 38.0637], 'Al-Ahsa': [25.3781, 49.5911],
+            'Bisha': [19.9841, 42.6036], 'Duba': [27.3486, 35.6923], 'Thuwal': [22.2858, 39.1172], 'Qatif': [26.5441, 50.0033],
+            'Jubail': [26.9600, 49.6582], 'Khamis': [18.3000, 42.7292], 'Makkah': [21.3891, 39.8579], 'Neom': [28.1000, 35.1000]
         };
 
         function switchView(viewId, el) {
@@ -217,19 +213,7 @@
             document.getElementById('view-title').innerText = el ? el.innerText : viewId;
             if(viewId === 'per-site') updateUnitMatrix(currentUnitFilter);
             if(viewId === 'all-reports') applyFilters();
-        }
-
-        async function purgeNoLocationReports() {
-            if(!confirm("Permanently delete orphan reports?")) return;
-            const snap = await db.collection('reports').get();
-            const GARBAGE = ['1', '0', '66', '2', '92', '58', '106', '112', '113', 'SITE', 'site'];
-            const batch = db.batch(); let count = 0;
-            snap.docs.forEach(doc => {
-                const l = (doc.data().location || doc.data().site || '').trim();
-                const isGarbage = !l || GARBAGE.includes(l) || (/^\d+$/.test(l) && !l.includes('HQ') && !l.includes('KSP'));
-                if(isGarbage) { batch.delete(doc.ref); count++; }
-            });
-            await batch.commit(); alert(`Purged ${count} reports.`);
+            if(viewId === 'dashboard' && map) setTimeout(() => map.invalidateSize(), 100);
         }
 
         async function toggleStatus(id, current) {
@@ -277,31 +261,6 @@
             });
         }
 
-        function updateUnitMatrix(filter, btn) {
-            if(btn) { document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentUnitFilter = filter; }
-            const grid = document.getElementById('unit-matrix-grid'); if(!grid) return; grid.innerHTML = '';
-            const stats = {}; const discoveredUnits = new Set();
-            allReports.forEach(r => {
-                let name = (r.location || r.site || 'Unknown').trim();
-                if(name === 'HQ — Jeddah') name = 'Jeddah Main Office - Randa Tower';
-                let category = 'SITE';
-                if (STATIC_OFFICES.some(o => o.toLowerCase() === name.toLowerCase())) category = 'OFFICE';
-                else if (STATIC_HOUSINGS.some(h => h.toLowerCase() === name.toLowerCase()) || name.toLowerCase().startsWith('housing')) category = 'HOUSING';
-                else category = 'SITE';
-                if(!stats[name]) stats[name] = { total: 0, open: 0, done: 0, category: category };
-                stats[name].total++; if((r.status || 'OPEN').toUpperCase() === 'DONE') stats[name].done++; else stats[name].open++;
-                discoveredUnits.add(name);
-            });
-            STATIC_OFFICES.forEach(o => { if(!stats[o]) stats[o] = { total: 0, open: 0, done: 0, category: 'OFFICE' }; discoveredUnits.add(o); });
-            STATIC_HOUSINGS.forEach(h => { if(!stats[h]) stats[h] = { total: 0, open: 0, done: 0, category: 'HOUSING' }; discoveredUnits.add(h); });
-            STATIC_SITES.forEach(s => { if(!stats[s]) stats[s] = { total: 0, open: 0, done: 0, category: 'SITE' }; discoveredUnits.add(s); });
-            Array.from(discoveredUnits).sort().forEach(name => {
-                const s = stats[name]; if (filter !== 'ALL' && s.category !== filter) return;
-                const rate = s.total > 0 ? Math.round((s.done / s.total) * 100) : 0;
-                grid.innerHTML += `<div class="unit-box" onclick="openFilteredList('${name}', '${name}', 'location')"><div class="unit-count">${s.total}</div><div class="unit-info"><div class="unit-cat">${s.category}</div><div class="unit-title">${name}</div><div class="unit-metrics"><div class="metric-item"><span class="m-lab">Open</span><span class="m-val" style="color:var(--warning);">${s.open}</span></div><div class="metric-item"><span class="m-lab">Rate</span><span class="m-val">${rate}%</span></div></div></div></div>`;
-            });
-        }
-
         function openFilteredList(value, title, type) {
             const content = document.getElementById('side-panel-content');
             const filtered = allReports.filter(r => {
@@ -338,35 +297,67 @@
             content.innerHTML = html; openSidePanel();
         }
 
-        function drawMapMarkers() {
-            const container = document.getElementById('map-markers'); if(!container) return; container.innerHTML = '';
+        function initRealMap() {
+            map = L.map('real-map', { center: [24.7136, 46.6753], zoom: 6, zoomControl: true });
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO', subdomains: 'abcd', maxZoom: 20 }).addTo(map);
+            markersGroup.addTo(map);
+        }
+
+        function updateMarkers() {
+            if(!map) return;
+            markersGroup.clearLayers();
             const reportLocs = new Set(allReports.map(r => {
                 let l = (r.location || r.site || '').trim();
-                if(l === 'HQ — Jeddah') return 'Jeddah Main Office - Randa Tower';
-                return l;
+                return (l === 'HQ — Jeddah') ? 'Jeddah Main Office - Randa Tower' : l;
             }));
 
-            const allPossibleUnits = [...STATIC_OFFICES, ...STATIC_HOUSINGS, ...STATIC_SITES];
-            allPossibleUnits.forEach(unit => {
-                let cityKey = '';
-                for(let key in CITY_COORDS) { if(unit.toLowerCase().includes(key.toLowerCase())) { cityKey = key; break; } }
-                if(!cityKey) return; // Only draw markers for known city areas
+            const processList = (list, type, color) => {
+                list.forEach(unit => {
+                    let cityKey = '';
+                    for(let key in CITY_LAT_LNG) { if(unit.toLowerCase().includes(key.toLowerCase())) { cityKey = key; break; } }
+                    if(!cityKey) return;
+                    const baseCoords = CITY_LAT_LNG[cityKey];
+                    const hasReports = Array.from(reportLocs).some(l => l.toLowerCase() === unit.toLowerCase());
+                    const jitterLat = (Math.random() - 0.5) * 0.25;
+                    const jitterLng = (Math.random() - 0.5) * 0.25;
+                    
+                    const marker = L.circleMarker([baseCoords[0] + jitterLat, baseCoords[1] + jitterLng], {
+                        radius: hasReports ? 10 : 6, fillColor: color, color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.8, className: hasReports ? 'marker-pulse' : ''
+                    });
+                    
+                    marker.bindTooltip(`<b>${unit}</b><br><small>${type}</small>`, { direction: 'top', offset: [0, -10] });
+                    marker.on('click', () => openFilteredList(unit, unit, 'location'));
+                    markersGroup.addLayer(marker);
+                });
+            };
 
-                const coords = CITY_COORDS[cityKey];
-                const hasReports = Array.from(reportLocs).some(l => l.toLowerCase() === unit.toLowerCase());
-                
-                // Add jitter to avoid perfect overlap
-                const jitterX = (Math.random() - 0.5) * 40;
-                const jitterY = (Math.random() - 0.5) * 40;
+            processList(STATIC_OFFICES, 'Office', '#00e676'); // Green
+            processList(STATIC_SITES, 'Site', '#2e3192');    // Blue
+            processList(STATIC_HOUSINGS, 'Housing', '#ff5252'); // Red
+        }
 
-                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                circle.setAttribute("cx", coords.x + jitterX);
-                circle.setAttribute("cy", coords.y + jitterY);
-                circle.setAttribute("r", hasReports ? 8 : 4);
-                circle.setAttribute("class", "map-point" + (hasReports ? " has-reports" : ""));
-                circle.innerHTML = `<title>${unit}</title>`;
-                circle.onclick = () => openFilteredList(unit, unit, 'location');
-                container.appendChild(circle);
+        function updateUnitMatrix(filter, btn) {
+            if(btn) { document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentUnitFilter = filter; }
+            const grid = document.getElementById('unit-matrix-grid'); if(!grid) return; grid.innerHTML = '';
+            const stats = {}; const discoveredUnits = new Set();
+            allReports.forEach(r => {
+                let name = (r.location || r.site || 'Unknown').trim();
+                if(name === 'HQ — Jeddah') name = 'Jeddah Main Office - Randa Tower';
+                let category = 'SITE';
+                if (STATIC_OFFICES.some(o => o.toLowerCase() === name.toLowerCase())) category = 'OFFICE';
+                else if (STATIC_HOUSINGS.some(h => h.toLowerCase() === name.toLowerCase()) || name.toLowerCase().startsWith('housing')) category = 'HOUSING';
+                else category = 'SITE';
+                if(!stats[name]) stats[name] = { total: 0, open: 0, done: 0, category: category };
+                stats[name].total++; if((r.status || 'OPEN').toUpperCase() === 'DONE') stats[name].done++; else stats[name].open++;
+                discoveredUnits.add(name);
+            });
+            STATIC_OFFICES.forEach(o => { if(!stats[o]) stats[o] = { total: 0, open: 0, done: 0, category: 'OFFICE' }; discoveredUnits.add(o); });
+            STATIC_HOUSINGS.forEach(h => { if(!stats[h]) stats[h] = { total: 0, open: 0, done: 0, category: 'HOUSING' }; discoveredUnits.add(h); });
+            STATIC_SITES.forEach(s => { if(!stats[s]) stats[s] = { total: 0, open: 0, done: 0, category: 'SITE' }; discoveredUnits.add(s); });
+            Array.from(discoveredUnits).sort().forEach(name => {
+                const s = stats[name]; if (filter !== 'ALL' && s.category !== filter) return;
+                const rate = s.total > 0 ? Math.round((s.done / s.total) * 100) : 0;
+                grid.innerHTML += `<div class="unit-box" onclick="openFilteredList('${name}', '${name}', 'location')"><div class="unit-count">${s.total}</div><div class="unit-info"><div class="unit-cat">${s.category}</div><div class="unit-title">${name}</div><div class="unit-metrics"><div class="metric-item"><span class="m-lab">Open</span><span class="m-val" style="color:var(--warning);">${s.open}</span></div><div class="metric-item"><span class="m-lab">Rate</span><span class="m-val">${rate}%</span></div></div></div></div>`;
             });
         }
 
@@ -390,7 +381,7 @@
             allReports.forEach(r => { cats[(r.category || 'Other').toLowerCase()]++; pris[(r.priority || 'Low').toLowerCase()]++; });
             if(charts.category) { charts.category.data.datasets[0].data = [cats.safety, cats.service, cats.other]; charts.category.update(); }
             if(charts.priority) { charts.priority.data.datasets[0].data = [pris.critical, pris.high, pris.medium, pris.low]; charts.priority.update(); }
-            drawMapMarkers();
+            updateMarkers();
             if(activeView === 'per-site') updateUnitMatrix(currentUnitFilter);
             applyFilters();
         }
@@ -408,7 +399,7 @@
                 syncAllData(); 
             }); 
         }
-        window.onload = () => { initCharts(); initRealtimeSync(); };
+        window.onload = () => { initCharts(); initRealMap(); initRealtimeSync(); };
     </script>
 </body>
 </html>
