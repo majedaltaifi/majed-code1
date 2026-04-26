@@ -47,14 +47,21 @@
         .title-h { font-size: 4rem; font-weight: 900; letter-spacing: -2px; background: linear-gradient(to right, #fff 20%, var(--turquoise) 80%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .header-sub { color: var(--text-dim); font-size: 1.2rem; margin-top: 15px; font-weight: 500; }
 
-        .analytics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 35px; margin-bottom: 50px; }
-        .stat-card { background: var(--surface); border: 1px solid var(--border); padding: 45px; border-radius: 32px; transition: 0.4s; backdrop-filter: blur(20px); position: relative; }
-        .stat-card.clickable:hover { border-color: var(--border-glow); transform: translateY(-10px); background: var(--surface-hover); cursor: pointer; box-shadow: 0 30px 60px rgba(0,0,0,0.5); }
-        .stat-label { font-size: 0.9rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; }
-        .stat-value { font-size: 4.8rem; font-weight: 950; color: #fff; line-height: 1; letter-spacing: -2px; }
+        .analytics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 35px; margin-bottom: 35px; }
+        .stat-card { background: var(--surface); border: 1px solid var(--border); padding: 35px; border-radius: 32px; transition: 0.4s; backdrop-filter: blur(20px); position: relative; }
+        .stat-card.clickable:hover { border-color: var(--border-glow); transform: translateY(-5px); background: var(--surface-hover); cursor: pointer; box-shadow: 0 30px 60px rgba(0,0,0,0.5); }
+        .stat-label { font-size: 0.8rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
+        .stat-value { font-size: 4rem; font-weight: 950; color: #fff; line-height: 1; letter-spacing: -2px; }
+
+        .map-section { background: var(--surface); border: 1px solid var(--border); border-radius: 40px; padding: 50px; margin-bottom: 35px; position: relative; overflow: hidden; height: 600px; display: flex; justify-content: center; align-items: center; }
+        .map-svg { width: 100%; height: 100%; max-width: 900px; filter: drop-shadow(0 0 30px rgba(0,0,0,0.5)); }
+        .map-point { cursor: pointer; transition: 0.3s; fill: var(--turquoise); filter: drop-shadow(0 0 8px var(--turquoise)); }
+        .map-point:hover { fill: #fff; transform: scale(1.5); filter: drop-shadow(0 0 15px #fff); }
+        .map-point.has-reports { fill: var(--danger); filter: drop-shadow(0 0 8px var(--danger)); animation: pulse-red 2s infinite; }
+        @keyframes pulse-red { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
         .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 35px; margin-bottom: 50px; }
-        .chart-container { background: var(--surface); border: 1px solid var(--border); border-radius: 40px; padding: 45px; height: 580px; position: relative; transition: 0.4s; overflow: hidden; }
+        .chart-container { background: var(--surface); border: 1px solid var(--border); border-radius: 40px; padding: 45px; height: 500px; position: relative; transition: 0.4s; overflow: hidden; }
         .chart-title { font-size: 1.5rem; font-weight: 950; margin-bottom: 20px; color: #fff; display: flex; align-items: center; gap: 15px; }
 
         .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 40px; padding: 50px; backdrop-filter: blur(20px); }
@@ -83,15 +90,12 @@
         .status-done { background: rgba(0, 230, 118, 0.15); color: var(--success); border: 1px solid var(--success); }
         
         .pri-badge { padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; border: 1px solid currentColor; }
-
         .action-btn { background: var(--turquoise); color: var(--nit-deep); border: none; padding: 10px 18px; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 0.8rem; transition: 0.3s; }
         .action-btn:hover { transform: scale(1.05); filter: brightness(1.1); }
-
         .detail-img { width: 100%; border-radius: 20px; margin-top: 25px; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
         .info-group { margin-bottom: 30px; }
         .info-lab { color: var(--text-muted); font-size: 0.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
         .info-val { color: #fff; font-size: 1.2rem; font-weight: 600; }
-        
         .filter-badge { display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; border-radius: 100px; font-weight: 900; font-size: 1rem; text-transform: uppercase; margin-bottom: 30px; border: 1px solid currentColor; }
     </style>
 </head>
@@ -140,11 +144,20 @@
                 </div>
                 <div class="stat-card"><div class="stat-label">Success Rate</div><div class="stat-value" id="main-rate">0%</div></div>
             </div>
-            <div class="charts-row">
-                <div class="chart-container"><div class="chart-title"><i class="fas fa-chart-pie"></i> Incident Categories</div><div style="height: 420px;"><canvas id="categoryChart"></canvas></div></div>
-                <div class="chart-container"><div class="chart-title"><i class="fas fa-chart-bar"></i> Priority Distribution</div><div style="height: 420px;"><canvas id="priorityChart"></canvas></div></div>
+
+            <div class="map-section">
+                <div style="position: absolute; top: 30px; left: 40px; z-index: 10;"><h3 style="font-weight: 950; font-size: 1.5rem; color: #fff;"><i class="fas fa-map-marked-alt"></i> Geographic Operations Map</h3><p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 5px;">Interactive field presence across the Kingdom.</p></div>
+                <svg viewBox="0 0 1000 800" class="map-svg" id="ksa-map">
+                    <!-- Basic KSA Outline (Stylized) -->
+                    <path d="M120,150 L250,350 L190,480 L310,780 L320,700 L380,620 L530,420 L750,400 L800,310 L650,180 Z" fill="rgba(255,255,255,0.02)" stroke="var(--border)" stroke-width="2"></path>
+                    <g id="map-markers"></g>
+                </svg>
             </div>
-            <div class="panel"><div class="chart-title-sub"><i class="fas fa-globe-americas"></i> Geographic Breakdown</div><div style="height: 400px;"><canvas id="locationChart"></canvas></div></div>
+
+            <div class="charts-row">
+                <div class="chart-container"><div class="chart-title"><i class="fas fa-chart-pie"></i> Incident Categories</div><div style="height: 350px;"><canvas id="categoryChart"></canvas></div></div>
+                <div class="chart-container"><div class="chart-title"><i class="fas fa-chart-bar"></i> Priority Distribution</div><div style="height: 350px;"><canvas id="priorityChart"></canvas></div></div>
+            </div>
         </div>
 
         <div id="view-per-site" class="tab-content">
@@ -182,33 +195,17 @@
         let currentUnitFilter = 'ALL';
 
         const STATIC_OFFICES = ['Abha Office', 'Alkhobar Main Office', 'Egypt Office', 'Jeddah - New Office', 'Jeddah - Tawuniya Office', 'Jeddah Main Office - Randa Tower', 'New Riyadh Office', 'PRC ID Office', 'Riyadh Main Office', 'Saudi Aramco - Yanbu Office'];
-        const STATIC_HOUSINGS = [
-            'Housing - Albeda Ameer Faisal', 'Housing - Albeda Muath Bin Asad', 'Housing - Alkhobar Thuqbah', 'Housing - Alqaysumah Alhidayah',
-            'Housing - Bisha Aljunaynah', 'Housing - Dammam Madinat Alumal', 'Housing - Duba Ibn Alhafiz', 'Housing - Duba Qutn Bin Haritah',
-            'Housing - Farasan', 'Housing - Hafr Albatin Aljamiah', 'Housing - Hafr Albatin Alsinayyah', 'Housing - Haqel',
-            'Housing - Jeddah Nuzha', 'Housing - Jeddah Rehaily', 'Housing - Khamis Mushait Tendaha', 'Housing - Makkah Waly Alahad',
-            'Housing - Medinah Muzainab', 'Housing - Medinah Warqan', 'Housing - Qatif Alsinayyah', 'Housing - Rabigh Alfransiyah Sharqi',
-            'Housing - Rabigh Alnaeem', 'Housing - Riyadh Almonsiyah', 'Housing - Riyadh Almurjan', 'Housing - Safwa AlMuruj',
-            'Housing - Tabuk Alraya', 'Housing - Yanbu Alttakhi', 'Housing- jeddah Alfrusiyah'
-        ];
-        const STATIC_SITES = [
-            '10521300012 - KSP 8388', '10521300013 - KSP 8389', 'ABU Hadriyah 115 KV Extension with Rerouting in OHTL',
-            'AL- Ahsa O&M', 'Abu Maan Substation', 'Aindar Project', 'Aindar Warehouse', 'Al-Bahr Substation', 'Asfan Main Warehouse',
-            'BISHA - PV 380/132 KV BSP', 'Bayoniyah Substation', 'Buhaiyrat', 'CONSTRUCTION OF AL-MURJAN 132/13.8kV SUBSTATION # 8274 IN RIYADH CITY',
-            'CONSTRUCTION OF HARAM-3 SS', 'CONSTRUCTION OF JAZERA ROYAL PALACE - THUWAL', 'Construction Of Farasan Island SS (132/33/13.8KV)',
-            'Dammam O&M', 'Dammam Port', 'Dana-2 Substation', 'Diriyah Gate Project Substation # 8171', 'Diriyah Gate Project Substation # 8242',
-            'FM Dammam', 'HV Jubail Intertie', 'Hada-2 (Andalus) Substation', 'Hafar AL- Batin O&M', 'Hafr Albatin Unified',
-            'Iman General Hospital', 'Interconnection Of Nawariyah SS', 'Jafurah', 'Jazan Medical City', 'Jazan Port', 'Jazan Warehouse',
-            'Jubail 7AB', 'Jubail North', 'Jubail South East', 'Khobar Corniche Substation', 'King Fahad Causeway', 'MEDNO Island Reinforcement',
-            'Madaya', 'Madinah Warehouse', 'Modon Asir', 'NIC EV2', 'NIC NORTH', 'Neom PSSA And PSSB (OHTL)', 'Neom Security System O&M',
-            'New Dammam Warehouse', 'North Khobar', 'North Thuqbah', 'PMAH', 'POWER SUPPLY TO HAFAR AL-BATIN', 'Qalah Substation',
-            'Qatif Shati Substation', 'RUMAH 380 KV BSP', 'Rabigh Substation', 'Ras Tanura 0810606', 'Riyadh warehouse', 'Ryadhiyah Substation',
-            'SAMHA OHTL', 'SESP - Training Institute', 'Samif Workshop', 'Saudi Aramco - Madinah Bulk Plant', 'Saudi Aramco - North Jeddah Bulk Plant',
-            'Saudi Aramco - Petro Rabigh', 'Saudi Aramco - Yanbu Bulk Plant', 'Senaeya-2 Substation', 'Sheraa Substation',
-            'Switchgear Room at Al-Baha CPS Substation', 'Tabuk (ISP) Warehouse', 'Tabuk (OSP) Warehouse', 'Taiba West Substation',
-            'Thuwal Warehouse', 'Tuwaiq warehouse', 'Udailiyah Site - Aramco Project (VCP)', 'Uruba Substation', 'WALY ALAHAD-3 110-13.8kV SS',
-            'Wadi Al-Dhahran Substation', 'Wadi Safar - Security & ICT', 'Wasalat Workshop', 'ZATCA', 'Zatca HQ'
-        ];
+        const STATIC_HOUSINGS = ['Housing - Albeda Ameer Faisal', 'Housing - Albeda Muath Bin Asad', 'Housing - Alkhobar Thuqbah', 'Housing - Alqaysumah Alhidayah', 'Housing - Bisha Aljunaynah', 'Housing - Dammam Madinat Alumal', 'Housing - Duba Ibn Alhafiz', 'Housing - Duba Qutn Bin Haritah', 'Housing - Farasan', 'Housing - Hafr Albatin Aljamiah', 'Housing - Hafr Albatin Alsinayyah', 'Housing - Haqel', 'Housing - Jeddah Nuzha', 'Housing - Jeddah Rehaily', 'Housing - Khamis Mushait Tendaha', 'Housing - Makkah Waly Alahad', 'Housing - Medinah Muzainab', 'Housing - Medinah Warqan', 'Housing - Qatif Alsinayyah', 'Housing - Rabigh Alfransiyah Sharqi', 'Housing - Rabigh Alnaeem', 'Housing - Riyadh Almonsiyah', 'Housing - Riyadh Almurjan', 'Housing - Safwa AlMuruj', 'Housing - Tabuk Alraya', 'Housing - Yanbu Alttakhi', 'Housing- jeddah Alfrusiyah'];
+        const STATIC_SITES = ['10521300012 - KSP 8388', '10521300013 - KSP 8389', 'ABU Hadriyah 115 KV Extension with Rerouting in OHTL', 'AL- Ahsa O&M', 'Abu Maan Substation', 'Aindar Project', 'Aindar Warehouse', 'Al-Bahr Substation', 'Asfan Main Warehouse', 'BISHA - PV 380/132 KV BSP', 'Bayoniyah Substation', 'Buhaiyrat', 'CONSTRUCTION OF AL-MURJAN 132/13.8kV SUBSTATION # 8274 IN RIYADH CITY', 'CONSTRUCTION OF HARAM-3 SS', 'CONSTRUCTION OF JAZERA ROYAL PALACE - THUWAL', 'Construction Of Farasan Island SS (132/33/13.8KV)', 'Dammam O&M', 'Dammam Port', 'Dana-2 Substation', 'Diriyah Gate Project Substation # 8171', 'Diriyah Gate Project Substation # 8242', 'FM Dammam', 'HV Jubail Intertie', 'Hada-2 (Andalus) Substation', 'Hafar AL- Batin O&M', 'Hafr Albatin Unified', 'Iman General Hospital', 'Interconnection Of Nawariyah SS', 'Jafurah', 'Jazan Medical City', 'Jazan Port', 'Jazan Warehouse', 'Jubail 7AB', 'Jubail North', 'Jubail South East', 'Khobar Corniche Substation', 'King Fahad Causeway', 'MEDNO Island Reinforcement', 'Madaya', 'Madinah Warehouse', 'Modon Asir', 'NIC EV2', 'NIC NORTH', 'Neom PSSA And PSSB (OHTL)', 'Neom Security System O&M', 'New Dammam Warehouse', 'North Khobar', 'North Thuqbah', 'PMAH', 'POWER SUPPLY TO HAFAR AL-BATIN', 'Qalah Substation', 'Qatif Shati Substation', 'RUMAH 380 KV BSP', 'Rabigh Substation', 'Ras Tanura 0810606', 'Riyadh warehouse', 'Ryadhiyah Substation', 'SAMHA OHTL', 'SESP - Training Institute', 'Samif Workshop', 'Saudi Aramco - Madinah Bulk Plant', 'Saudi Aramco - North Jeddah Bulk Plant', 'Saudi Aramco - Petro Rabigh', 'Saudi Aramco - Yanbu Bulk Plant', 'Senaeya-2 Substation', 'Sheraa Substation', 'Switchgear Room at Al-Baha CPS Substation', 'Tabuk (ISP) Warehouse', 'Tabuk (OSP) Warehouse', 'Taiba West Substation', 'Thuwal Warehouse', 'Tuwaiq warehouse', 'Udailiyah Site - Aramco Project (VCP)', 'Uruba Substation', 'WALY ALAHAD-3 110-13.8kV SS', 'Wadi Al-Dhahran Substation', 'Wadi Safar - Security & ICT', 'Wasalat Workshop', 'ZATCA', 'Zatca HQ'];
+
+        // Geographic area mapping for points
+        const CITY_COORDS = {
+            'Riyadh': {x: 530, y: 420}, 'Jeddah': {x: 190, y: 480}, 'Dammam': {x: 800, y: 310}, 'Alkhobar': {x: 810, y: 320},
+            'Abha': {x: 320, y: 700}, 'Tabuk': {x: 120, y: 150}, 'Medinah': {x: 250, y: 350}, 'Jazan': {x: 310, y: 780},
+            'Hafr Albatin': {x: 650, y: 180}, 'Rabigh': {x: 160, y: 400}, 'Yanbu': {x: 140, y: 360}, 'Al-Ahsa': {x: 750, y: 400},
+            'Bisha': {x: 380, y: 620}, 'Duba': {x: 80, y: 180}, 'Thuwal': {x: 175, y: 440}, 'Qatif': {x: 780, y: 280},
+            'Jubail': {x: 760, y: 240}, 'Khamis': {x: 340, y: 720}, 'Makkah': {x: 210, y: 520}, 'Neom': {x: 50, y: 100}
+        };
 
         function switchView(viewId, el) {
             activeView = viewId;
@@ -265,7 +262,6 @@
         function applyFilters() {
             const body = document.getElementById('reports-table-body'); if(!body) return; body.innerHTML = '';
             const search = (document.getElementById('report-search') ? document.getElementById('report-search').value.toLowerCase() : '');
-            
             allReports.filter(r => {
                 const reporterName = (r.reporter || '').toLowerCase();
                 const description = (r.description || '').toLowerCase();
@@ -314,7 +310,6 @@
                 const c = (r.category || 'Other').toLowerCase();
                 const loc = (r.location || r.site || 'Unknown').trim();
                 const val = (value || '').toLowerCase().trim();
-                
                 if(type === 'status' && value === 'TOTAL') return true;
                 if(type === 'status') return s === value;
                 if(type === 'priority') return p === val;
@@ -322,18 +317,14 @@
                 if(type === 'location') return loc.toLowerCase() === val || (loc === 'HQ — Jeddah' && val === 'jeddah main office - randa tower');
                 return true;
             });
-
             let color = 'var(--turquoise)';
             if(value === 'Critical' || value === 'Safety' || value === 'OPEN') color = 'var(--danger)';
             if(value === 'High' || value === 'warning') color = 'var(--warning)';
             if(value === 'DONE') color = 'var(--success)';
-
             let html = `<div class="filter-badge" style="color:${color};"><i class="fas fa-filter"></i> ${type}: ${value}</div>`;
             html += `<h2 style="font-size:2.5rem; font-weight:950; margin-bottom:40px; color:#fff;">${title}</h2>`;
-            
-            if(filtered.length === 0) {
-                html += `<div style="text-align:center; padding:80px; color:var(--text-dim); font-size:1.2rem;">No operational records found.</div>`;
-            } else {
+            if(filtered.length === 0) { html += `<div style="text-align:center; padding:80px; color:var(--text-dim); font-size:1.2rem;">No operational records found.</div>`; }
+            else {
                 html += `<div style="margin-bottom:20px; color:var(--text-muted); font-weight:700;">Showing ${filtered.length} reports</div>`;
                 html += `<table class="modern-table"><thead><tr><th>Ref</th><th>Priority</th><th>Category</th><th>Location</th><th>Status</th></tr></thead><tbody>`;
                 filtered.forEach(r => {
@@ -347,36 +338,42 @@
             content.innerHTML = html; openSidePanel();
         }
 
+        function drawMapMarkers() {
+            const container = document.getElementById('map-markers'); if(!container) return; container.innerHTML = '';
+            const reportLocs = new Set(allReports.map(r => {
+                let l = (r.location || r.site || '').trim();
+                if(l === 'HQ — Jeddah') return 'Jeddah Main Office - Randa Tower';
+                return l;
+            }));
+
+            const allPossibleUnits = [...STATIC_OFFICES, ...STATIC_HOUSINGS, ...STATIC_SITES];
+            allPossibleUnits.forEach(unit => {
+                let cityKey = '';
+                for(let key in CITY_COORDS) { if(unit.toLowerCase().includes(key.toLowerCase())) { cityKey = key; break; } }
+                if(!cityKey) return; // Only draw markers for known city areas
+
+                const coords = CITY_COORDS[cityKey];
+                const hasReports = Array.from(reportLocs).some(l => l.toLowerCase() === unit.toLowerCase());
+                
+                // Add jitter to avoid perfect overlap
+                const jitterX = (Math.random() - 0.5) * 40;
+                const jitterY = (Math.random() - 0.5) * 40;
+
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("cx", coords.x + jitterX);
+                circle.setAttribute("cy", coords.y + jitterY);
+                circle.setAttribute("r", hasReports ? 8 : 4);
+                circle.setAttribute("class", "map-point" + (hasReports ? " has-reports" : ""));
+                circle.innerHTML = `<title>${unit}</title>`;
+                circle.onclick = () => openFilteredList(unit, unit, 'location');
+                container.appendChild(circle);
+            });
+        }
+
         function initCharts() {
-            const opt = (type) => ({
-                responsive: true, maintainAspectRatio: false,
-                onClick: (e, els, chart) => {
-                    if(els.length > 0) {
-                        const idx = els[0].index;
-                        const label = chart.data.labels[idx];
-                        openFilteredList(label, `${label} Analysis`, type);
-                    }
-                },
-                plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 14, weight: '700' }, padding: 15 } } }
-            });
-
-            charts.category = new Chart(document.getElementById('categoryChart'), {
-                type: 'doughnut',
-                data: { labels: ['Safety', 'Service', 'Other'], datasets: [{ data: [0,0,0], backgroundColor: ['#ff5252', '#80d1e9', '#2e3192'], borderWidth: 0 }] },
-                options: { ...opt('category'), cutout: '78%' }
-            });
-
-            charts.priority = new Chart(document.getElementById('priorityChart'), {
-                type: 'bar',
-                data: { labels: ['Critical', 'High', 'Medium', 'Low'], datasets: [{ data: [0,0,0,0], backgroundColor: ['#ff5252', '#ffab00', '#80d1e9', '#00e676'], borderRadius: 12 }] },
-                options: { ...opt('priority'), plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#fff', font: { weight: '800' } } }, x: { ticks: { color: '#fff', font: { weight: '800' } } } } }
-            });
-
-            charts.location = new Chart(document.getElementById('locationChart'), {
-                type: 'bar',
-                data: { labels: [], datasets: [{ data: [], backgroundColor: '#80d1e9', borderRadius: 8 }] },
-                options: { ...opt('location'), indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#fff', font: { weight: '800' } } }, y: { ticks: { color: '#fff', font: { weight: '800' } } } } }
-            });
+            const opt = (type) => ({ responsive: true, maintainAspectRatio: false, onClick: (e, els, chart) => { if(els.length > 0) { const idx = els[0].index; const label = chart.data.labels[idx]; openFilteredList(label, `${label} Analysis`, type); } }, plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 14, weight: '700' }, padding: 15 } } } });
+            charts.category = new Chart(document.getElementById('categoryChart'), { type: 'doughnut', data: { labels: ['Safety', 'Service', 'Other'], datasets: [{ data: [0,0,0], backgroundColor: ['#ff5252', '#80d1e9', '#2e3192'], borderWidth: 0 }] }, options: { ...opt('category'), cutout: '78%' } });
+            charts.priority = new Chart(document.getElementById('priorityChart'), { type: 'bar', data: { labels: ['Critical', 'High', 'Medium', 'Low'], datasets: [{ data: [0,0,0,0], backgroundColor: ['#ff5252', '#ffab00', '#80d1e9', '#00e676'], borderRadius: 12 }] }, options: { ...opt('priority'), plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#fff', font: { weight: '800' } } }, x: { ticks: { color: '#fff', font: { weight: '800' } } } } } });
         }
 
         function syncAllData() {
@@ -390,17 +387,10 @@
             document.getElementById('main-rate').innerText = rate + '%';
             const cats = { safety: 0, service: 0, other: 0 };
             const pris = { critical: 0, high: 0, medium: 0, low: 0 };
-            const locs = {};
-            allReports.forEach(r => { 
-                cats[(r.category || 'Other').toLowerCase()]++; 
-                pris[(r.priority || 'Low').toLowerCase()]++; 
-                let l = (r.location || r.site || 'Unknown').trim();
-                if(l === 'HQ — Jeddah') l = 'Jeddah Main Office - Randa Tower';
-                locs[l] = (locs[l] || 0) + 1; 
-            });
+            allReports.forEach(r => { cats[(r.category || 'Other').toLowerCase()]++; pris[(r.priority || 'Low').toLowerCase()]++; });
             if(charts.category) { charts.category.data.datasets[0].data = [cats.safety, cats.service, cats.other]; charts.category.update(); }
             if(charts.priority) { charts.priority.data.datasets[0].data = [pris.critical, pris.high, pris.medium, pris.low]; charts.priority.update(); }
-            if(charts.location) { const sortedLocs = Object.entries(locs).sort((a,b) => b[1] - a[1]).slice(0, 8); charts.location.data.labels = sortedLocs.map(l => l[0]); charts.location.data.datasets[0].data = sortedLocs.map(l => l[1]); charts.location.update(); }
+            drawMapMarkers();
             if(activeView === 'per-site') updateUnitMatrix(currentUnitFilter);
             applyFilters();
         }
