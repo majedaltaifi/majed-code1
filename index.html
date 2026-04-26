@@ -2408,7 +2408,7 @@ function syncAllChats() {
         // Prioritize Report ID for the name if it's a report chat
         const rid = d.reportId || (d.id && d.id.startsWith('NIT-') ? d.id : null);
         if (rid) {
-          otherName = 'Report #' + rid.slice(-4);
+          otherName = 'REPORT #' + rid.slice(-4);
           otherID = 'Support';
         } else if (d.id && d.id.includes('_Support')) {
           otherName = 'Support';
@@ -2421,6 +2421,11 @@ function syncAllChats() {
               otherName = (d.memberNames && d.memberNames[m]) || 'Employee ' + m;
             }
           });
+        }
+        
+        // Final override: If name is still "Employee Reporter" or similar, force Report ID if available
+        if ((otherName === 'Employee Reporter' || otherName === 'Reporter') && rid) {
+          otherName = 'REPORT #' + rid.slice(-4);
         }
         if (!otherID) return;
         
