@@ -750,7 +750,6 @@
         function syncSupportChats() {
             db.collection('chats')
               .where('isSupport', '==', true)
-              .orderBy('lastAt', 'desc')
               .onSnapshot(snap => {
                   const list = document.getElementById('support-conv-list');
                   if(!list) return;
@@ -758,14 +757,18 @@
                       list.innerHTML = '<div style="text-align:center; padding:50px; color:var(--text-dim);">No support chats found.</div>';
                       return;
                   }
+                  
+                  // Sort client-side to avoid needing a composite index
+                  const docs = snap.docs.map(d => ({id: d.id, ...d.data()}))
+                                   .sort((a, b) => new Date(b.lastAt) - new Date(a.lastAt));
+
                   list.innerHTML = '';
-                  snap.docs.forEach(doc => {
-                      const c = doc.data();
+                  docs.forEach(c => {
                       const isMe = c.lastBy === 'Support';
                       const name = c.reportId ? `Report #${c.reportId.slice(-4)}` : (c.reporterName || 'Support Request');
                       const item = document.createElement('div');
-                      item.className = `conv-item ${activeSupportChatId === doc.id ? 'active' : ''}`;
-                      item.onclick = () => openSupportConversation(doc.id, name);
+                      item.className = `conv-item ${activeSupportChatId === c.id ? 'active' : ''}`;
+                      item.onclick = () => openSupportConversation(c.id, name);
                       item.innerHTML = `
                         <div class="conv-avatar" style="background:${c.reportId ? '#fbbf24' : 'var(--turquoise)'}">${name.charAt(0)}</div>
                         <div class="conv-info">
@@ -775,6 +778,9 @@
                       `;
                       list.appendChild(item);
                   });
+              }, err => {
+                  console.error("Support Sync Error:", err);
+                  document.getElementById('support-conv-list').innerHTML = '<div style="color:red; padding:20px;">Sync Error. Check console.</div>';
               });
         }
 
