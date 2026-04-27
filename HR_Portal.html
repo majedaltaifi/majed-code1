@@ -407,8 +407,8 @@
                         <div class="filter-label">Status</div>
                         <select id="filter-status" class="filter-select" onchange="applyFilters()">
                             <option value="ALL">All Status</option>
-                            <option value="OPEN" selected>Active</option>
-                            <option value="DONE">Resolved</option>
+                            <option value="PENDING" selected>Pending Reports</option>
+                            <option value="DONE">Done Reports</option>
                         </select>
                     </div>
                     <div class="filter-group">
@@ -492,15 +492,15 @@
         const CITY_LAT_LNG = { 'Riyadh': [24.7136, 46.6753], 'Jeddah': [21.4858, 39.1925], 'Dammam': [26.4207, 50.0888], 'Alkhobar': [26.2172, 50.1971], 'Abha': [18.2161, 42.5053], 'Tabuk': [28.3835, 36.5662], 'Medinah': [24.4672, 39.6024], 'Jazan': [16.8892, 42.5511], 'Hafr Albatin': [28.4328, 45.9708], 'Rabigh': [22.8066, 39.0272], 'Yanbu': [24.0891, 38.0637], 'Al-Ahsa': [25.3781, 49.5911], 'Bisha': [19.9841, 42.6036], 'Duba': [27.3486, 35.6923], 'Thuwal': [22.2858, 39.1172], 'Qatif': [26.5441, 50.0033], 'Jubail': [26.9600, 49.6582], 'Khamis': [18.3000, 42.7292], 'Makkah': [21.3891, 39.8579], 'Neom': [28.1000, 35.1000] };
 
         function switchView(viewId, el) { activeView = viewId; document.querySelectorAll('.tab-content').forEach(v => { v.classList.remove('active'); v.style.display = 'none'; }); const target = document.getElementById('view-' + viewId); if(target) { target.classList.add('active'); target.style.display = 'block'; } document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); if(el) el.classList.add('active'); document.getElementById('view-title').innerText = el ? el.innerText : viewId; if(viewId === 'per-site') updateUnitMatrix('ALL'); if(viewId === 'all-reports') applyFilters(); if(viewId === 'dashboard' && map) setTimeout(() => map.invalidateSize(), 100); }
-        async function toggleStatus(id, current) { const next = current === 'DONE' ? 'OPEN' : 'DONE'; await db.collection('reports').doc(id).update({ status: next }); }
+        async function toggleStatus(id, current) { const next = current === 'DONE' ? 'PENDING' : 'DONE'; await db.collection('reports').doc(id).update({ status: next }); }
         function openSidePanel() { document.getElementById('side-panel').classList.add('active'); }
         function closeSidePanel() { document.getElementById('side-panel').classList.remove('active'); }
         function getPriorityStyle(p) { const lowP = (p || 'Low').toLowerCase(); if(lowP === 'critical') return 'color: var(--danger);'; if(lowP === 'high') return 'color: var(--warning);'; if(lowP === 'medium') return 'color: var(--turquoise);'; return 'color: var(--success);'; }
 
         function getStatusPill(status) {
-            const s = (status || 'OPEN').toUpperCase();
-            if(s === 'DONE') return `<span class="status-pill status-done"><i class="fas fa-check-circle"></i> Resolved</span>`;
-            return `<span class="status-pill status-open"><i class="fas fa-clock"></i> Active</span>`;
+            const s = (status || 'PENDING').toUpperCase();
+            if(s === 'DONE') return `<span class="status-pill status-done"><i class="fas fa-check-circle"></i> DONE</span>`;
+            return `<span class="status-pill status-open"><i class="fas fa-clock"></i> PENDING</span>`;
         }
 
         function openImg(src) {
@@ -512,7 +512,7 @@
             const r = allReports.find(x => x.id === id); if(!r) return;
             const isAnon = (r.isAnonymous === true || r.anon === true || !r.reporter);
             const description = r.description || r.desc || 'No description provided.';
-            const status = (r.status || 'OPEN').toUpperCase();
+            const status = (r.status || 'PENDING').toUpperCase();
             const ongoing = r.isViolationOngoing || (r.ongoing ? 'Yes' : 'No');
             const time = r.approxTime || r.time || 'N/A';
             const empNo = r.employeeId || r.emp_no || 'N/A';
@@ -598,11 +598,11 @@
 
         function openFilteredList(value, title, type) {
             const content = document.getElementById('side-panel-content');
-            const filtered = allReports.filter(r => { const s = (r.status || 'OPEN').toUpperCase(); const p = (r.priority || 'Low').toLowerCase(); const c = (r.category || 'Other').toLowerCase(); const loc = (r.location || r.site || 'Unknown').trim(); const val = (value || '').toLowerCase().trim(); if(type === 'status' && value === 'TOTAL') return true; if(type === 'status') return s === value; if(type === 'priority') return p === val; if(type === 'category') return c === val; if(type === 'location') return loc.toLowerCase() === val || (loc === 'HQ — Jeddah' && val === 'jeddah main office - randa tower') || (loc === 'Jeddah - New Office' && val === 'jeddah main office - randa tower'); return true; });
+            const filtered = allReports.filter(r => { const s = (r.status || 'PENDING').toUpperCase(); const p = (r.priority || 'Low').toLowerCase(); const c = (r.category || 'Other').toLowerCase(); const loc = (r.location || r.site || 'Unknown').trim(); const val = (value || '').toLowerCase().trim(); if(type === 'status' && value === 'TOTAL') return true; if(type === 'status') return s === value; if(type === 'priority') return p === val; if(type === 'category') return c === val; if(type === 'location') return loc.toLowerCase() === val || (loc === 'HQ — Jeddah' && val === 'jeddah main office - randa tower') || (loc === 'Jeddah - New Office' && val === 'jeddah main office - randa tower'); return true; });
             let color = 'var(--turquoise)'; if(value === 'Critical' || value === 'Safety' || value === 'OPEN') color = 'var(--danger)'; if(value === 'High' || value === 'warning') color = 'var(--warning)'; if(value === 'DONE') color = 'var(--success)';
             let html = `<div class="filter-badge" style="color:${color}; margin-bottom:15px;"><i class="fas fa-filter"></i> ${type}: ${value}</div><h2 style="font-size:2.8rem; font-weight:950; margin-bottom:30px; color:#fff;">${title}</h2>`;
             if(filtered.length === 0) { html += `<div style="text-align:center; padding:80px; color:var(--text-dim); font-size:1.2rem;">No records found.</div>`; }
-            else { html += `<div style="margin-bottom:25px; color:var(--text-muted); font-weight:700;">Showing ${filtered.length} reports</div><table class="modern-table"><thead><tr><th>Ref</th><th>Priority</th><th>Category</th><th>Location</th><th>Status</th></tr></thead><tbody>`; filtered.forEach(r => { const s = (r.status || 'OPEN').toUpperCase(); let loc = (r.location || r.site || 'Unknown'); if(loc.trim() === 'HQ — Jeddah' || loc.trim() === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower'; html += `<tr onclick="showReportDetail('${r.id}')"><td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td><td><span class="pri-badge" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</span></td><td>${r.category}</td><td style="font-size:0.85rem;">${loc}</td><td>${getStatusPill(s)}</td></tr>`; }); html += `</tbody></table>`; }
+            else { html += `<div style="margin-bottom:25px; color:var(--text-muted); font-weight:700;">Showing ${filtered.length} reports</div><table class="modern-table"><thead><tr><th>Ref</th><th>Priority</th><th>Category</th><th>Location</th><th>Status</th></tr></thead><tbody>`; filtered.forEach(r => { const s = (r.status || 'PENDING').toUpperCase(); let loc = (r.location || r.site || 'Unknown'); if(loc.trim() === 'HQ — Jeddah' || loc.trim() === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower'; html += `<tr onclick="showReportDetail('${r.id}')"><td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td><td><span class="pri-badge" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</span></td><td>${r.category}</td><td style="font-size:0.85rem;">${loc}</td><td>${getStatusPill(s)}</td></tr>`; }); html += `</tbody></table>`; }
             content.innerHTML = html; openSidePanel();
         }
 
@@ -627,7 +627,7 @@
                 if (STATIC_OFFICES.some(o => o.toLowerCase() === name.toLowerCase())) category = 'OFFICE';
                 else if (STATIC_HOUSINGS.some(h => h.toLowerCase() === name.toLowerCase())) category = 'HOUSING';
                 if(!stats[name]) stats[name] = { total: 0, open: 0, done: 0, category: category };
-                stats[name].total++; if((r.status || 'OPEN').toUpperCase() === 'DONE') stats[name].done++; else stats[name].open++;
+                stats[name].total++; if((r.status || 'PENDING').toUpperCase() === 'DONE') stats[name].done++; else stats[name].open++;
                 discoveredUnits.add(name);
             });
             STATIC_OFFICES.forEach(o => { if(!stats[o]) stats[o] = { total: 0, open: 0, done: 0, category: 'OFFICE' }; discoveredUnits.add(o); });
@@ -664,7 +664,7 @@
         }
 
         function syncAllData() {
-            const total = allReports.length; const openReports = allReports.filter(r => (r.status || 'OPEN').toUpperCase() !== 'DONE'); const openCount = openReports.length; const closedCount = total - openCount; const rate = total > 0 ? Math.round((closedCount / total) * 100) : 0;
+            const total = allReports.length; const openReports = allReports.filter(r => (r.status || 'PENDING').toUpperCase() !== 'DONE'); const openCount = openReports.length; const closedCount = total - openCount; const rate = total > 0 ? Math.round((closedCount / total) * 100) : 0;
             document.getElementById('main-total').innerText = total; document.getElementById('main-open').innerText = openCount; document.getElementById('main-closed').innerText = closedCount; document.getElementById('main-rate').innerText = rate + '%';
             const cats = { safety: 0, service: 0, other: 0 }; const pris = { critical: 0, high: 0, medium: 0, low: 0 }; const openPris = { critical: 0, high: 0, medium: 0, low: 0 }; const locs = {};
             allReports.forEach(r => { cats[(r.category || 'Other').toLowerCase()]++; pris[(r.priority || 'Low').toLowerCase()]++; let l = (r.location || r.site || 'Unknown').trim(); if(l === 'HQ — Jeddah' || l === 'Jeddah - New Office') l = 'Jeddah Main Office - Randa Tower'; locs[l] = (locs[l] || 0) + 1; });
@@ -703,7 +703,7 @@
             const sortOrder = document.getElementById('filter-sort').value;
 
             let filtered = allReports.filter(r => {
-                const s = (r.status || 'OPEN').toUpperCase();
+                const s = (r.status || 'PENDING').toUpperCase();
                 const p = (r.priority || 'Low').toUpperCase();
                 const c = (r.category || 'Other').toUpperCase();
                 
@@ -727,7 +727,7 @@
             });
 
             filtered.forEach(r => { 
-                const s = (r.status || 'OPEN').toUpperCase(); 
+                const s = (r.status || 'PENDING').toUpperCase(); 
                 const isAnon = (r.isAnonymous === true || !r.reporter); 
                 let loc = (r.location || r.site || 'Unknown'); if(loc.trim() === 'HQ — Jeddah' || loc.trim() === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower'; 
                 body.innerHTML += `
@@ -773,15 +773,15 @@
                     <td><span class="pri-badge" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</span></td>
                     <td>${r.category}</td>
                     <td style="font-size:0.85rem;">${r.location || r.site || '—'}</td>
-                    <td>${getStatusPill((r.status || 'OPEN').toUpperCase())}</td>
+                    <td>${getStatusPill((r.status || 'PENDING').toUpperCase())}</td>
                     <td>
                         <div style="display:flex; gap:10px;">
                             <button class="action-btn" onclick="event.stopPropagation(); openReportChat('${r.id}', '${r.reporter || 'Reporter'}')" title="Chat about report" style="background:rgba(128,209,233,0.1); color:var(--turquoise); border:1px solid rgba(128,209,233,0.2);">
                                 <i class="fas fa-comment-dots"></i>
                             </button>
                             <button class="action-btn" onclick="event.stopPropagation(); showReportDetail('${r.id}')" title="View Details"><i class="fas fa-eye"></i></button>
-                            <button class="action-btn" onclick="event.stopPropagation(); toggleStatus('${r.id}', '${(r.status || 'OPEN').toUpperCase()}')" title="${(r.status || 'OPEN').toUpperCase() === 'DONE' ? 'Re-open' : 'Mark Done'}" style="background:rgba(255,255,255,0.05); border:1px solid var(--border);">
-                                <i class="fas ${(r.status || 'OPEN').toUpperCase() === 'DONE' ? 'fa-undo' : 'fa-check-circle'}" style="color:${(r.status || 'OPEN').toUpperCase() === 'DONE' ? 'var(--warning)' : 'var(--success)'}"></i>
+                            <button class="action-btn" onclick="event.stopPropagation(); toggleStatus('${r.id}', '${(r.status || 'PENDING').toUpperCase()}')" title="${(r.status || 'PENDING').toUpperCase() === 'DONE' ? 'Re-open' : 'Mark Done'}" style="background:rgba(255,255,255,0.05); border:1px solid var(--border);">
+                                <i class="fas ${(r.status || 'PENDING').toUpperCase() === 'DONE' ? 'fa-undo' : 'fa-check-circle'}" style="color:${(r.status || 'PENDING').toUpperCase() === 'DONE' ? 'var(--warning)' : 'var(--success)'}"></i>
                             </button>
                         </div>
                     </td>
