@@ -744,6 +744,9 @@
                                     <i class="fas fa-comment-dots"></i>
                                 </button>
                                 <button class="action-btn" onclick="event.stopPropagation(); showReportDetail('${r.id}')" title="View Details"><i class="fas fa-eye"></i></button>
+                                <button class="action-btn" onclick="event.stopPropagation(); toggleStatus('${r.id}', '${s}')" title="${s === 'DONE' ? 'Re-open' : 'Mark Done'}" style="background:rgba(255,255,255,0.05); border:1px solid var(--border);">
+                                    <i class="fas ${s === 'DONE' ? 'fa-undo' : 'fa-check-circle'}" style="color:${s === 'DONE' ? 'var(--warning)' : 'var(--success)'}"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>`; 
@@ -777,6 +780,9 @@
                                 <i class="fas fa-comment-dots"></i>
                             </button>
                             <button class="action-btn" onclick="event.stopPropagation(); showReportDetail('${r.id}')" title="View Details"><i class="fas fa-eye"></i></button>
+                            <button class="action-btn" onclick="event.stopPropagation(); toggleStatus('${r.id}', '${(r.status || 'OPEN').toUpperCase()}')" title="${(r.status || 'OPEN').toUpperCase() === 'DONE' ? 'Re-open' : 'Mark Done'}" style="background:rgba(255,255,255,0.05); border:1px solid var(--border);">
+                                <i class="fas ${(r.status || 'OPEN').toUpperCase() === 'DONE' ? 'fa-undo' : 'fa-check-circle'}" style="color:${(r.status || 'OPEN').toUpperCase() === 'DONE' ? 'var(--warning)' : 'var(--success)'}"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>
