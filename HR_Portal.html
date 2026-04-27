@@ -216,37 +216,6 @@
             70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 82, 82, 0); }
             100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 82, 82, 0); }
         }
-        /* Status Toggle Switch */
-        .status-toggle {
-            position: relative;
-            display: inline-block;
-            width: 44px;
-            height: 22px;
-            vertical-align: middle;
-        }
-        .status-toggle input { opacity: 0; width: 0; height: 0; }
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            inset: 0;
-            background-color: rgba(255,255,255,0.05);
-            border: 1px solid var(--border);
-            transition: .4s;
-            border-radius: 34px;
-        }
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 14px;
-            width: 14px;
-            left: 3px;
-            bottom: 3px;
-            background-color: var(--text-muted);
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .toggle-slider { background-color: rgba(0, 230, 118, 0.1); border-color: var(--success); }
-        input:checked + .toggle-slider:before { transform: translateX(22px); background-color: var(--success); box-shadow: 0 0 10px rgba(0, 230, 118, 0.4); }
     </style>
 </head>
 <body>
@@ -775,10 +744,9 @@
                                     <i class="fas fa-comment-dots"></i>
                                 </button>
                                 <button class="action-btn" onclick="event.stopPropagation(); showReportDetail('${r.id}')" title="View Details"><i class="fas fa-eye"></i></button>
-                                <label class="status-toggle" onclick="event.stopPropagation()" title="${s === 'DONE' ? 'Resolved' : 'Active'}">
-                                    <input type="checkbox" ${s === 'DONE' ? 'checked' : ''} onchange="toggleStatus('${r.id}', '${s}')">
-                                    <span class="toggle-slider"></span>
-                                </label>
+                                <button class="action-btn" onclick="event.stopPropagation(); toggleStatus('${r.id}', '${s}')" title="${s === 'DONE' ? 'Re-open' : 'Mark Done'}" style="background:rgba(255,255,255,0.05); border:1px solid var(--border);">
+                                    <i class="fas ${s === 'DONE' ? 'fa-undo' : 'fa-check-circle'}" style="color:${s === 'DONE' ? 'var(--warning)' : 'var(--success)'}"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>`; 
@@ -812,10 +780,9 @@
                                 <i class="fas fa-comment-dots"></i>
                             </button>
                             <button class="action-btn" onclick="event.stopPropagation(); showReportDetail('${r.id}')" title="View Details"><i class="fas fa-eye"></i></button>
-                            <label class="status-toggle" onclick="event.stopPropagation()" title="${(r.status || 'OPEN').toUpperCase() === 'DONE' ? 'Resolved' : 'Active'}">
-                                <input type="checkbox" ${(r.status || 'OPEN').toUpperCase() === 'DONE' ? 'checked' : ''} onchange="toggleStatus('${r.id}', '${(r.status || 'OPEN').toUpperCase()}')">
-                                <span class="toggle-slider"></span>
-                            </label>
+                            <button class="action-btn" onclick="event.stopPropagation(); toggleStatus('${r.id}', '${(r.status || 'OPEN').toUpperCase()}')" title="${(r.status || 'OPEN').toUpperCase() === 'DONE' ? 'Re-open' : 'Mark Done'}" style="background:rgba(255,255,255,0.05); border:1px solid var(--border);">
+                                <i class="fas ${(r.status || 'OPEN').toUpperCase() === 'DONE' ? 'fa-undo' : 'fa-check-circle'}" style="color:${(r.status || 'OPEN').toUpperCase() === 'DONE' ? 'var(--warning)' : 'var(--success)'}"></i>
+                            </button>
                         </div>
                     </td>
                 </tr>
