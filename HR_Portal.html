@@ -442,6 +442,9 @@
         </div>
 
         <div id="view-all-reports" class="tab-content">
+            <div id="rbac-filter-info" style="display:none; background:rgba(128,209,233,0.1); border:1px solid var(--border); padding:10px 20px; border-radius:12px; margin-bottom:15px; font-size:0.8rem; color:var(--turquoise); font-weight:700;">
+                <i class="fas fa-shield-alt"></i> Granular Access Control Active: Some reports may be hidden based on your site-specific permissions.
+            </div>
             <div class="panel">
                 <div class="filter-bar">
                     <div class="filter-group" style="flex: 2; min-width: 300px;">
@@ -964,6 +967,9 @@
             if(!body) return; 
             body.innerHTML = ''; 
             
+            const rbacInfo = document.getElementById('rbac-filter-info');
+            if(rbacInfo) rbacInfo.style.display = 'none';
+            
             const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
             const user = firebase.auth().currentUser;
             const isAdmin = (user && user.email === SUPER_ADMIN);
@@ -995,7 +1001,12 @@
                     if (c === 'SAFETY' && up.rep_cat_safety === false) return false;
                     if (c === 'SERVICE' && up.rep_cat_service === false) return false;
                     if (c === 'VIOLATION' && up.rep_cat_violation === false) return false;
-                    if (hasWhitelist && !allowedSites.includes(loc)) return false;
+                    
+                    // Whitelist Filter (Case-Insensitive & Normalized)
+                    if (hasWhitelist) {
+                        const isAuthorized = allowedSites.some(s => s.trim().toLowerCase() === loc.toLowerCase());
+                        if (!isAuthorized) return false;
+                    }
                 }
                 
                 const matchesSearch = r.id.toLowerCase().includes(search) || 
@@ -1009,6 +1020,8 @@
                 
                 return matchesSearch && matchesPri && matchesCat && matchesStat;
             });
+
+            if (hasWhitelist && rbacInfo) rbacInfo.style.display = 'block';
 
             // Sorting
             filtered.sort((a, b) => {
