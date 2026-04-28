@@ -976,6 +976,7 @@
             const up = currentUserData ? (currentUserData.permissions || {}) : {};
             const allowedSites = currentUserData ? (currentUserData.allowed_sites || []) : [];
             const hasWhitelist = allowedSites.length > 0;
+            const canUnmask = isAdmin || (up.unmask === true);
 
             const search = (document.getElementById('report-search') ? document.getElementById('report-search').value.toLowerCase() : ''); 
             const priFilter = document.getElementById('filter-priority').value;
