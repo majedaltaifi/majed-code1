@@ -1362,9 +1362,9 @@
                 perms[permKey] = state;
                 const anyEnabled = dashSubKeys.some(k => perms[k] === true);
                 updateObj['permissions.dashboard'] = anyEnabled;
-            } else if (permKey === 'dashboard' && state === false) {
-                // If main dashboard is turned OFF, disable all sub-items
-                dashSubKeys.forEach(k => { updateObj[`permissions.${k}`] = false; });
+            } else if (permKey === 'dashboard') {
+                // If main dashboard is toggled, apply state to all sub-items
+                dashSubKeys.forEach(k => { updateObj[`permissions.${k}`] = state; });
             }
             
             await docRef.update(updateObj);
