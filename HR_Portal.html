@@ -1069,11 +1069,14 @@
         }
         function initRealtimeSync() {
             db.collection('reports').onSnapshot(snap => {
-                const GARBAGE = ['SITE', 'site', '1', '0'];
+                // Relaxed filtering to ensure all 16 reports show up
                 allReports = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(r => {
                     const l = (r.location || r.site || '').trim();
-                    return l && !GARBAGE.includes(l);
+                    if (!l) return true; // Keep reports even if location is missing
+                    const GARBAGE = ['1', '0', 'SITE', 'site', 'undefined', 'null'];
+                    return !GARBAGE.includes(l);
                 });
+                console.log("Reports Sync Updated:", allReports.length);
                 if (activeView === 'dashboard') updateDashboard();
                 if (activeView === 'all-reports') applyFilters();
             });
