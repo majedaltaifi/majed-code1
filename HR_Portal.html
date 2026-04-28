@@ -230,13 +230,23 @@
         .user-email { font-weight: 700; color: #fff; font-size: 1.1rem; }
         
         .perm-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        .perm-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: 0.2s; }
+        .perm-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: 0.2s; position: relative; }
         .perm-item:hover { background: rgba(255,255,255,0.06); }
         .perm-item.active { border-color: var(--turquoise); background: rgba(128,209,233,0.08); }
         .perm-label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
         .perm-item.active .perm-label { color: var(--turquoise); }
         .perm-status { font-size: 0.7rem; font-weight: 900; }
         .perm-item.active .perm-status { color: var(--turquoise); }
+
+        .sub-perm-container { grid-column: span 3; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 16px; padding: 15px; margin-top: -5px; margin-bottom: 10px; display: none; }
+        .sub-perm-container.active { display: block; }
+        .sub-perm-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .sub-perm-item { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: 0.2s; }
+        .sub-perm-item.active { border-color: var(--turquoise); background: rgba(128,209,233,0.05); }
+        .sub-perm-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+        .sub-perm-item.active .sub-perm-label { color: var(--turquoise); }
+        .sub-perm-status { font-size: 0.6rem; font-weight: 900; }
+        .sub-perm-item.active .sub-perm-status { color: var(--turquoise); }
         
         .btn-delete-user { background: none; border: none; color: var(--danger); cursor: pointer; opacity: 0.6; transition: 0.3s; font-size: 1.1rem; }
         .btn-delete-user:hover { opacity: 1; transform: scale(1.1); }
@@ -650,9 +660,33 @@
             };
             document.getElementById('view-title').innerText = titleMap[viewId] || viewId; 
             
-            if(viewId === 'per-site') updateUnitMatrix('ALL'); 
-            if(viewId === 'all-reports') applyFilters(); 
-            if(viewId === 'dashboard' && map) setTimeout(() => map.invalidateSize(), 100); 
+            if(viewId === 'dashboard') {
+                const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
+                const user = firebase.auth().currentUser;
+                const isAdmin = (user && user.email === SUPER_ADMIN);
+                const up = currentUserData ? (currentUserData.permissions || {}) : {};
+                
+                // Toggle sections based on permissions
+                const showSec = (key) => (isAdmin || up[key] === true);
+                
+                const stats = document.querySelector('.analytics-grid');
+                if(stats) stats.style.display = showSec('dash_stats') ? 'grid' : 'none';
+                
+                const mapSec = document.querySelector('.map-section');
+                if(mapSec) mapSec.style.display = showSec('dash_map') ? 'block' : 'none';
+                
+                const charts = document.querySelectorAll('.charts-row .chart-container');
+                if(charts.length >= 3) {
+                    charts[0].style.display = showSec('dash_categories') ? 'block' : 'none';
+                    charts[1].style.display = showSec('dash_priority') ? 'block' : 'none';
+                    charts[2].style.display = showSec('dash_distribution') ? 'block' : 'none';
+                }
+                
+                const geo = document.querySelector('#view-dashboard .panel');
+                if(geo) geo.style.display = showSec('dash_geo') ? 'block' : 'none';
+
+                if(map) setTimeout(() => map.invalidateSize(), 100); 
+            }
         }
 
         async function toggleStatus(id, current) { const next = current === 'DONE' ? 'OPEN' : 'DONE'; await db.collection('reports').doc(id).update({ status: next }); }
@@ -1249,9 +1283,14 @@
             }
 
             const perms = ['dashboard', 'sites', 'reports', 'employees', 'chat', 'podcast'];
-            const labels = { 
-                dashboard: 'DASHBOARD', sites: 'UNITS', reports: 'REPORTS', 
-                employees: 'DIRECTORY', chat: 'SUPPORT', podcast: 'PODCAST' 
+            const labels = { dashboard: 'DASHBOARD', sites: 'UNITS', reports: 'REPORTS', employees: 'DIRECTORY', chat: 'SUPPORT', podcast: 'PODCAST' };
+            const dashSub = {
+                dash_stats: 'OVERVIEW CARDS',
+                dash_map: 'LIVE MAP',
+                dash_categories: 'INCIDENT CATEGORIES',
+                dash_priority: 'TASKS PRIORITY',
+                dash_distribution: 'TOTAL DISTRIBUTION',
+                dash_geo: 'GEO BREAKDOWN'
             };
 
             list.innerHTML = snapshot.docs.map(doc => {
@@ -1259,12 +1298,30 @@
                 const uPerms = u.permissions || {};
                 const initial = (u.email || '?').charAt(0).toUpperCase();
                 
-                let permHTML = perms.map(p => `
-                    <div class="perm-item ${uPerms[p]?'active':''}" onclick="togglePermission('${doc.id}', '${p}', ${!uPerms[p]})">
-                        <span class="perm-label">${labels[p]}</span>
+                let permHTML = perms.map(p => {
+                    const hasSub = (p === 'dashboard');
+                    return `
+                    <div class="perm-item ${uPerms[p]?'active':''}" onclick="${hasSub ? `toggleSubMenu('${doc.id}')` : `togglePermission('${doc.id}', '${p}', ${!uPerms[p]})`}">
+                        <span class="perm-label">${labels[p]} ${hasSub ? '<i class="fas fa-chevron-down" style="margin-left:8px; opacity:0.5;"></i>' : ''}</span>
                         <span class="perm-status">${uPerms[p]?'ON':'OFF'}</span>
                     </div>
-                `).join('');
+                    ${hasSub ? `
+                    <div class="sub-perm-container" id="sub-dash-${doc.id}">
+                        <div style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:0.6rem; font-weight:900; color:var(--turquoise);">DASHBOARD COMPONENTS</span>
+                            <button class="action-btn" style="padding:4px 8px; font-size:0.6rem;" onclick="togglePermission('${doc.id}', 'dashboard', ${!uPerms.dashboard})">${uPerms.dashboard?'DISABLE ALL':'ENABLE ALL'}</button>
+                        </div>
+                        <div class="sub-perm-grid">
+                            ${Object.keys(dashSub).map(sk => `
+                                <div class="sub-perm-item ${uPerms[sk]?'active':''}" onclick="togglePermission('${doc.id}', '${sk}', ${!uPerms[sk]})">
+                                    <span class="sub-perm-label">${dashSub[sk]}</span>
+                                    <span class="sub-perm-status">${uPerms[sk]?'ON':'OFF'}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    ` : ''}
+                `; }).join('');
 
                 return `
                     <div class="user-card">
@@ -1285,6 +1342,10 @@
             }).join('');
         }
 
+        function toggleSubMenu(uid) {
+            const el = document.getElementById('sub-dash-' + uid);
+            if(el) el.classList.toggle('active');
+        }
         async function togglePermission(uid, permKey, state) {
             const updateObj = {};
             updateObj[`permissions.${permKey}`] = state;
