@@ -638,7 +638,7 @@
         function showReportDetail(id) {
             const r = allReports.find(x => x.id === id); if(!r) return;
             const isAnon = (r.isAnonymous === true || r.anon === true || r.reporter === 'Anonymous');
-            const emp = allEmployees.find(e => e.id == r.employeeId || e.id == r.emp_no);
+            const emp = allEmployees.find(e => (e.id && r.employeeId && e.id.toString() === r.employeeId.toString()) || (e.id && r.emp_no && e.id.toString() === r.emp_no.toString()));
             
             const description = r.description || r.desc || 'No description provided.';
             const status = (r.status || 'OPEN').toUpperCase();
@@ -646,8 +646,8 @@
             const time = r.approxTime || r.time || 'N/A';
             const empNo = r.employeeId || r.emp_no || 'N/A';
             
-            // Unmasked Identity
-            const reporterName = emp ? emp.name : (r.reporter && r.reporter !== 'Anonymous' ? r.reporter : 'Reporter');
+            // Unmasked Identity - Exhaustive Search
+            const reporterName = emp ? emp.name : (r.reporterName || r.emp_name || (r.reporter && r.reporter !== 'Anonymous' ? r.reporter : 'Identified User'));
             const reporterPhone = emp ? emp.phone : (r.phone || r.userPhone || 'N/A');
             const reporterEmail = emp ? (emp.email || emp.userEmail) : (r.email || r.userEmail || 'N/A');
             
@@ -864,8 +864,8 @@
                         <td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td>
                         <td>
                             ${(() => {
-                                const emp = allEmployees.find(e => e.id == r.employeeId || e.id == r.emp_no);
-                                const name = emp ? emp.name : (r.reporter && r.reporter !== 'Anonymous' ? r.reporter : 'Reporter');
+                                const emp = allEmployees.find(e => (e.id && r.employeeId && e.id.toString() === r.employeeId.toString()) || (e.id && r.emp_no && e.id.toString() === r.emp_no.toString()));
+                                const name = emp ? emp.name : (r.reporterName || r.emp_name || (r.reporter && r.reporter !== 'Anonymous' ? r.reporter : 'Identified User'));
                                 return isAnon ? `<span style="color:var(--warning); font-weight:800;">${name}</span>` : `<span style="color:#fff; font-weight:700;">${name}</span>`;
                             })()}
                         </td>
@@ -905,8 +905,8 @@
             rbody.innerHTML = allReports.map(r => {
                 const s = (r.status || 'OPEN').toUpperCase();
                 const isAnon = (r.isAnonymous === true || r.anon === true || r.reporter === 'Anonymous');
-                const emp = allEmployees.find(e => e.id == r.employeeId || e.id == r.emp_no);
-                const name = emp ? emp.name : (r.reporter && r.reporter !== 'Anonymous' ? r.reporter : 'Reporter');
+                const emp = allEmployees.find(e => (e.id && r.employeeId && e.id.toString() === r.employeeId.toString()) || (e.id && r.emp_no && e.id.toString() === r.emp_no.toString()));
+                const name = emp ? emp.name : (r.reporterName || r.emp_name || (r.reporter && r.reporter !== 'Anonymous' ? r.reporter : 'Identified User'));
                 return `
                 <tr>
                     <td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td>
