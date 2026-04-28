@@ -625,7 +625,19 @@
             if(target) { target.classList.add('active'); target.style.display = 'block'; } 
             
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); 
-            if(el) el.classList.add('active'); 
+            
+            // Auto-highlight sidebar item if el is missing
+            let navItem = el;
+            if(!navItem) {
+                const navItems = document.querySelectorAll('.nav-item');
+                navItems.forEach(n => {
+                    const oc = n.getAttribute('onclick');
+                    if(oc && oc.includes(`'${viewId}'`)) {
+                        navItem = n;
+                    }
+                });
+            }
+            if(navItem) navItem.classList.add('active'); 
             
             const titleMap = {
                 'dashboard': 'Main Dashboard',
