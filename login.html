@@ -159,15 +159,25 @@
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script>
         const firebaseConfig = { apiKey: "AIzaSyCWW5fJIYSw0p_LGuDJZA-4bOfQ92tdUPM", authDomain: "majed-code1.firebaseapp.com", projectId: "majed-code1", storageBucket: "majed-code1.firebasestorage.app", messagingSenderId: "668474846040", appId: "1:668474846040:web:8ddd1c4818cda34e97d32d", measurementId: "G-HJKQWYHMHZ" };
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
+        const db = firebase.firestore();
 
-        // Redirect if already logged in as Admin
-        auth.onAuthStateChanged(user => {
-            if (user && user.email.toLowerCase() === 'majedaltaifi1@gmail.com') {
-                window.location.href = 'HR_Portal.html';
+        // Redirect if already logged in and authorized
+        auth.onAuthStateChanged(async user => {
+            if (user) {
+                const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
+                if (user.email.toLowerCase() === SUPER_ADMIN) {
+                    window.location.href = 'HR_Portal.html';
+                } else {
+                    const q = await db.collection('users').where('email', '==', user.email.toLowerCase()).get();
+                    if (!q.empty) {
+                        window.location.href = 'HR_Portal.html';
+                    }
+                }
             }
         });
 
@@ -184,25 +194,39 @@
                 return;
             }
 
-            if (email.toLowerCase() !== 'majedaltaifi1@gmail.com') {
-                showError("Unauthorized Email: This terminal is locked.");
-                return;
-            }
-
             error.style.display = 'none';
             btn.disabled = true;
             text.style.display = 'none';
             spinner.style.display = 'block';
 
             try {
-                await auth.signInWithEmailAndPassword(email, password);
+                const result = await auth.signInWithEmailAndPassword(email, password);
+                const user = result.user;
+                
+                const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
+                if (user.email.toLowerCase() !== SUPER_ADMIN) {
+                    const q = await db.collection('users').where('email', '==', user.email.toLowerCase()).get();
+                    if (q.empty) {
+                        await auth.signOut();
+                        showError("Unauthorized Access: This terminal is locked.");
+                        resetBtn();
+                        return;
+                    }
+                }
                 // Auth listener will handle redirection
             } catch (e) {
                 showError(e.message);
-                btn.disabled = false;
-                text.style.display = 'block';
-                spinner.style.display = 'none';
+                resetBtn();
             }
+        }
+
+        function resetBtn() {
+            const btn = document.getElementById('login-btn');
+            const text = document.getElementById('btn-text');
+            const spinner = document.getElementById('btn-spinner');
+            btn.disabled = false;
+            text.style.display = 'block';
+            spinner.style.display = 'none';
         }
 
         function showError(msg) {
