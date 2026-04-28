@@ -1172,8 +1172,8 @@
                 return;
             }
 
-            const perms = ['dashboard', 'sites', 'reports', 'employees', 'chat', 'podcast', 'anonymous'];
-            const labels = { dashboard: 'Dashboard', sites: 'Units', reports: 'Reports', employees: 'Directory', chat: 'Support', podcast: 'Podcast', anonymous: 'Anonymous' };
+            const perms = ['dashboard', 'sites', 'reports', 'employees', 'chat', 'podcast'];
+            const labels = { dashboard: 'Dashboard', sites: 'Units', reports: 'Reports', employees: 'Directory', chat: 'Support', podcast: 'Podcast' };
 
             list.innerHTML = snapshot.docs.map(doc => {
                 const u = doc.data();
@@ -1240,7 +1240,7 @@
                 await db.collection('users').doc(docId).set({
                     email: email.toLowerCase(),
                     role: 'admin',
-                    permissions: { dashboard: true, sites: true, reports: true, employees: false, chat: false, podcast: false, anonymous: false },
+                    permissions: { dashboard: true, sites: true, reports: true, employees: false, chat: false, podcast: false },
                     created_at: firebase.firestore.Timestamp.now()
                 }, { merge: true });
 
