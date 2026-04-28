@@ -301,7 +301,7 @@
         </div>
 
         <div id="view-dashboard" class="tab-content">
-            <div class="analytics-grid">
+            <div id="dash-stats-panel" class="analytics-grid">
                 <div class="stat-card clickable" onclick="openFilteredList('TOTAL', 'Operational Overview', 'status')">
                     <div class="stat-label">Total Reports</div><div class="stat-value" id="main-total">0</div>
                 </div>
@@ -314,7 +314,7 @@
                 <div class="stat-card"><div class="stat-label">Success Rate</div><div class="stat-value" id="main-rate">0%</div></div>
             </div>
 
-            <div class="map-section">
+            <div id="dash-map-panel" class="map-section">
                 <div id="real-map"></div>
                 <div class="map-legend">
                     <div class="leg-item"><div class="leg-dot" style="background: var(--success);"></div> Office (Green)</div>
@@ -324,12 +324,12 @@
             </div>
 
             <div class="charts-row">
-                <div class="chart-container"><div class="chart-title"><i class="fas fa-chart-pie"></i> Incident Categories</div><div style="height: 330px;"><canvas id="categoryChart"></canvas></div></div>
-                <div class="chart-container"><div class="chart-title"><i class="fas fa-fire"></i> Active Tasks Priority</div><div style="height: 330px;"><canvas id="openPriorityChart"></canvas></div></div>
-                <div class="chart-container"><div class="chart-title"><i class="fas fa-chart-bar"></i> Total Distribution</div><div style="height: 330px;"><canvas id="priorityChart"></canvas></div></div>
+                <div id="dash-categories-panel" class="chart-container"><div class="chart-title"><i class="fas fa-chart-pie"></i> Incident Categories</div><div style="height: 330px;"><canvas id="categoryChart"></canvas></div></div>
+                <div id="dash-priority-panel" class="chart-container"><div class="chart-title"><i class="fas fa-fire"></i> Active Tasks Priority</div><div style="height: 330px;"><canvas id="openPriorityChart"></canvas></div></div>
+                <div id="dash-dist-panel" class="chart-container"><div class="chart-title"><i class="fas fa-chart-bar"></i> Total Distribution</div><div style="height: 330px;"><canvas id="priorityChart"></canvas></div></div>
             </div>
 
-            <div class="panel">
+            <div id="dash-analysis-panel" class="panel">
                 <div class="chart-title-sub"><i class="fas fa-globe-americas"></i> Geographic Breakdown (Report Volume)</div>
                 <div style="height: 400px;"><canvas id="locationChart"></canvas></div>
             </div>
@@ -583,42 +583,90 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+        let currentUserData = null;
 
         auth.onAuthStateChanged(async user => {
             if (!user) {
                 window.location.href = 'login.html';
             } else {
                 const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
-                if (user.email.toLowerCase() === SUPER_ADMIN) {
+                const isSuper = user.email.toLowerCase() === SUPER_ADMIN;
+                
+                // Always show User Role for Super Admin
+                document.getElementById('nav-user-role').style.display = isSuper ? 'flex' : 'none';
+
+                // Fetch User Permissions
+                const q = await db.collection('users').where('email', '==', user.email.toLowerCase()).get();
+                if (!q.empty) {
+                    currentUserData = q.docs[0].data();
+                    applyGranularPermissions();
+                    if (isSuper) loadAdminUsers();
+                } else if (isSuper) {
+                    currentUserData = { permissions: { dashboard:true, sites:true, reports:true, employees:true, chat:true, podcast:true, dash_stats:true, dash_map:true, dash_categories:true, dash_priority:true, dash_analysis:true } };
                     document.getElementById('loading-rbac').classList.add('hide');
-                    loadAdminUsers(); // Load users if on role view
                 } else {
-                    // Check Firestore for admin role
-                    const q = await db.collection('users').where('email', '==', user.email.toLowerCase()).get();
-                    if (!q.empty) {
-                        currentUserData = q.docs[0].data();
-                    } else {
-                        alert("Unauthorized Access: You do not have dashboard permissions.");
-                        auth.signOut();
-                    }
+                    alert("Unauthorized Access: No permissions assigned.");
+                    auth.signOut();
                 }
+                document.getElementById('loading-rbac').classList.add('hide');
             }
         });
 
-        let allReports = [];
-        let charts = {};
-        let activeView = 'dashboard';
-        let currentUnitFilter = 'ALL';
-        let map;
-        let markersGroup = L.layerGroup();
-        const deterministicJitter = {};
+        function applyGranularPermissions() {
+            if (!currentUserData || !currentUserData.permissions) return;
+            const p = currentUserData.permissions;
+            const isSuper = auth.currentUser && auth.currentUser.email.toLowerCase() === 'majedaltaifi1@gmail.com';
 
-        const STATIC_OFFICES = ['Abha Office', 'Alkhobar Main Office', 'Egypt Office', 'Jeddah - Tawuniya Office', 'Jeddah Main Office - Randa Tower', 'New Riyadh Office', 'PRC ID Office', 'Riyadh Main Office', 'Saudi Aramco - Yanbu Office'];
-        const STATIC_HOUSINGS = ['Housing - Albeda Ameer Faisal', 'Housing - Albeda Muath Bin Asad', 'Housing - Alkhobar Thuqbah', 'Housing - Alqaysumah Alhidayah', 'Housing - Bisha Aljunaynah', 'Housing - Dammam Madinat Alumal', 'Housing - Duba Ibn Alhafiz', 'Housing - Duba Qutn Bin Haritah', 'Housing - Farasan', 'Housing - Hafr Albatin Aljamiah', 'Housing - Hafr Albatin Alsinayyah', 'Housing - Haqel', 'Housing - Jeddah Nuzha', 'Housing - Jeddah Rehaily', 'Housing - Khamis Mushait Tendaha', 'Housing - Makkah Waly Alahad', 'Housing - Medinah Muzainab', 'Housing - Medinah Warqan', 'Housing - Qatif Alsinayyah', 'Housing - Rabigh Alfransiyah Sharqi', 'Housing - Rabigh Alnaeem', 'Housing - Riyadh Almonsiyah', 'Housing - Riyadh Almurjan', 'Housing - Safwa AlMuruj', 'Housing - Tabuk Alraya', 'Housing - Yanbu Alttakhi', 'Housing- jeddah Alfrusiyah'];
-        const STATIC_SITES = ['10521300012 - KSP 8388', '10521300013 - KSP 8389', 'ABU Hadriyah 115 KV Extension with Rerouting in OHTL', 'AL- Ahsa O&M', 'Abu Maan Substation', 'Aindar Project', 'Aindar Warehouse', 'Al-Bahr Substation', 'Asfan Main Warehouse', 'BISHA - PV 380/132 KV BSP', 'Bayoniyah Substation', 'Buhaiyrat', 'CONSTRUCTION OF AL-MURJAN 132/13.8kV SUBSTATION # 8274 IN RIYADH CITY', 'CONSTRUCTION OF HARAM-3 SS', 'CONSTRUCTION OF JAZERA ROYAL PALACE - THUWAL', 'Construction Of Farasan Island SS (132/33/13.8KV)', 'Dammam O&M', 'Dammam Port', 'Dana-2 Substation', 'Diriyah Gate Project Substation # 8171', 'Diriyah Gate Project Substation # 8242', 'FM Dammam', 'HV Jubail Intertie', 'Hada-2 (Andalus) Substation', 'Hafar AL- Batin O&M', 'Hafr Albatin Unified', 'Iman Hospital', 'Interconnection Of Nawariyah SS', 'Jafurah', 'Jazan Medical City', 'Jazan Port', 'Jazan Warehouse', 'Jubail 7AB', 'Jubail North', 'Jubail South East', 'Khobar Corniche Substation', 'King Fahad Causeway', 'MEDNO Island Reinforcement', 'Madaya', 'Madinah Warehouse', 'Modon Asir', 'NIC EV2', 'NIC NORTH', 'Neom PSSA And PSSB (OHTL)', 'Neom Security System O&M', 'New Dammam Warehouse', 'North Khobar', 'North Thuqbah', 'PMAH', 'POWER SUPPLY TO HAFAR AL-BATIN', 'Qalah Substation', 'Qatif Shati Substation', 'RUMAH 380 KV BSP', 'Rabigh Substation', 'Ras Tanura 0810606', 'Riyadh warehouse', 'Ryadhiyah Substation', 'SAMHA OHTL', 'SESP - Training Institute', 'Samif Workshop', 'Saudi Aramco - Madinah Bulk Plant', 'Saudi Aramco - North Jeddah Bulk Plant', 'Saudi Aramco - Petro Rabigh', 'Saudi Aramco - Yanbu Bulk Plant', 'Senaeya-2 Substation', 'Sheraa Substation', 'Switchgear Room at Al-Baha CPS Substation', 'Tabuk (ISP) Warehouse', 'Tabuk (OSP) Warehouse', 'Taiba West Substation', 'Thuwal Warehouse', 'Tuwaiq warehouse', 'Udailiyah Site - Aramco Project (VCP)', 'Uruba Substation', 'WALY ALAHAD-3 110-13.8kV SS', 'Wadi Al-Dhahran Substation', 'Wadi Safar - Security & ICT', 'Wasalat Workshop', 'ZATCA', 'Zatca HQ'];
-        const CITY_LAT_LNG = { 'Riyadh': [24.7136, 46.6753], 'Jeddah': [21.4858, 39.1925], 'Dammam': [26.4207, 50.0888], 'Alkhobar': [26.2172, 50.1971], 'Abha': [18.2161, 42.5053], 'Tabuk': [28.3835, 36.5662], 'Medinah': [24.4672, 39.6024], 'Jazan': [16.8892, 42.5511], 'Hafr Albatin': [28.4328, 45.9708], 'Rabigh': [22.8066, 39.0272], 'Yanbu': [24.0891, 38.0637], 'Al-Ahsa': [25.3781, 49.5911], 'Bisha': [19.9841, 42.6036], 'Duba': [27.3486, 35.6923], 'Thuwal': [22.2858, 39.1172], 'Qatif': [26.5441, 50.0033], 'Jubail': [26.9600, 49.6582], 'Khamis': [18.3000, 42.7292], 'Makkah': [21.3891, 39.8579], 'Neom': [28.1000, 35.1000] };
+            // Sidebar Visibility
+            const navItems = {
+                dashboard: document.querySelector('.nav-item[onclick*="dashboard"]'),
+                sites: document.querySelector('.nav-item[onclick*="per-site"]'),
+                reports: document.querySelector('.nav-item[onclick*="all-reports"]'),
+                employees: document.querySelector('.nav-item[onclick*="employees"]'),
+                chat: document.getElementById('nav-chat'),
+                podcast: document.querySelector('.nav-item[onclick*="hr-podcast"]')
+            };
+            Object.keys(navItems).forEach(k => { if(navItems[k]) navItems[k].style.display = (isSuper || p[k]) ? 'flex' : 'none'; });
 
-        function switchView(viewId, el) { activeView = viewId; document.querySelectorAll('.tab-content').forEach(v => { v.classList.remove('active'); v.style.display = 'none'; }); const target = document.getElementById('view-' + viewId); if(target) { target.classList.add('active'); target.style.display = 'block'; } document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); if(el) el.classList.add('active'); document.getElementById('view-title').innerText = el ? el.innerText : viewId; if(viewId === 'per-site') updateUnitMatrix('ALL'); if(viewId === 'all-reports') applyFilters(); if(viewId === 'dashboard' && map) setTimeout(() => map.invalidateSize(), 100); }
+            // Dashboard Widgets
+            if (!isSuper) {
+                if(document.getElementById('dash-stats-panel')) document.getElementById('dash-stats-panel').style.display = p.dash_stats ? 'grid' : 'none';
+                if(document.getElementById('dash-map-panel')) document.getElementById('dash-map-panel').style.display = p.dash_map ? 'block' : 'none';
+                if(document.getElementById('dash-categories-panel')) document.getElementById('dash-categories-panel').style.display = p.dash_categories ? 'block' : 'none';
+                if(document.getElementById('dash-priority-panel')) document.getElementById('dash-priority-panel').style.display = p.dash_priority ? 'block' : 'none';
+                if(document.getElementById('dash-analysis-panel')) document.getElementById('dash-analysis-panel').style.display = p.dash_analysis ? 'block' : 'none';
+            }
+
+            // Redirect if current view is revoked
+            const viewKey = activeView === 'per-site' ? 'sites' : (activeView === 'all-reports' ? 'reports' : (activeView === 'hr-podcast' ? 'podcast' : activeView));
+            if (!isSuper && !p[viewKey] && activeView !== 'forbidden') {
+                const firstAllowed = Object.keys(navItems).find(k => p[k]);
+                if (firstAllowed) switchView(firstAllowed === 'sites' ? 'per-site' : (firstAllowed === 'reports' ? 'all-reports' : (firstAllowed === 'podcast' ? 'hr-podcast' : firstAllowed)));
+                else switchView('forbidden');
+            }
+        }
+
+        function switchView(viewId, el) { 
+            const isSuper = auth.currentUser && auth.currentUser.email.toLowerCase() === 'majedaltaifi1@gmail.com';
+            const viewKey = viewId === 'per-site' ? 'sites' : (viewId === 'all-reports' ? 'reports' : (viewId === 'hr-podcast' ? 'podcast' : viewId));
+            
+            if (!isSuper && viewId !== 'forbidden' && currentUserData && currentUserData.permissions && !currentUserData.permissions[viewKey]) {
+                return; // Block unauthorized switches
+            }
+
+            activeView = viewId; 
+            document.querySelectorAll('.tab-content').forEach(v => { v.classList.remove('active'); v.style.display = 'none'; }); 
+            const target = document.getElementById('view-' + viewId); 
+            if(target) { target.classList.add('active'); target.style.display = 'block'; } 
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); 
+            if(el) el.classList.add('active'); 
+            document.getElementById('view-title').innerText = el ? el.innerText : (viewId==='forbidden'?'Access Restricted':viewId); 
+            
+            if(viewId === 'per-site') updateUnitMatrix('ALL'); 
+            if(viewId === 'all-reports') applyFilters(); 
+            if(viewId === 'dashboard' && map) setTimeout(() => map.invalidateSize(), 100); 
+        }
+
         async function toggleStatus(id, current) { const next = current === 'DONE' ? 'OPEN' : 'DONE'; await db.collection('reports').doc(id).update({ status: next }); }
         function openSidePanel() { document.getElementById('side-panel').classList.add('active'); }
         function closeSidePanel() { document.getElementById('side-panel').classList.remove('active'); }
@@ -1198,8 +1246,11 @@
                 return;
             }
 
-            const perms = ['dashboard', 'sites', 'reports', 'employees', 'chat', 'podcast'];
-            const labels = { dashboard: 'Dashboard', sites: 'Units', reports: 'Reports', employees: 'Directory', chat: 'Support', podcast: 'Podcast' };
+            const perms = ['dashboard', 'sites', 'reports', 'employees', 'chat', 'podcast', 'dash_stats', 'dash_map', 'dash_categories', 'dash_priority', 'dash_analysis'];
+            const labels = { 
+                dashboard: 'Dashboard', sites: 'Units', reports: 'Reports', employees: 'Directory', chat: 'Support', podcast: 'Podcast',
+                dash_stats: 'Dash: Stats', dash_map: 'Dash: Map', dash_categories: 'Dash: Categories', dash_priority: 'Dash: Priority', dash_analysis: 'Dash: Analysis'
+            };
 
             list.innerHTML = snapshot.docs.map(doc => {
                 const u = doc.data();
@@ -1266,7 +1317,10 @@
                 await db.collection('users').doc(docId).set({
                     email: email.toLowerCase(),
                     role: 'admin',
-                    permissions: { dashboard: true, sites: true, reports: true, employees: false, chat: false, podcast: false },
+                    permissions: { 
+                        dashboard: true, sites: true, reports: true, employees: false, chat: false, podcast: false,
+                        dash_stats: true, dash_map: true, dash_categories: true, dash_priority: true, dash_analysis: true
+                    },
                     created_at: firebase.firestore.Timestamp.now()
                 }, { merge: true });
 
