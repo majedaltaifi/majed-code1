@@ -1347,15 +1347,27 @@
             if(el) el.classList.toggle('active');
         }
         async function togglePermission(uid, permKey, state) {
+            const docRef = db.collection('users').doc(uid);
+            const snap = await docRef.get();
+            const uData = snap.data();
+            const perms = uData.permissions || {};
+            
             const updateObj = {};
             updateObj[`permissions.${permKey}`] = state;
             
-            // Auto-enable main Dashboard if any sub-item is enabled
-            if(state === true && permKey.startsWith('dash_')) {
-                updateObj['permissions.dashboard'] = true;
+            // Sync logic
+            const dashSubKeys = ['dash_stats', 'dash_map', 'dash_categories', 'dash_priority', 'dash_distribution', 'dash_geo'];
+            
+            if (permKey.startsWith('dash_')) {
+                perms[permKey] = state;
+                const anyEnabled = dashSubKeys.some(k => perms[k] === true);
+                updateObj['permissions.dashboard'] = anyEnabled;
+            } else if (permKey === 'dashboard' && state === false) {
+                // If main dashboard is turned OFF, disable all sub-items
+                dashSubKeys.forEach(k => { updateObj[`permissions.${k}`] = false; });
             }
             
-            await db.collection('users').doc(uid).update(updateObj);
+            await docRef.update(updateObj);
             loadAdminUsers();
         }
 
