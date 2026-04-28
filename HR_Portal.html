@@ -1138,7 +1138,7 @@
             const list = document.getElementById('admin-users-list');
             if(!list) return;
             
-            const snapshot = await db.collection('users')..get();
+            const snapshot = await db.collection('users').get();
             if (snapshot.empty) {
                 list.innerHTML = `<div style="padding: 40px; text-align: center; opacity: 0.3;">No additional authorized accounts.</div>`;
                 return;
