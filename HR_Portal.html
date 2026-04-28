@@ -991,7 +991,7 @@
                 // Normalize for whitelist check
                 if(loc === 'HQ — Jeddah' || loc === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower';
 
-                // RBAC Permission Logic
+                // RBAC Permission Logic - BYPASS FOR SUPER ADMIN
                 if (!isAdmin) {
                     if (s === 'OPEN' && up.rep_open === false) return false;
                     if (s === 'DONE' && up.rep_done === false) return false;
@@ -1001,7 +1001,7 @@
                     
                     // Whitelist Filter (Case-Insensitive & Normalized)
                     if (hasWhitelist) {
-                        const isAuthorized = allowedSites.some(s => s.trim().toLowerCase() === loc.toLowerCase());
+                        const isAuthorized = allowedSites.some(sn => sn && loc && sn.trim().toLowerCase() === loc.toLowerCase());
                         if (!isAuthorized) return false;
                     }
                 }
@@ -1028,12 +1028,16 @@
             });
 
             filtered.forEach(r => { 
+                if (!r || !r.id) return;
                 const s = (r.status || 'OPEN').toUpperCase(); 
                 const isAnon = (r.isAnonymous === true || r.anon === true || (r.reporter && r.reporter.toLowerCase() === 'anonymous') || !r.reporter); 
-                let loc = (r.location || r.site || 'Unknown'); if(loc.trim() === 'HQ — Jeddah' || loc.trim() === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower'; 
+                let loc = (r.location || r.site || 'No Location Specified'); if(loc.trim() === 'HQ — Jeddah' || loc.trim() === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower'; 
+                
+                const reportIdSuffix = r.id.length > 4 ? r.id.slice(-4) : r.id;
+
                 body.innerHTML += `
                     <tr onclick="showReportDetail('${r.id}')">
-                        <td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td>
+                        <td style="color:var(--turquoise); font-weight:800;">#${reportIdSuffix}</td>
                         <td>
                             ${(() => {
                                 if (isAnon && !canUnmask) {
