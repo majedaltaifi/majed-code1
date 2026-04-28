@@ -557,8 +557,8 @@
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 20px;">
                         <div>
-                            <label class="filter-label">Email Address</label>
-                            <input type="email" id="new-user-email" class="filter-select" style="width:100%; margin-top:5px;" placeholder="admin@nesma.com">
+                            <label class="filter-label">Username or Email</label>
+                            <input type="text" id="new-user-email" class="filter-select" style="width:100%; margin-top:5px;" placeholder="e.g. Ali or ali@nesma.com">
                         </div>
                         <div>
                             <label class="filter-label">Access Code</label>
@@ -1399,6 +1399,9 @@
                     
                     const subId = `sub-${p}-${doc.id}`;
                     
+                    const displayEmail = u.email.endsWith('@nit.com') ? u.email.split('@')[0] : u.email;
+                    const initial = displayEmail.charAt(0).toUpperCase();
+
                     return `
                     <div class="perm-item ${uPerms[p]?'active':''}" onclick="${hasSub ? `toggleSubMenu('${subId}')` : `togglePermission('${doc.id}', '${p}', ${!uPerms[p]})`}">
                         <span class="perm-label">${labels[p]} ${hasSub ? '<i class="fas fa-chevron-down" style="margin-left:8px; opacity:0.5;"></i>' : ''}</span>
@@ -1446,7 +1449,7 @@
                             <div class="user-info">
                                 <div class="user-avatar">${initial}</div>
                                 <div>
-                                    <div class="user-email">${u.email}</div>
+                                    <div class="user-email">${displayEmail}</div>
                                 </div>
                             </div>
                             <button class="btn-delete-user" onclick="deleteAdminUser('${doc.id}', '${u.email}')" title="Revoke All Access">
@@ -1551,17 +1554,22 @@
             msg.style.color = 'var(--turquoise)';
             msg.innerText = 'Authorizing with Cloud...';
 
+            let finalEmail = email;
+            if (!finalEmail.includes('@')) {
+                finalEmail = finalEmail.toLowerCase() + '@nit.com';
+            }
+
             try {
                 const secondaryApp = firebase.initializeApp(firebaseConfig, 'AuthHelper_' + Date.now());
                 try {
-                    await secondaryApp.auth().createUserWithEmailAndPassword(email, pass);
+                    await secondaryApp.auth().createUserWithEmailAndPassword(finalEmail, pass);
                 } catch (authErr) {
                     if (authErr.code !== 'auth/email-already-in-use') throw authErr;
                 }
 
-                const docId = email.toLowerCase().replace(/\./g, '_');
+                const docId = finalEmail.toLowerCase().replace(/\./g, '_');
                 await db.collection('users').doc(docId).set({
-                    email: email.toLowerCase(),
+                    email: finalEmail.toLowerCase(),
                     role: 'admin',
                     permissions: { dashboard: true, sites: true, reports: true, employees: false, chat: false, podcast: false },
                     created_at: firebase.firestore.Timestamp.now()
