@@ -789,11 +789,13 @@
                                 ${reporterName}
                                 ${isAnon ? '<span style="font-size:0.7rem; background:rgba(255,171,0,0.2); color:var(--warning); padding:4px 10px; border-radius:8px; margin-left:12px; border:1px solid rgba(255,171,0,0.3); letter-spacing:1px;">ANONYMITY REQUESTED</span>' : ''}
                             </div>
+                            ${(!isAnon || canUnmask) ? `
                             <div class="reporter-id" style="font-size:1.1rem; margin-bottom:10px;">Employee ID: <span style="color:#fff;">${empNo}</span></div>
                             <div style="display:flex; gap:15px; flex-wrap:wrap;">
                                 <div style="background:rgba(0,230,118,0.1); color:var(--success); padding:8px 15px; border-radius:10px; font-weight:800; font-size:0.9rem;"><i class="fas fa-phone"></i> ${reporterPhone}</div>
                                 <div style="background:rgba(128,209,233,0.1); color:var(--turquoise); padding:8px 15px; border-radius:10px; font-weight:800; font-size:0.9rem;"><i class="fas fa-envelope"></i> ${reporterEmail}</div>
                             </div>
+                            ` : `<div style="color:var(--text-muted); font-size:0.85rem; margin-top:5px; font-style:italic;">Contact details are hidden for anonymous reports.</div>`}
                         </div>
                     </div>
                 </div>
@@ -1022,10 +1024,16 @@
                         <td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td>
                         <td>
                             ${(() => {
+                                if (isAnon && !canUnmask) {
+                                    return `<span style="color:var(--warning); font-weight:800;">Anonymous Reporter</span>`;
+                                }
                                 const emp = allEmployees.find(e => (e.id && r.employeeId && e.id.toString() === r.employeeId.toString()) || (e.id && r.emp_no && e.id.toString() === r.emp_no.toString()));
                                 const raw = emp ? emp.name : (r.reporterName || r.emp_name || r.reporter || '');
                                 const name = (raw && raw.trim().toLowerCase() !== 'anonymous') ? raw : 'Identified Employee';
-                                return isAnon ? `<span style="color:var(--warning); font-weight:800;">${name}</span>` : `<span style="color:#fff; font-weight:700;">${name}</span>`;
+                                if (isAnon) {
+                                    return `<span style="color:var(--warning); font-weight:800;">${name} (Anon)</span>`;
+                                }
+                                return `<span style="color:#fff; font-weight:700;">${name}</span>`;
                             })()}
                         </td>
                         <td>${isAnon ? '<span style="color:var(--warning); font-weight:900;">YES</span>' : '<span style="opacity:0.3; font-weight:700;">NO</span>'}</td>
