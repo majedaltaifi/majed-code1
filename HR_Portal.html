@@ -673,7 +673,12 @@
 
         function showReportDetail(id) {
             const r = allReports.find(x => x.id === id); if(!r) return;
-            const isAnon = (r.isAnonymous === true || r.anon === true || r.reporter === 'Anonymous');
+            
+            const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
+            const user = firebase.auth().currentUser;
+            const canUnmask = (user && user.email === SUPER_ADMIN) || (currentUserData && currentUserData.permissions && currentUserData.permissions.unmask === true);
+            
+            const isAnon = (r.isAnonymous === true || r.anon === true || (r.reporter && r.reporter.toLowerCase() === 'anonymous'));
             const emp = allEmployees.find(e => (e.id && r.employeeId && e.id.toString() === r.employeeId.toString()) || (e.id && r.emp_no && e.id.toString() === r.emp_no.toString()));
             
             const description = r.description || r.desc || 'No description provided.';
@@ -682,18 +687,19 @@
             const time = r.approxTime || r.time || 'N/A';
             const empNo = r.employeeId || r.emp_no || 'N/A';
             
-            // Unmasked Identity - Strict Search
+            // Unmasked Identity - Strict Search with Permission Check
             const getCleanName = (rec, em) => {
+                if (!canUnmask && isAnon) return 'Anonymous'; // HIDE IF NO PERMISSION
                 if (em && em.name) return em.name;
                 const candidates = [rec.reporterName, rec.emp_name, rec.reporter];
                 for (let c of candidates) {
                     if (c && typeof c === 'string' && c.trim().toLowerCase() !== 'anonymous' && c.trim() !== '') return c;
                 }
-                return 'Identified Employee';
+                return isAnon ? 'Anonymous' : 'Identified Employee';
             };
             const reporterName = getCleanName(r, emp);
-            const reporterPhone = emp ? emp.phone : (r.phone || r.userPhone || 'N/A');
-            const reporterEmail = emp ? (emp.email || emp.userEmail) : (r.email || r.userEmail || 'N/A');
+            const reporterPhone = canUnmask ? (emp ? emp.phone : (r.phone || r.userPhone || 'N/A')) : '********';
+            const reporterEmail = canUnmask ? (emp ? (emp.email || emp.userEmail) : (r.email || r.userEmail || 'N/A')) : '********';
             
             const envType = r.env || 'Unknown';
             const freq = r.frequency || 'N/A';
@@ -946,13 +952,21 @@
         });
         
         const rbody = document.getElementById('reports-table-body');
+        const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
+        const user = firebase.auth().currentUser;
+        const canUnmask = (user && user.email === SUPER_ADMIN) || (currentUserData && currentUserData.permissions && currentUserData.permissions.unmask === true);
+
         if(rbody) {
             rbody.innerHTML = allReports.map(r => {
                 const s = (r.status || 'OPEN').toUpperCase();
                 const isAnon = (r.isAnonymous === true || r.anon === true || (r.reporter && r.reporter.toLowerCase() === 'anonymous'));
                 const emp = allEmployees.find(e => (e.id && r.employeeId && e.id.toString() === r.employeeId.toString()) || (e.id && r.emp_no && e.id.toString() === r.emp_no.toString()));
                 const raw = emp ? emp.name : (r.reporterName || r.emp_name || r.reporter || '');
-                const name = (raw && raw.trim().toLowerCase() !== 'anonymous') ? raw : 'Identified Employee';
+                
+                // Permission-based name rendering
+                let name = (raw && raw.trim().toLowerCase() !== 'anonymous') ? raw : 'Identified Employee';
+                if (!canUnmask && isAnon) name = 'Anonymous';
+
                 return `
                 <tr>
                     <td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td>
@@ -1234,8 +1248,12 @@
                 return;
             }
 
-            const perms = ['dashboard', 'sites', 'reports', 'employees', 'chat', 'podcast'];
-            const labels = { dashboard: 'DASHBOARD', sites: 'UNITS', reports: 'REPORTS', employees: 'DIRECTORY', chat: 'SUPPORT', podcast: 'PODCAST' };
+            const perms = ['dashboard', 'sites', 'reports', 'employees', 'chat', 'podcast', 'unmask'];
+            const labels = { 
+                dashboard: 'DASHBOARD', sites: 'UNITS', reports: 'REPORTS', 
+                employees: 'DIRECTORY', chat: 'SUPPORT', podcast: 'PODCAST', 
+                unmask: 'UNMASK IDENTITY' 
+            };
 
             list.innerHTML = snapshot.docs.map(doc => {
                 const u = doc.data();
