@@ -249,6 +249,7 @@
                 <div id="sidebar-chat-dot" style="display:none; position:absolute; top:18px; left:35px; width:10px; height:10px; background:var(--danger); border-radius:50%; border:2px solid var(--bg);"></div>
             </div>
             <div class="nav-item" onclick="switchView('hr-podcast', this)"><i class="fas fa-microphone-lines"></i> HR Podcast</div>
+            <div class="nav-item" onclick="switchView('user-role', this)"><i class="fas fa-user-shield"></i> User Role</div>
             <div class="nav-item" onclick="firebase.auth().signOut()" style="margin-top: 15px; color: var(--danger); border-top: 1px solid var(--border); padding-top: 15px;">
                 <i class="fas fa-right-from-bracket"></i> Logout Securely
             </div>
@@ -477,6 +478,20 @@
                     </div>
                     <div id="broadcasts-container" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;"></div>
                 </div>
+        </div>
+
+        <!-- USER ROLE VIEW (Empty for now) -->
+        <div id="view-user-role" class="tab-content" style="display:none;">
+            <div class="hero-card">
+                <div class="hero-content">
+                    <h1>User Role Management</h1>
+                    <p>Configuration panel for system permissions and roles.</p>
+                </div>
+            </div>
+            <div style="padding: 100px; text-align: center; opacity: 0.3;">
+                <i class="fas fa-tools" style="font-size: 4rem; margin-bottom: 20px;"></i>
+                <h2>Work in Progress</h2>
+                <p>This module is currently being initialized.</p>
             </div>
         </div>
     </div>
