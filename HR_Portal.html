@@ -637,13 +637,20 @@
 
         function showReportDetail(id) {
             const r = allReports.find(x => x.id === id); if(!r) return;
-            const isAnon = (r.isAnonymous === true || r.anon === true || !r.reporter);
+            const isAnon = (r.isAnonymous === true || r.anon === true || r.reporter === 'Anonymous');
+            const emp = allEmployees.find(e => e.id == r.employeeId || e.id == r.emp_no);
+            
             const description = r.description || r.desc || 'No description provided.';
             const status = (r.status || 'OPEN').toUpperCase();
             const ongoing = r.isViolationOngoing || (r.ongoing ? 'Yes' : 'No');
             const time = r.approxTime || r.time || 'N/A';
             const empNo = r.employeeId || r.emp_no || 'N/A';
-            const reporterName = r.reporter || r.emp_name || 'Guest';
+            
+            // Unmasked Identity
+            const reporterName = emp ? emp.name : (r.reporter && r.reporter !== 'Anonymous' ? r.reporter : 'Reporter');
+            const reporterPhone = emp ? emp.phone : (r.phone || r.userPhone || 'N/A');
+            const reporterEmail = emp ? (emp.email || emp.userEmail) : (r.email || r.userEmail || 'N/A');
+            
             const envType = r.env || 'Unknown';
             const freq = r.frequency || 'N/A';
 
@@ -682,14 +689,14 @@
                             ${isAnon ? '<i class="fas fa-user-secret"></i>' : (reporterName.charAt(0) || '?')}
                         </div>
                         <div class="reporter-info">
-                            <div class="reporter-name">
-                                ${isAnon ? (r.reporterName || r.emp_name || 'Unmasked Reporter') : reporterName}
-                                ${isAnon ? '<span style="font-size:0.7rem; background:rgba(255,82,82,0.2); color:var(--danger); padding:4px 10px; border-radius:8px; margin-left:12px; border:1px solid rgba(255,82,82,0.3); letter-spacing:1px;">ANONYMOUS SOURCE</span>' : ''}
+                            <div class="reporter-name" style="color: ${isAnon ? 'var(--warning)' : '#fff'};">
+                                ${reporterName}
+                                ${isAnon ? '<span style="font-size:0.7rem; background:rgba(255,171,0,0.2); color:var(--warning); padding:4px 10px; border-radius:8px; margin-left:12px; border:1px solid rgba(255,171,0,0.3); letter-spacing:1px;">ANONYMITY REQUESTED</span>' : ''}
                             </div>
                             <div class="reporter-id" style="font-size:1.1rem; margin-bottom:10px;">Employee ID: <span style="color:#fff;">${empNo}</span></div>
                             <div style="display:flex; gap:15px; flex-wrap:wrap;">
-                                <div style="background:rgba(0,230,118,0.1); color:var(--success); padding:8px 15px; border-radius:10px; font-weight:800; font-size:0.9rem;"><i class="fas fa-phone"></i> ${r.phone || r.userPhone || 'N/A'}</div>
-                                <div style="background:rgba(128,209,233,0.1); color:var(--turquoise); padding:8px 15px; border-radius:10px; font-weight:800; font-size:0.9rem;"><i class="fas fa-envelope"></i> ${r.email || r.userEmail || 'N/A'}</div>
+                                <div style="background:rgba(0,230,118,0.1); color:var(--success); padding:8px 15px; border-radius:10px; font-weight:800; font-size:0.9rem;"><i class="fas fa-phone"></i> ${reporterPhone}</div>
+                                <div style="background:rgba(128,209,233,0.1); color:var(--turquoise); padding:8px 15px; border-radius:10px; font-weight:800; font-size:0.9rem;"><i class="fas fa-envelope"></i> ${reporterEmail}</div>
                             </div>
                         </div>
                     </div>
@@ -855,7 +862,13 @@
                 body.innerHTML += `
                     <tr onclick="showReportDetail('${r.id}')">
                         <td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td>
-                        <td>${isAnon ? '<span style="opacity:0.4;">Anonymous</span>' : r.reporter}</td>
+                        <td>
+                            ${(() => {
+                                const emp = allEmployees.find(e => e.id == r.employeeId || e.id == r.emp_no);
+                                const name = emp ? emp.name : (r.reporter && r.reporter !== 'Anonymous' ? r.reporter : 'Reporter');
+                                return isAnon ? `<span style="color:var(--warning); font-weight:800;">${name}</span>` : `<span style="color:#fff; font-weight:700;">${name}</span>`;
+                            })()}
+                        </td>
                         <td><span class="pri-badge" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</span></td>
                         <td>${r.category}</td>
                         <td style="font-size:0.85rem;">${loc}</td>
@@ -887,11 +900,15 @@
         });
         
         const rbody = document.getElementById('reports-table-body');
-        if(rbody) {
-            rbody.innerHTML = allReports.map(r => `
+            rbody.innerHTML = allReports.map(r => {
+                const s = (r.status || 'OPEN').toUpperCase();
+                const isAnon = (r.isAnonymous === true || r.anon === true || r.reporter === 'Anonymous');
+                const emp = allEmployees.find(e => e.id == r.employeeId || e.id == r.emp_no);
+                const name = emp ? emp.name : (r.reporter && r.reporter !== 'Anonymous' ? r.reporter : 'Reporter');
+                return `
                 <tr>
                     <td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td>
-                    <td style="color:#fff; font-weight:700;">${r.reporter || 'Anonymous'}</td>
+                    <td>${isAnon ? `<span style="color:var(--warning); font-weight:800;">${name}</span>` : `<span style="color:#fff; font-weight:700;">${name}</span>`}</td>
                     <td><span class="pri-badge" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</span></td>
                     <td>${r.category}</td>
                     <td style="font-size:0.85rem;">${r.location || r.site || '—'}</td>
