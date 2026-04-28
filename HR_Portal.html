@@ -618,7 +618,31 @@
         const STATIC_SITES = ['10521300012 - KSP 8388', '10521300013 - KSP 8389', 'ABU Hadriyah 115 KV Extension with Rerouting in OHTL', 'AL- Ahsa O&M', 'Abu Maan Substation', 'Aindar Project', 'Aindar Warehouse', 'Al-Bahr Substation', 'Asfan Main Warehouse', 'BISHA - PV 380/132 KV BSP', 'Bayoniyah Substation', 'Buhaiyrat', 'CONSTRUCTION OF AL-MURJAN 132/13.8kV SUBSTATION # 8274 IN RIYADH CITY', 'CONSTRUCTION OF HARAM-3 SS', 'CONSTRUCTION OF JAZERA ROYAL PALACE - THUWAL', 'Construction Of Farasan Island SS (132/33/13.8KV)', 'Dammam O&M', 'Dammam Port', 'Dana-2 Substation', 'Diriyah Gate Project Substation # 8171', 'Diriyah Gate Project Substation # 8242', 'FM Dammam', 'HV Jubail Intertie', 'Hada-2 (Andalus) Substation', 'Hafar AL- Batin O&M', 'Hafr Albatin Unified', 'Iman Hospital', 'Interconnection Of Nawariyah SS', 'Jafurah', 'Jazan Medical City', 'Jazan Port', 'Jazan Warehouse', 'Jubail 7AB', 'Jubail North', 'Jubail South East', 'Khobar Corniche Substation', 'King Fahad Causeway', 'MEDNO Island Reinforcement', 'Madaya', 'Madinah Warehouse', 'Modon Asir', 'NIC EV2', 'NIC NORTH', 'Neom PSSA And PSSB (OHTL)', 'Neom Security System O&M', 'New Dammam Warehouse', 'North Khobar', 'North Thuqbah', 'PMAH', 'POWER SUPPLY TO HAFAR AL-BATIN', 'Qalah Substation', 'Qatif Shati Substation', 'RUMAH 380 KV BSP', 'Rabigh Substation', 'Ras Tanura 0810606', 'Riyadh warehouse', 'Ryadhiyah Substation', 'SAMHA OHTL', 'SESP - Training Institute', 'Samif Workshop', 'Saudi Aramco - Madinah Bulk Plant', 'Saudi Aramco - North Jeddah Bulk Plant', 'Saudi Aramco - Petro Rabigh', 'Saudi Aramco - Yanbu Bulk Plant', 'Senaeya-2 Substation', 'Sheraa Substation', 'Switchgear Room at Al-Baha CPS Substation', 'Tabuk (ISP) Warehouse', 'Tabuk (OSP) Warehouse', 'Taiba West Substation', 'Thuwal Warehouse', 'Tuwaiq warehouse', 'Udailiyah Site - Aramco Project (VCP)', 'Uruba Substation', 'WALY ALAHAD-3 110-13.8kV SS', 'Wadi Al-Dhahran Substation', 'Wadi Safar - Security & ICT', 'Wasalat Workshop', 'ZATCA', 'Zatca HQ'];
         const CITY_LAT_LNG = { 'Riyadh': [24.7136, 46.6753], 'Jeddah': [21.4858, 39.1925], 'Dammam': [26.4207, 50.0888], 'Alkhobar': [26.2172, 50.1971], 'Abha': [18.2161, 42.5053], 'Tabuk': [28.3835, 36.5662], 'Medinah': [24.4672, 39.6024], 'Jazan': [16.8892, 42.5511], 'Hafr Albatin': [28.4328, 45.9708], 'Rabigh': [22.8066, 39.0272], 'Yanbu': [24.0891, 38.0637], 'Al-Ahsa': [25.3781, 49.5911], 'Bisha': [19.9841, 42.6036], 'Duba': [27.3486, 35.6923], 'Thuwal': [22.2858, 39.1172], 'Qatif': [26.5441, 50.0033], 'Jubail': [26.9600, 49.6582], 'Khamis': [18.3000, 42.7292], 'Makkah': [21.3891, 39.8579], 'Neom': [28.1000, 35.1000] };
 
-        function switchView(viewId, el) { activeView = viewId; document.querySelectorAll('.tab-content').forEach(v => { v.classList.remove('active'); v.style.display = 'none'; }); const target = document.getElementById('view-' + viewId); if(target) { target.classList.add('active'); target.style.display = 'block'; } document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); if(el) el.classList.add('active'); document.getElementById('view-title').innerText = el ? el.innerText : viewId; if(viewId === 'per-site') updateUnitMatrix('ALL'); if(viewId === 'all-reports') applyFilters(); if(viewId === 'dashboard' && map) setTimeout(() => map.invalidateSize(), 100); }
+        function switchView(viewId, el) { 
+            activeView = viewId; 
+            document.querySelectorAll('.tab-content').forEach(v => { v.classList.remove('active'); v.style.display = 'none'; }); 
+            const target = document.getElementById('view-' + viewId); 
+            if(target) { target.classList.add('active'); target.style.display = 'block'; } 
+            
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); 
+            if(el) el.classList.add('active'); 
+            
+            const titleMap = {
+                'dashboard': 'Main Dashboard',
+                'per-site': 'Site Operational Units',
+                'all-reports': 'All Reports',
+                'employees': 'Employee Directory',
+                'chat': 'Support Terminal',
+                'hr-podcast': 'HR Podcast',
+                'user-role': 'User Role'
+            };
+            document.getElementById('view-title').innerText = titleMap[viewId] || viewId; 
+            
+            if(viewId === 'per-site') updateUnitMatrix('ALL'); 
+            if(viewId === 'all-reports') applyFilters(); 
+            if(viewId === 'dashboard' && map) setTimeout(() => map.invalidateSize(), 100); 
+        }
+
         async function toggleStatus(id, current) { const next = current === 'DONE' ? 'OPEN' : 'DONE'; await db.collection('reports').doc(id).update({ status: next }); }
         function openSidePanel() { document.getElementById('side-panel').classList.add('active'); }
         function closeSidePanel() { document.getElementById('side-panel').classList.remove('active'); }
