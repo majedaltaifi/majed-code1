@@ -221,14 +221,24 @@
         .rbac-spinner { width: 50px; height: 50px; border: 4px solid rgba(128,209,233,0.1); border-top-color: var(--turquoise); border-radius: 50%; animation: spin 1s linear infinite; }
         .rbac-text { font-weight: 800; color: var(--turquoise); letter-spacing: 2px; text-transform: uppercase; font-size: 0.8rem; }
 
-        /* USER ROLE STYLES */
-        .user-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 20px; padding: 20px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; transition: 0.3s; }
-        .user-card:hover { background: rgba(255,255,255,0.06); border-color: var(--turquoise); }
+        /* USER ROLE & PERMISSIONS */
+        .user-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 20px; padding: 25px; margin-bottom: 20px; transition: 0.3s; }
+        .user-card:hover { background: rgba(255,255,255,0.05); border-color: var(--turquoise); }
+        .user-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border); }
         .user-info { display: flex; align-items: center; gap: 15px; }
-        .user-avatar { width: 40px; height: 40px; background: var(--nit-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; }
-        .user-email { font-weight: 600; color: #fff; }
-        .user-role-badge { font-size: 0.7rem; font-weight: 900; padding: 4px 10px; border-radius: 8px; background: rgba(128,209,233,0.1); color: var(--turquoise); text-transform: uppercase; }
-        .btn-delete-user { background: none; border: none; color: var(--danger); cursor: pointer; opacity: 0.5; transition: 0.3s; }
+        .user-avatar { width: 45px; height: 45px; background: var(--nit-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; font-size: 1.2rem; }
+        .user-email { font-weight: 700; color: #fff; font-size: 1.1rem; }
+        
+        .perm-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
+        .perm-item { background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 12px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: 0.2s; }
+        .perm-item:hover { background: rgba(255,255,255,0.06); }
+        .perm-item.active { border-color: var(--turquoise); background: rgba(128,209,233,0.08); }
+        .perm-label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
+        .perm-item.active .perm-label { color: var(--turquoise); }
+        .perm-status { font-size: 0.7rem; font-weight: 900; }
+        .perm-item.active .perm-status { color: var(--turquoise); }
+        
+        .btn-delete-user { background: none; border: none; color: var(--danger); cursor: pointer; opacity: 0.6; transition: 0.3s; font-size: 1.1rem; }
         .btn-delete-user:hover { opacity: 1; transform: scale(1.1); }
     </style>
 </head>
@@ -488,35 +498,36 @@
                     </div>
                     <div id="broadcasts-container" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;"></div>
                 </div>
+            </div>
         </div>
 
-        <!-- USER ROLE VIEW -->
+        <!-- USER ROLE VIEW (RBAC Management) -->
         <div id="view-user-role" class="tab-content" style="display:none;">
             <div class="hero-card">
                 <div class="hero-content">
-                    <h1>User Access Management</h1>
-                    <p>Grant or revoke dashboard access for administrative personnel.</p>
+                    <h1>Administrative RBAC Control</h1>
+                    <p>Configure specific access permissions for each dashboard user.</p>
                 </div>
-                <div class="hero-shield"><i class="fas fa-user-lock"></i></div>
+                <div class="hero-shield"><i class="fas fa-user-shield"></i></div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
+            <div style="display: grid; grid-template-columns: 350px 1fr; gap: 30px;">
                 <!-- CREATE USER PANEL -->
                 <div class="panel" style="height: fit-content; border: 1px solid var(--border); background: rgba(255,255,255,0.02);">
                     <div style="font-size: 1.2rem; font-weight: 800; color: var(--turquoise); margin-bottom: 25px; display: flex; align-items: center; gap: 10px;">
-                        <i class="fas fa-user-plus"></i> Create Admin Account
+                        <i class="fas fa-user-plus"></i> New Admin
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 20px;">
                         <div>
-                            <label class="filter-label">Login Email</label>
-                            <input type="email" id="new-user-email" class="filter-select" style="width:100%; margin-top:5px;" placeholder="example@gmail.com">
+                            <label class="filter-label">Email Address</label>
+                            <input type="email" id="new-user-email" class="filter-select" style="width:100%; margin-top:5px;" placeholder="admin@nesma.com">
                         </div>
                         <div>
-                            <label class="filter-label">Access Password</label>
+                            <label class="filter-label">Access Code</label>
                             <input type="password" id="new-user-pass" class="filter-select" style="width:100%; margin-top:5px;" placeholder="Min 6 characters">
                         </div>
                         <button class="action-btn" style="justify-content: center; padding: 18px;" onclick="createNewAdmin()">
-                            <i class="fas fa-shield-halved"></i> AUTHORIZE ACCESS
+                            <i class="fas fa-plus"></i> AUTHORIZE NEW USER
                         </button>
                         <div id="user-status-msg" style="font-size: 0.8rem; text-align: center; font-weight: 700;"></div>
                     </div>
@@ -525,11 +536,10 @@
                 <!-- USERS LIST PANEL -->
                 <div class="panel" style="border: 1px solid var(--border); background: rgba(255,255,255,0.01);">
                     <div style="font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 25px; display: flex; align-items: center; gap: 10px;">
-                        <i class="fas fa-users-gear"></i> Authorized Personnel
+                        <i class="fas fa-key"></i> Authorization Matrix
                     </div>
                     <div id="admin-users-list">
-                        <!-- Users will load here -->
-                        <div style="padding: 40px; text-align: center; opacity: 0.3;">Loading authorized users...</div>
+                        <div style="padding: 40px; text-align: center; opacity: 0.3;">Fetching data...</div>
                     </div>
                 </div>
             </div>
@@ -1128,30 +1138,52 @@
             const list = document.getElementById('admin-users-list');
             if(!list) return;
             
-            const snapshot = await db.collection('users').where('role', '==', 'admin').get();
+            const snapshot = await db.collection('users').where('role', 'in', ['admin', 'user']).get();
             if (snapshot.empty) {
-                list.innerHTML = `<div style="padding: 40px; text-align: center; opacity: 0.3;">No additional admins found.</div>`;
+                list.innerHTML = `<div style="padding: 40px; text-align: center; opacity: 0.3;">No additional authorized accounts.</div>`;
                 return;
             }
 
+            const perms = ['dashboard', 'sites', 'reports', 'employees', 'chat', 'podcast'];
+            const labels = { dashboard: 'Dashboard', sites: 'Units', reports: 'Reports', employees: 'Directory', chat: 'Support', podcast: 'Podcast' };
+
             list.innerHTML = snapshot.docs.map(doc => {
                 const u = doc.data();
+                const uPerms = u.permissions || {};
                 const initial = (u.email || '?').charAt(0).toUpperCase();
+                
+                let permHTML = perms.map(p => `
+                    <div class="perm-item ${uPerms[p]?'active':''}" onclick="togglePermission('${doc.id}', '${p}', ${!uPerms[p]})">
+                        <span class="perm-label">${labels[p]}</span>
+                        <span class="perm-status">${uPerms[p]?'ON':'OFF'}</span>
+                    </div>
+                `).join('');
+
                 return `
                     <div class="user-card">
-                        <div class="user-info">
-                            <div class="user-avatar">${initial}</div>
-                            <div>
-                                <div class="user-email">${u.email}</div>
-                                <div class="user-role-badge">Dashboard Admin</div>
+                        <div class="user-header">
+                            <div class="user-info">
+                                <div class="user-avatar">${initial}</div>
+                                <div>
+                                    <div class="user-email">${u.email}</div>
+                                </div>
                             </div>
+                            <button class="btn-delete-user" onclick="deleteAdminUser('${doc.id}', '${u.email}')" title="Revoke All Access">
+                                <i class="fas fa-trash-can"></i>
+                            </button>
                         </div>
-                        <button class="btn-delete-user" onclick="deleteAdminUser('${doc.id}', '${u.email}')" title="Revoke Access">
-                            <i class="fas fa-user-minus"></i>
-                        </button>
+                        <div style="font-size: 0.65rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; margin-bottom: 10px;">Active Permissions</div>
+                        <div class="perm-grid">${permHTML}</div>
                     </div>
                 `;
             }).join('');
+        }
+
+        async function togglePermission(uid, permKey, state) {
+            const updateObj = {};
+            updateObj[`permissions.${permKey}`] = state;
+            await db.collection('users').doc(uid).update(updateObj);
+            loadAdminUsers();
         }
 
         async function createNewAdmin() {
@@ -1161,33 +1193,35 @@
 
             if (!email || pass.length < 6) {
                 msg.style.color = 'var(--danger)';
-                msg.innerText = "Error: Invalid email or password (min 6 chars)";
+                msg.innerText = "Error: Invalid details";
                 return;
             }
 
-            msg.style.color = 'var(--turquoise)';
-            msg.innerText = "Authorizing User...";
+            msg.innerText = "Authenticating with Cloud...";
 
             try {
-                // To create a user WITHOUT logging out the current admin, we use a secondary firebase app or a cloud function.
-                // Since this is a simple setup, we will create the auth record and the Firestore record.
-                // Note: Standard Firebase Client SDK will try to log in the new user.
-                // I will use a trick: create a secondary app instance.
-                
-                const secondaryApp = firebase.initializeApp(firebaseConfig, "Secondary");
+                const secondaryApp = firebase.initializeApp(firebaseConfig, "SecondaryAuth");
                 const result = await secondaryApp.auth().createUserWithEmailAndPassword(email, pass);
                 const uid = result.user.uid;
 
+                // Create user with ZERO permissions initially
                 await db.collection('users').doc(uid).set({
                     email: email,
-                    role: 'admin',
+                    role: 'user',
+                    permissions: {
+                        dashboard: false,
+                        sites: false,
+                        reports: false,
+                        employees: false,
+                        chat: false,
+                        podcast: false
+                    },
                     created_at: firebase.firestore.Timestamp.now()
                 });
 
                 await secondaryApp.delete();
-                
                 msg.style.color = 'var(--success)';
-                msg.innerText = "Success: User authorized for Dashboard.";
+                msg.innerText = "Success: Account created with NO permissions.";
                 document.getElementById('new-user-email').value = '';
                 document.getElementById('new-user-pass').value = '';
                 loadAdminUsers();
@@ -1198,22 +1232,59 @@
         }
 
         async function deleteAdminUser(uid, email) {
-            if (!confirm(`Are you sure you want to revoke access for ${email}?`)) return;
+            if (!confirm(`Are you sure you want to completely remove ${email}?`)) return;
             try {
                 await db.collection('users').doc(uid).delete();
-                // Note: Auth account remains but Firestore role is gone, so they can't enter.
                 loadAdminUsers();
             } catch (e) {
                 alert("Error deleting user: " + e.message);
             }
         }
 
-        // Initialize user load when switching to User Role view
+        // --- ENHANCED SWITCHVIEW WITH RBAC ---
         const originalSwitchView = switchView;
         switchView = (viewId, el) => {
+            if (currentUserData && currentUserData.role !== 'super_admin') {
+                const map = { 'dashboard': 'dashboard', 'per-site': 'sites', 'all-reports': 'reports', 'employees': 'employees', 'chat': 'chat', 'hr-podcast': 'podcast' };
+                const permNeeded = map[viewId];
+                if (permNeeded && (!currentUserData.permissions || !currentUserData.permissions[permNeeded])) {
+                    alert("Security Alert: You do not have permission to view this module.");
+                    return;
+                }
+            }
             originalSwitchView(viewId, el);
             if (viewId === 'user-role') loadAdminUsers();
         };
+
+        // Update auth check to store data globally
+        let currentUserData = null;
+        auth.onAuthStateChanged(async user => {
+            if (!user) {
+                window.location.href = 'login.html';
+            } else {
+                const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
+                if (user.email.toLowerCase() === SUPER_ADMIN) {
+                    currentUserData = { role: 'super_admin' };
+                    document.getElementById('loading-rbac').classList.add('hide');
+                    if (activeView === 'user-role') loadAdminUsers();
+                } else {
+                    const doc = await db.collection('users').doc(user.uid).get();
+                    if (doc.exists) {
+                        currentUserData = doc.data();
+                        document.getElementById('loading-rbac').classList.add('hide');
+                        // Enforce starting view check
+                        const map = { 'dashboard': 'dashboard', 'per-site': 'sites', 'all-reports': 'reports', 'employees': 'employees', 'chat': 'chat', 'hr-podcast': 'podcast' };
+                        const currentPerm = map[activeView];
+                        if (currentPerm && (!currentUserData.permissions || !currentUserData.permissions[currentPerm])) {
+                             switchView('dashboard'); // Try fallback or stay on loading
+                        }
+                    } else {
+                        alert("Unauthorized Access: This portal is restricted.");
+                        auth.signOut();
+                    }
+                }
+            }
+        });
     </script>
 </body>
 </html>
