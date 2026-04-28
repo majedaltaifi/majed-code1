@@ -586,29 +586,45 @@
         let currentUserData = null;
 
         auth.onAuthStateChanged(async user => {
-            if (!user) {
-                window.location.href = 'login.html';
-            } else {
+            const loader = document.getElementById('loading-rbac');
+            try {
+                if (!user) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
                 const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
                 const isSuper = user.email.toLowerCase() === SUPER_ADMIN;
                 
-                // Always show User Role for Super Admin
-                document.getElementById('nav-user-role').style.display = isSuper ? 'flex' : 'none';
+                // Sidebar Role Toggle
+                const roleNav = document.getElementById('nav-user-role');
+                if (roleNav) roleNav.style.display = isSuper ? 'flex' : 'none';
 
-                // Fetch User Permissions
+                // Permission Resolution
                 const q = await db.collection('users').where('email', '==', user.email.toLowerCase()).get();
                 if (!q.empty) {
                     currentUserData = q.docs[0].data();
-                    applyGranularPermissions();
-                    if (isSuper) loadAdminUsers();
                 } else if (isSuper) {
-                    currentUserData = { permissions: { dashboard:true, sites:true, reports:true, employees:true, chat:true, podcast:true, dash_stats:true, dash_map:true, dash_categories:true, dash_priority:true, dash_analysis:true } };
-                    document.getElementById('loading-rbac').classList.add('hide');
+                    // Fallback for Super Admin if not in DB
+                    currentUserData = { 
+                        permissions: { 
+                            dashboard:true, sites:true, reports:true, employees:true, chat:true, podcast:true, 
+                            dash_stats:true, dash_map:true, dash_categories:true, dash_priority:true, dash_analysis:true 
+                        } 
+                    };
                 } else {
-                    alert("Unauthorized Access: No permissions assigned.");
+                    alert("Unauthorized: No dashboard access assigned.");
                     auth.signOut();
+                    return;
                 }
-                document.getElementById('loading-rbac').classList.add('hide');
+
+                applyGranularPermissions();
+                if (isSuper && typeof loadAdminUsers === 'function') loadAdminUsers();
+                if (loader) loader.classList.add('hide');
+
+            } catch (err) {
+                console.error("Critical Auth/RBAC Failure:", err);
+                if (loader) loader.classList.add('hide');
             }
         });
 
@@ -670,10 +686,17 @@
             activeView = viewId; 
             document.querySelectorAll('.tab-content').forEach(v => { v.classList.remove('active'); v.style.display = 'none'; }); 
             const target = document.getElementById('view-' + viewId); 
-            if(target) { target.classList.add('active'); target.style.display = 'block'; } 
+            if(target) { 
+                target.classList.add('active'); 
+                target.style.display = 'block'; 
+            } 
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); 
             if(el) el.classList.add('active'); 
-            document.getElementById('view-title').innerText = el ? el.innerText : (viewId==='forbidden'?'Access Restricted':viewId); 
+            
+            const titleEl = document.getElementById('view-title');
+            if (titleEl) {
+                titleEl.innerText = el ? el.innerText : (viewId === 'forbidden' ? 'Access Restricted' : viewId.charAt(0).toUpperCase() + viewId.slice(1));
+            }
             
             if(viewId === 'per-site') updateUnitMatrix('ALL'); 
             if(viewId === 'all-reports') applyFilters(); 
