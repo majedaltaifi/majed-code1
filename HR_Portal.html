@@ -247,6 +247,17 @@
         .sub-perm-item.active .sub-perm-label { color: var(--turquoise); }
         .sub-perm-status { font-size: 0.6rem; font-weight: 900; }
         .sub-perm-item.active .sub-perm-status { color: var(--turquoise); }
+
+        .whitelist-area { margin-top: 20px; border-top: 1px solid var(--border); pt: 15px; }
+        .whitelist-search { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 0.75rem; margin-bottom: 10px; outline: none; }
+        .whitelist-scroll { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; padding-right: 5px; scrollbar-width: thin; }
+        .site-check-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: rgba(255,255,255,0.02); border-radius: 8px; cursor: pointer; transition: 0.2s; border: 1px solid transparent; }
+        .site-check-item:hover { background: rgba(255,255,255,0.05); }
+        .site-check-item.active { border-color: var(--turquoise); background: rgba(128,209,233,0.05); }
+        .site-check-lab { font-size: 0.7rem; font-weight: 700; color: var(--text-dim); flex: 1; }
+        .site-check-item.active .site-check-lab { color: #fff; }
+        .site-check-check { color: var(--text-muted); font-size: 0.8rem; }
+        .site-check-item.active .site-check-check { color: var(--turquoise); }
         
         .btn-delete-user { background: none; border: none; color: var(--danger); cursor: pointer; opacity: 0.6; transition: 0.3s; font-size: 1.1rem; }
         .btn-delete-user:hover { opacity: 1; transform: scale(1.1); }
@@ -835,15 +846,17 @@
             const user = firebase.auth().currentUser;
             const isAdmin = (user && user.email === SUPER_ADMIN);
             const up = currentUserData ? (currentUserData.permissions || {}) : {};
+            const allowedSites = currentUserData ? (currentUserData.allowed_sites || []) : [];
             const hasSite = (isAdmin || up.sites_site === true);
             const hasOff = (isAdmin || up.sites_office === true);
             const hasHou = (isAdmin || up.sites_housing === true);
+            const hasWhitelist = allowedSites.length > 0;
 
             const tabBtns = document.querySelectorAll('#view-per-site .btn-tab');
             if(tabBtns.length >= 4) {
-                tabBtns[1].style.display = hasSite ? 'flex' : 'none';
-                tabBtns[2].style.display = hasOff ? 'flex' : 'none';
-                tabBtns[3].style.display = hasHou ? 'flex' : 'none';
+                tabBtns[1].style.display = (hasSite || hasWhitelist) ? 'flex' : 'none';
+                tabBtns[2].style.display = (hasOff || hasWhitelist) ? 'flex' : 'none';
+                tabBtns[3].style.display = (hasHou || hasWhitelist) ? 'flex' : 'none';
             }
 
             const search = document.getElementById('site-search-input').value.toLowerCase();
@@ -855,20 +868,40 @@
                 let category = 'SITE';
                 if (STATIC_OFFICES.some(o => o.toLowerCase() === name.toLowerCase())) category = 'OFFICE';
                 else if (STATIC_HOUSINGS.some(h => h.toLowerCase() === name.toLowerCase())) category = 'HOUSING';
+                
+                // Whitelist Filter
+                if (hasWhitelist && !allowedSites.includes(name)) return;
+                if (!hasWhitelist) {
+                    if (category === 'SITE' && !hasSite) return;
+                    if (category === 'OFFICE' && !hasOff) return;
+                    if (category === 'HOUSING' && !hasHou) return;
+                }
+
                 if(!stats[name]) stats[name] = { total: 0, open: 0, done: 0, category: category };
                 stats[name].total++; if((r.status || 'OPEN').toUpperCase() === 'DONE') stats[name].done++; else stats[name].open++;
                 discoveredUnits.add(name);
             });
-            STATIC_OFFICES.forEach(o => { if(!stats[o]) stats[o] = { total: 0, open: 0, done: 0, category: 'OFFICE' }; discoveredUnits.add(o); });
-            STATIC_HOUSINGS.forEach(h => { if(!stats[h]) stats[h] = { total: 0, open: 0, done: 0, category: 'HOUSING' }; discoveredUnits.add(h); });
-            STATIC_SITES.forEach(s => { if(!stats[s]) stats[s] = { total: 0, open: 0, done: 0, category: 'SITE' }; discoveredUnits.add(s); });
+
+            // Add static units to matrix if permitted
+            [...STATIC_OFFICES, ...STATIC_HOUSINGS, ...STATIC_SITES].forEach(name => {
+                if (hasWhitelist && !allowedSites.includes(name)) return;
+                let category = 'SITE';
+                if (STATIC_OFFICES.includes(name)) category = 'OFFICE';
+                else if (STATIC_HOUSINGS.includes(name)) category = 'HOUSING';
+                
+                if (!hasWhitelist) {
+                    if (category === 'SITE' && !hasSite) return;
+                    if (category === 'OFFICE' && !hasOff) return;
+                    if (category === 'HOUSING' && !hasHou) return;
+                }
+                
+                if(!stats[name]) stats[name] = { total: 0, open: 0, done: 0, category: category };
+                discoveredUnits.add(name);
+            });
 
             Array.from(discoveredUnits).sort().forEach(name => {
                 const s = stats[name];
                 if (currentUnitFilter !== 'ALL' && s.category !== currentUnitFilter) return;
-                if (s.category === 'SITE' && !hasSite) return;
-                if (s.category === 'OFFICE' && !hasOff) return;
-                if (s.category === 'HOUSING' && !hasHou) return;
                 if (search && !name.toLowerCase().includes(search)) return;
                 const rate = s.total > 0 ? Math.round((s.done / s.total) * 100) : 0;
                 grid.innerHTML += `
@@ -1347,6 +1380,22 @@
                                 </div>
                             `).join('')}
                         </div>
+                        
+                        <div class="whitelist-area">
+                            <div style="font-size:0.65rem; font-weight:950; color:var(--turquoise); margin-bottom:10px; letter-spacing:1px;">INDIVIDUAL SITE WHITELIST</div>
+                            <input type="text" class="whitelist-search" placeholder="Search specific site..." oninput="filterWhitelist(this, '${doc.id}')">
+                            <div class="whitelist-scroll" id="scroll-${doc.id}">
+                                ${[...STATIC_SITES, ...STATIC_OFFICES, ...STATIC_HOUSINGS].sort().map(sn => {
+                                    const isAllowed = (u.allowed_sites || []).includes(sn);
+                                    return `
+                                    <div class="site-check-item ${isAllowed?'active':''}" data-site="${sn.toLowerCase()}" onclick="toggleSitePermission('${doc.id}', '${sn}', ${!isAllowed})">
+                                        <span class="site-check-lab">${sn}</span>
+                                        <i class="fas ${isAllowed?'fa-check-square':'fa-square'} site-check-check"></i>
+                                    </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
                     </div>
                     ` : ''}
                 `; }).join('');
@@ -1373,6 +1422,34 @@
         function toggleSubMenu(sid) {
             const el = document.getElementById(sid);
             if(el) el.classList.toggle('active');
+        }
+        function filterWhitelist(input, uid) {
+            const val = input.value.toLowerCase();
+            const container = document.getElementById('scroll-' + uid);
+            if(!container) return;
+            container.querySelectorAll('.site-check-item').forEach(item => {
+                const txt = item.getAttribute('data-site');
+                item.style.display = txt.includes(val) ? 'flex' : 'none';
+            });
+        }
+        async function toggleSitePermission(uid, siteName, state) {
+            const docRef = db.collection('users').doc(uid);
+            const snap = await docRef.get();
+            const uData = snap.data();
+            let allowed = uData.allowed_sites || [];
+            
+            if(state) {
+                if(!allowed.includes(siteName)) allowed.push(siteName);
+            } else {
+                allowed = allowed.filter(s => s !== siteName);
+            }
+            
+            await docRef.update({ allowed_sites: allowed });
+            // Also enable main sites access if we added a specific site
+            if(state && !uData.permissions?.sites) {
+                await docRef.update({ 'permissions.sites': true });
+            }
+            loadAdminUsers();
         }
         async function togglePermission(uid, permKey, state) {
             const docRef = db.collection('users').doc(uid);
