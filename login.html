@@ -166,7 +166,7 @@
 
         // Redirect if already logged in as Admin
         auth.onAuthStateChanged(user => {
-            if (user && user.email.toLowerCase() === 'majed.altaifi1@gmail.com') {
+            if (user && user.email.toLowerCase() === 'majedaltaifi1@gmail.com') {
                 window.location.href = 'HR_Portal.html';
             }
         });
@@ -184,7 +184,7 @@
                 return;
             }
 
-            if (email.toLowerCase() !== 'majed.altaifi1@gmail.com') {
+            if (email.toLowerCase() !== 'majedaltaifi1@gmail.com') {
                 showError("Unauthorized Email: This terminal is locked.");
                 return;
             }

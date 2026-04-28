@@ -494,7 +494,7 @@
         auth.onAuthStateChanged(user => {
             if (!user) {
                 window.location.href = 'login.html';
-            } else if (user.email.toLowerCase() !== 'majed.altaifi1@gmail.com') {
+            } else if (user.email.toLowerCase() !== 'majedaltaifi1@gmail.com') {
                 alert("Unauthorized Access: This portal is restricted.");
                 auth.signOut();
             } else {
