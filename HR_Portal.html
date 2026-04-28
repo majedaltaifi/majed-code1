@@ -1366,6 +1366,7 @@
 
 
         window.onload = () => { initCharts(); initRealMap(); initRealtimeSync(); syncBroadcasts(); syncSupportChats(); syncEmployees(); };
+        let activeSubMenuId = null;
         async function loadAdminUsers() {
             const list = document.getElementById('admin-users-list');
             if(!list) return;
@@ -1473,11 +1474,19 @@
                     </div>
                 `;
             }).join('');
+
+            if(activeSubMenuId) {
+                const el = document.getElementById(activeSubMenuId);
+                if(el) el.classList.add('active');
+            }
         }
 
         function toggleSubMenu(sid) {
             const el = document.getElementById(sid);
-            if(el) el.classList.toggle('active');
+            if(el) {
+                el.classList.toggle('active');
+                activeSubMenuId = el.classList.contains('active') ? sid : null;
+            }
         }
         function filterWhitelist(input, uid) {
             const val = input.value.toLowerCase();
