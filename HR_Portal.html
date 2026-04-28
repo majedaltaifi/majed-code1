@@ -1077,8 +1077,7 @@
                     return !GARBAGE.includes(l);
                 });
                 console.log("Reports Sync Updated:", allReports.length);
-                if (activeView === 'dashboard') updateDashboard();
-                if (activeView === 'all-reports') applyFilters();
+                syncAllData(); // CRITICAL: Updates counts and charts
             });
         }
         function syncBroadcasts() {
