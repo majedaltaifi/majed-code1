@@ -1389,7 +1389,8 @@
             list.innerHTML = snapshot.docs.map(doc => {
                 const u = doc.data();
                 const uPerms = u.permissions || {};
-                const initial = (u.email || '?').charAt(0).toUpperCase();
+                const displayEmail = u.email.endsWith('@nit.com') ? u.email.split('@')[0] : u.email;
+                const initial = displayEmail.charAt(0).toUpperCase();
                 
                 let permHTML = perms.map(p => {
                     const hasSub = (p === 'dashboard' || p === 'sites' || p === 'reports');
@@ -1399,9 +1400,6 @@
                     
                     const subId = `sub-${p}-${doc.id}`;
                     
-                    const displayEmail = u.email.endsWith('@nit.com') ? u.email.split('@')[0] : u.email;
-                    const initial = displayEmail.charAt(0).toUpperCase();
-
                     return `
                     <div class="perm-item ${uPerms[p]?'active':''}" onclick="${hasSub ? `toggleSubMenu('${subId}')` : `togglePermission('${doc.id}', '${p}', ${!uPerms[p]})`}">
                         <span class="perm-label">${labels[p]} ${hasSub ? '<i class="fas fa-chevron-down" style="margin-left:8px; opacity:0.5;"></i>' : ''}</span>
