@@ -1077,9 +1077,23 @@
         }
         function initRealtimeSync() {
             db.collection('reports').onSnapshot(snap => {
-                // Remove ALL filtering to ensure every single report shows up
-                allReports = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                console.log("Reports Sync Updated:", allReports.length);
+                allReports = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(r => {
+                    const rawLoc = (r.location || r.site || '').trim();
+                    if (!rawLoc) return false;
+                    
+                    // Normalize for comparison
+                    let loc = rawLoc;
+                    if(loc === 'HQ — Jeddah' || loc === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower';
+                    
+                    const isVerified = STATIC_SITES.some(s => s.toLowerCase() === loc.toLowerCase()) || 
+                                       STATIC_OFFICES.some(o => o.toLowerCase() === loc.toLowerCase()) || 
+                                       STATIC_HOUSINGS.some(h => h.toLowerCase() === loc.toLowerCase()) ||
+                                       loc.toLowerCase().includes('jeddah main office') || 
+                                       loc.toLowerCase().includes('hada-2');
+                    
+                    return isVerified;
+                });
+                console.log("Verified Reports Sync:", allReports.length);
                 syncAllData();
             });
         }
