@@ -677,27 +677,22 @@
 
                 <div class="info-section">
                     <div class="section-title"><i class="fas fa-user-shield"></i> Reporter Contact Information</div>
-                    ${isAnon ? `
-                        <div class="reporter-card">
-                            <div class="reporter-avatar anon-avatar"><i class="fas fa-user-secret"></i></div>
-                            <div class="reporter-info">
-                                <div class="reporter-name">Anonymous Report</div>
-                                <div class="reporter-id">Privacy Protected by System</div>
+                    <div class="reporter-card">
+                        <div class="reporter-avatar" style="background: ${isAnon ? 'var(--warning)' : 'var(--turquoise)'}; color: var(--nit-deep); border-radius:20px; display:flex; align-items:center; justify-content:center; width:80px; height:80px; font-weight:900; font-size:2.2rem;">
+                            ${isAnon ? '<i class="fas fa-user-secret"></i>' : (reporterName.charAt(0) || '?')}
+                        </div>
+                        <div class="reporter-info">
+                            <div class="reporter-name">
+                                ${isAnon ? (r.reporterName || r.emp_name || 'Unmasked Reporter') : reporterName}
+                                ${isAnon ? '<span style="font-size:0.7rem; background:rgba(255,82,82,0.2); color:var(--danger); padding:4px 10px; border-radius:8px; margin-left:12px; border:1px solid rgba(255,82,82,0.3); letter-spacing:1px;">ANONYMOUS SOURCE</span>' : ''}
+                            </div>
+                            <div class="reporter-id" style="font-size:1.1rem; margin-bottom:10px;">Employee ID: <span style="color:#fff;">${empNo}</span></div>
+                            <div style="display:flex; gap:15px; flex-wrap:wrap;">
+                                <div style="background:rgba(0,230,118,0.1); color:var(--success); padding:8px 15px; border-radius:10px; font-weight:800; font-size:0.9rem;"><i class="fas fa-phone"></i> ${r.phone || r.userPhone || 'N/A'}</div>
+                                <div style="background:rgba(128,209,233,0.1); color:var(--turquoise); padding:8px 15px; border-radius:10px; font-weight:800; font-size:0.9rem;"><i class="fas fa-envelope"></i> ${r.email || r.userEmail || 'N/A'}</div>
                             </div>
                         </div>
-                    ` : `
-                        <div class="reporter-card">
-                            <div class="reporter-avatar" style="background: var(--turquoise); color: var(--nit-deep); border-radius:20px; display:flex; align-items:center; justify-content:center; width:80px; height:80px; font-weight:900; font-size:2.2rem;">${reporterName.charAt(0)}</div>
-                            <div class="reporter-info">
-                                <div class="reporter-name">${reporterName}</div>
-                                <div class="reporter-id" style="font-size:1.1rem; margin-bottom:10px;">Employee ID: <span style="color:#fff;">${empNo}</span></div>
-                                <div style="display:flex; gap:15px; flex-wrap:wrap;">
-                                    <div style="background:rgba(0,230,118,0.1); color:var(--success); padding:8px 15px; border-radius:10px; font-weight:800; font-size:0.9rem;"><i class="fas fa-phone"></i> ${r.phone || 'N/A'}</div>
-                                    <div style="background:rgba(128,209,233,0.1); color:var(--turquoise); padding:8px 15px; border-radius:10px; font-weight:800; font-size:0.9rem;"><i class="fas fa-envelope"></i> ${r.email || 'N/A'}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `}
+                    </div>
                 </div>
 
                 <div class="info-section">
