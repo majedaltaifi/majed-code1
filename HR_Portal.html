@@ -987,6 +987,9 @@
                     if (p === 'LOW' && up.rep_low === false) return false;
                     if (s === 'OPEN' && up.rep_open === false) return false;
                     if (s === 'DONE' && up.rep_done === false) return false;
+                    if (c === 'SAFETY' && up.rep_cat_safety === false) return false;
+                    if (c === 'SERVICE' && up.rep_cat_service === false) return false;
+                    if (c === 'VIOLATION' && up.rep_cat_violation === false) return false;
                     if (hasWhitelist && !allowedSites.includes(loc)) return false;
                 }
                 
@@ -1374,7 +1377,10 @@
                 rep_med: 'MEDIUM PRIORITY',
                 rep_low: 'LOW PRIORITY',
                 rep_open: 'ACTIVE (OPEN)',
-                rep_done: 'RESOLVED (DONE)'
+                rep_done: 'RESOLVED (DONE)',
+                rep_cat_safety: 'SAFETY (السيفتي)',
+                rep_cat_service: 'SERVICE (السيرفيس)',
+                rep_cat_violation: 'VIOLATION (مخالفة)'
             };
 
             list.innerHTML = snapshot.docs.map(doc => {
@@ -1494,7 +1500,7 @@
             // Sync logic
             const dashSubKeys = ['dash_stats', 'dash_map', 'dash_categories', 'dash_priority', 'dash_distribution', 'dash_geo'];
             const sitesSubKeys = ['sites_site', 'sites_office', 'sites_housing'];
-            const reportsSubKeys = ['rep_high', 'rep_med', 'rep_low', 'rep_open', 'rep_done'];
+            const reportsSubKeys = ['rep_high', 'rep_med', 'rep_low', 'rep_open', 'rep_done', 'rep_cat_safety', 'rep_cat_service', 'rep_cat_violation'];
             
             if (permKey.startsWith('dash_')) {
                 perms[permKey] = state;
