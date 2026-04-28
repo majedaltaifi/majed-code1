@@ -730,9 +730,10 @@
             const emp = allEmployees.find(e => (e.id && r.employeeId && e.id.toString() === r.employeeId.toString()) || (e.id && r.emp_no && e.id.toString() === r.emp_no.toString()));
             
             const isAdmin = (user && user.email && user.email.toLowerCase() === SUPER_ADMIN.toLowerCase());
+            const canUnmask = isAdmin || (up.unmask === true);
             
             // Access Control Logic
-            const canSeeIdentity = isAdmin || (!isAnon); // Name is Super Admin OR Public
+            const canSeeIdentity = canUnmask || (!isAnon); // Name is Admin with Unmask OR Public
             const canSeeContact = isAdmin || (!isAnon);  // Contact Details are Super Admin OR Public
             
             const description = r.description || r.desc || 'No description provided.';
