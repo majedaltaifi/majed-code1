@@ -992,7 +992,9 @@
                 if(loc === 'HQ — Jeddah' || loc === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower';
 
                 // RBAC Permission Logic - BYPASS FOR SUPER ADMIN
-                if (!isAdmin) {
+                if (isAdmin) {
+                    // Admin sees all, skip RBAC/Whitelist checks
+                } else {
                     if (s === 'OPEN' && up.rep_open === false) return false;
                     if (s === 'DONE' && up.rep_done === false) return false;
                     if (c === 'SAFETY' && up.rep_cat_safety === false) return false;
