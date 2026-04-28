@@ -722,6 +722,10 @@
         function showReportDetail(id) {
             const r = allReports.find(x => x.id === id); if(!r) return;
             
+            const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
+            const user = firebase.auth().currentUser;
+            const up = currentUserData ? (currentUserData.permissions || {}) : {};
+            
             const isAnon = (r.isAnonymous === true || r.anon === true || (r.reporter && r.reporter.toLowerCase() === 'anonymous') || !r.reporter);
             const emp = allEmployees.find(e => (e.id && r.employeeId && e.id.toString() === r.employeeId.toString()) || (e.id && r.emp_no && e.id.toString() === r.emp_no.toString()));
             
