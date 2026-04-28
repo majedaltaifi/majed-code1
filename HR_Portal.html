@@ -722,13 +722,12 @@
         function showReportDetail(id) {
             const r = allReports.find(x => x.id === id); if(!r) return;
             
-            const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
-            const user = firebase.auth().currentUser;
-            const up = currentUserData ? (currentUserData.permissions || {}) : {};
-            const canUnmask = (user && user.email === SUPER_ADMIN) || (up.unmask === true);
-            
-            const isAnon = (r.isAnonymous === true || r.anon === true || (r.reporter && r.reporter.toLowerCase() === 'anonymous'));
+            const isAnon = (r.isAnonymous === true || r.anon === true || (r.reporter && r.reporter.toLowerCase() === 'anonymous') || !r.reporter);
             const emp = allEmployees.find(e => (e.id && r.employeeId && e.id.toString() === r.employeeId.toString()) || (e.id && r.emp_no && e.id.toString() === r.emp_no.toString()));
+            
+            const isAdmin = (user && user.email && user.email.toLowerCase() === SUPER_ADMIN.toLowerCase());
+            const canUnmask = isAdmin || (up.unmask === true);
+            const canSeeContact = isAdmin; // Contact Info is Super Admin Only
             
             const description = r.description || r.desc || 'No description provided.';
             const status = (r.status || 'OPEN').toUpperCase();
@@ -747,8 +746,8 @@
                 return isAnon ? 'Anonymous' : 'Identified Employee';
             };
             const reporterName = getCleanName(r, emp);
-            const reporterPhone = canUnmask ? (emp ? emp.phone : (r.phone || r.userPhone || 'N/A')) : '********';
-            const reporterEmail = canUnmask ? (emp ? (emp.email || emp.userEmail) : (r.email || r.userEmail || 'N/A')) : '********';
+            const reporterPhone = canSeeContact ? (emp ? emp.phone : (r.phone || r.userPhone || 'N/A')) : '********';
+            const reporterEmail = canSeeContact ? (emp ? (emp.email || emp.userEmail) : (r.email || r.userEmail || 'N/A')) : '********';
             
             const envType = r.env || 'Unknown';
             const freq = r.frequency || 'N/A';
@@ -792,8 +791,8 @@
                                 ${reporterName}
                                 ${isAnon ? '<span style="font-size:0.7rem; background:rgba(255,171,0,0.2); color:var(--warning); padding:4px 10px; border-radius:8px; margin-left:12px; border:1px solid rgba(255,171,0,0.3); letter-spacing:1px;">ANONYMITY REQUESTED</span>' : ''}
                             </div>
-                            ${(!isAnon || canUnmask) ? `
-                            <div class="reporter-id" style="font-size:1.1rem; margin-bottom:10px;">Employee ID: <span style="color:#fff;">${empNo}</span></div>
+                            ${(!isAnon || canSeeContact) ? `
+                            <div class="reporter-id" style="font-size:1.1rem; margin-bottom:10px;">Employee ID: <span style="color:#fff;">${canSeeContact ? empNo : '****'}</span></div>
                             <div style="display:flex; gap:15px; flex-wrap:wrap;">
                                 <div style="background:rgba(0,230,118,0.1); color:var(--success); padding:8px 15px; border-radius:10px; font-weight:800; font-size:0.9rem;"><i class="fas fa-phone"></i> ${reporterPhone}</div>
                                 <div style="background:rgba(128,209,233,0.1); color:var(--turquoise); padding:8px 15px; border-radius:10px; font-weight:800; font-size:0.9rem;"><i class="fas fa-envelope"></i> ${reporterEmail}</div>
