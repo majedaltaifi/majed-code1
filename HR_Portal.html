@@ -468,7 +468,7 @@
                         <i class="fas fa-undo"></i>
                     </button>
                 </div>
-                <div style="overflow-x: auto;"><table class="modern-table"><thead><tr><th>Ref</th><th>Reporter</th><th>Priority</th><th>Category</th><th>Location</th><th>Status</th><th>Actions</th></tr></thead><tbody id="reports-table-body"></tbody></table></div>
+                <div style="overflow-x: auto;"><table class="modern-table"><thead><tr><th>Ref</th><th>Reporter</th><th>Privacy</th><th>Priority</th><th>Category</th><th>Location</th><th>Status</th><th>Actions</th></tr></thead><tbody id="reports-table-body"></tbody></table></div>
             </div>
         </div>
 
@@ -869,6 +869,7 @@
                                 return isAnon ? `<span style="color:var(--warning); font-weight:800;">${name}</span>` : `<span style="color:#fff; font-weight:700;">${name}</span>`;
                             })()}
                         </td>
+                        <td>${isAnon ? '<span style="color:var(--warning); font-weight:900;">YES</span>' : '<span style="opacity:0.3; font-weight:700;">NO</span>'}</td>
                         <td><span class="pri-badge" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</span></td>
                         <td>${r.category}</td>
                         <td style="font-size:0.85rem;">${loc}</td>
@@ -910,6 +911,7 @@
                 <tr>
                     <td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td>
                     <td>${isAnon ? `<span style="color:var(--warning); font-weight:800;">${name}</span>` : `<span style="color:#fff; font-weight:700;">${name}</span>`}</td>
+                    <td>${isAnon ? '<span style="color:var(--warning); font-weight:900;">YES</span>' : '<span style="opacity:0.3; font-weight:700;">NO</span>'}</td>
                     <td><span class="pri-badge" style="${getPriorityStyle(r.priority)}">${r.priority || 'Low'}</span></td>
                     <td>${r.category}</td>
                     <td style="font-size:0.85rem;">${r.location || r.site || '—'}</td>
