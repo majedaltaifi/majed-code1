@@ -199,8 +199,13 @@
             text.style.display = 'none';
             spinner.style.display = 'block';
 
+            let finalEmail = email;
+            if (email.toLowerCase() === 'nit') {
+                finalEmail = 'majedaltaifi1@gmail.com';
+            }
+
             try {
-                const result = await auth.signInWithEmailAndPassword(email, password);
+                const result = await auth.signInWithEmailAndPassword(finalEmail, password);
                 const user = result.user;
                 
                 const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
