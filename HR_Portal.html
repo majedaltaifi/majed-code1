@@ -961,6 +961,13 @@
             if(!body) return; 
             body.innerHTML = ''; 
             
+            const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
+            const user = firebase.auth().currentUser;
+            const isAdmin = (user && user.email === SUPER_ADMIN);
+            const up = currentUserData ? (currentUserData.permissions || {}) : {};
+            const allowedSites = currentUserData ? (currentUserData.allowed_sites || []) : [];
+            const hasWhitelist = allowedSites.length > 0;
+
             const search = (document.getElementById('report-search') ? document.getElementById('report-search').value.toLowerCase() : ''); 
             const priFilter = document.getElementById('filter-priority').value;
             const catFilter = document.getElementById('filter-category').value;
@@ -971,6 +978,17 @@
                 const s = (r.status || 'OPEN').toUpperCase();
                 const p = (r.priority || 'Low').toUpperCase();
                 const c = (r.category || 'Other').toUpperCase();
+                const loc = (r.location || r.site || '').trim();
+                
+                // RBAC Permission Logic
+                if (!isAdmin) {
+                    if (p === 'HIGH' && up.rep_high === false) return false;
+                    if (p === 'MEDIUM' && up.rep_med === false) return false;
+                    if (p === 'LOW' && up.rep_low === false) return false;
+                    if (s === 'OPEN' && up.rep_open === false) return false;
+                    if (s === 'DONE' && up.rep_done === false) return false;
+                    if (hasWhitelist && !allowedSites.includes(loc)) return false;
+                }
                 
                 const matchesSearch = r.id.toLowerCase().includes(search) || 
                                      (r.reporter || '').toLowerCase().includes(search) || 
@@ -1351,15 +1369,26 @@
                 sites_housing: 'HOUSING (السكن)'
             };
 
+            const reportsSub = {
+                rep_high: 'HIGH PRIORITY',
+                rep_med: 'MEDIUM PRIORITY',
+                rep_low: 'LOW PRIORITY',
+                rep_open: 'ACTIVE (OPEN)',
+                rep_done: 'RESOLVED (DONE)'
+            };
+
             list.innerHTML = snapshot.docs.map(doc => {
                 const u = doc.data();
                 const uPerms = u.permissions || {};
                 const initial = (u.email || '?').charAt(0).toUpperCase();
                 
                 let permHTML = perms.map(p => {
-                    const hasSub = (p === 'dashboard' || p === 'sites');
-                    const subMap = (p === 'dashboard') ? dashSub : sitesSub;
-                    const subId = (p === 'dashboard') ? `sub-dash-${doc.id}` : `sub-sites-${doc.id}`;
+                    const hasSub = (p === 'dashboard' || p === 'sites' || p === 'reports');
+                    let subMap = dashSub;
+                    if(p === 'sites') subMap = sitesSub;
+                    if(p === 'reports') subMap = reportsSub;
+                    
+                    const subId = `sub-${p}-${doc.id}`;
                     
                     return `
                     <div class="perm-item ${uPerms[p]?'active':''}" onclick="${hasSub ? `toggleSubMenu('${subId}')` : `togglePermission('${doc.id}', '${p}', ${!uPerms[p]})`}">
@@ -1381,6 +1410,7 @@
                             `).join('')}
                         </div>
                         
+                        ${(p === 'sites' || p === 'reports') ? `
                         <div class="whitelist-area">
                             <div style="font-size:0.65rem; font-weight:950; color:var(--turquoise); margin-bottom:10px; letter-spacing:1px;">INDIVIDUAL SITE WHITELIST</div>
                             <input type="text" class="whitelist-search" placeholder="Search specific site..." oninput="filterWhitelist(this, '${doc.id}')">
@@ -1396,6 +1426,7 @@
                                 }).join('')}
                             </div>
                         </div>
+                        ` : ''}
                     </div>
                     ` : ''}
                 `; }).join('');
@@ -1463,6 +1494,7 @@
             // Sync logic
             const dashSubKeys = ['dash_stats', 'dash_map', 'dash_categories', 'dash_priority', 'dash_distribution', 'dash_geo'];
             const sitesSubKeys = ['sites_site', 'sites_office', 'sites_housing'];
+            const reportsSubKeys = ['rep_high', 'rep_med', 'rep_low', 'rep_open', 'rep_done'];
             
             if (permKey.startsWith('dash_')) {
                 perms[permKey] = state;
@@ -1472,10 +1504,16 @@
                 perms[permKey] = state;
                 const anyEnabled = sitesSubKeys.some(k => perms[k] === true);
                 updateObj['permissions.sites'] = anyEnabled;
+            } else if (permKey.startsWith('rep_')) {
+                perms[permKey] = state;
+                const anyEnabled = reportsSubKeys.some(k => perms[k] === true);
+                updateObj['permissions.reports'] = anyEnabled;
             } else if (permKey === 'dashboard') {
                 dashSubKeys.forEach(k => { updateObj[`permissions.${k}`] = state; });
             } else if (permKey === 'sites') {
                 sitesSubKeys.forEach(k => { updateObj[`permissions.${k}`] = state; });
+            } else if (permKey === 'reports') {
+                reportsSubKeys.forEach(k => { updateObj[`permissions.${k}`] = state; });
             }
             
             await docRef.update(updateObj);
