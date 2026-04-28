@@ -677,7 +677,7 @@
             if(viewId === 'dashboard') {
                 const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
                 const user = firebase.auth().currentUser;
-                const isAdmin = (user && user.email === SUPER_ADMIN);
+                const isAdmin = (user && user.email && user.email.toLowerCase() === SUPER_ADMIN.toLowerCase());
                 const up = currentUserData ? (currentUserData.permissions || {}) : {};
                 
                 // Toggle sections based on permissions
@@ -850,7 +850,7 @@
             
             const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
             const user = firebase.auth().currentUser;
-            const isAdmin = (user && user.email === SUPER_ADMIN);
+            const isAdmin = (user && user.email && user.email.toLowerCase() === SUPER_ADMIN.toLowerCase());
             const up = currentUserData ? (currentUserData.permissions || {}) : {};
             const allowedSites = currentUserData ? (currentUserData.allowed_sites || []) : [];
             const hasSite = (isAdmin || up.sites_site === true);
@@ -972,7 +972,7 @@
             
             const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
             const user = firebase.auth().currentUser;
-            const isAdmin = (user && user.email === SUPER_ADMIN);
+            const isAdmin = (user && user.email && user.email.toLowerCase() === SUPER_ADMIN.toLowerCase());
             const up = currentUserData ? (currentUserData.permissions || {}) : {};
             const allowedSites = currentUserData ? (currentUserData.allowed_sites || []) : [];
             const hasWhitelist = allowedSites.length > 0;
@@ -1069,15 +1069,10 @@
         }
         function initRealtimeSync() {
             db.collection('reports').onSnapshot(snap => {
-                // Relaxed filtering to ensure all 16 reports show up
-                allReports = snap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter(r => {
-                    const l = (r.location || r.site || '').trim();
-                    if (!l) return true; // Keep reports even if location is missing
-                    const GARBAGE = ['1', '0', 'SITE', 'site', 'undefined', 'null'];
-                    return !GARBAGE.includes(l);
-                });
+                // Remove ALL filtering to ensure every single report shows up
+                allReports = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 console.log("Reports Sync Updated:", allReports.length);
-                syncAllData(); // CRITICAL: Updates counts and charts
+                syncAllData();
             });
         }
         function syncBroadcasts() {
