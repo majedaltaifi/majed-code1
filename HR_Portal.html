@@ -1019,7 +1019,7 @@
 
             filtered.forEach(r => { 
                 const s = (r.status || 'OPEN').toUpperCase(); 
-                const isAnon = (r.isAnonymous === true || !r.reporter); 
+                const isAnon = (r.isAnonymous === true || r.anon === true || (r.reporter && r.reporter.toLowerCase() === 'anonymous') || !r.reporter); 
                 let loc = (r.location || r.site || 'Unknown'); if(loc.trim() === 'HQ — Jeddah' || loc.trim() === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower'; 
                 body.innerHTML += `
                     <tr onclick="showReportDetail('${r.id}')">
