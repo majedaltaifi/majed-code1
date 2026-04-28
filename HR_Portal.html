@@ -1008,7 +1008,8 @@
                     }
                 }
                 
-                const matchesSearch = r.id.toLowerCase().includes(search) || 
+                const matchesSearch = search === '' || 
+                                     (r.id || '').toLowerCase().includes(search) || 
                                      (r.reporter || '').toLowerCase().includes(search) || 
                                      (r.description || r.desc || '').toLowerCase().includes(search) || 
                                      (r.location || r.site || '').toLowerCase().includes(search);
