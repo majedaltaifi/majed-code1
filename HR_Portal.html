@@ -900,6 +900,7 @@
         });
         
         const rbody = document.getElementById('reports-table-body');
+        if(rbody) {
             rbody.innerHTML = allReports.map(r => {
                 const s = (r.status || 'OPEN').toUpperCase();
                 const isAnon = (r.isAnonymous === true || r.anon === true || r.reporter === 'Anonymous');
@@ -924,8 +925,8 @@
                             </button>
                         </div>
                     </td>
-                </tr>
-            `).join('');
+                </tr>`;
+            }).join('');
         }
         
         syncAllData(); }); }
