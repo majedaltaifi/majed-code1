@@ -646,8 +646,16 @@
             const time = r.approxTime || r.time || 'N/A';
             const empNo = r.employeeId || r.emp_no || 'N/A';
             
-            // Unmasked Identity - Exhaustive Search
-            const reporterName = emp ? emp.name : (r.reporterName || r.emp_name || (r.reporter && r.reporter !== 'Anonymous' ? r.reporter : 'Identified User'));
+            // Unmasked Identity - Strict Search
+            const getCleanName = (rec, em) => {
+                if (em && em.name) return em.name;
+                const candidates = [rec.reporterName, rec.emp_name, rec.reporter];
+                for (let c of candidates) {
+                    if (c && typeof c === 'string' && c.trim().toLowerCase() !== 'anonymous' && c.trim() !== '') return c;
+                }
+                return 'Identified Employee';
+            };
+            const reporterName = getCleanName(r, emp);
             const reporterPhone = emp ? emp.phone : (r.phone || r.userPhone || 'N/A');
             const reporterEmail = emp ? (emp.email || emp.userEmail) : (r.email || r.userEmail || 'N/A');
             
@@ -865,7 +873,8 @@
                         <td>
                             ${(() => {
                                 const emp = allEmployees.find(e => (e.id && r.employeeId && e.id.toString() === r.employeeId.toString()) || (e.id && r.emp_no && e.id.toString() === r.emp_no.toString()));
-                                const name = emp ? emp.name : (r.reporterName || r.emp_name || (r.reporter && r.reporter !== 'Anonymous' ? r.reporter : 'Identified User'));
+                                const raw = emp ? emp.name : (r.reporterName || r.emp_name || r.reporter || '');
+                                const name = (raw && raw.trim().toLowerCase() !== 'anonymous') ? raw : 'Identified Employee';
                                 return isAnon ? `<span style="color:var(--warning); font-weight:800;">${name}</span>` : `<span style="color:#fff; font-weight:700;">${name}</span>`;
                             })()}
                         </td>
@@ -904,9 +913,10 @@
         if(rbody) {
             rbody.innerHTML = allReports.map(r => {
                 const s = (r.status || 'OPEN').toUpperCase();
-                const isAnon = (r.isAnonymous === true || r.anon === true || r.reporter === 'Anonymous');
+                const isAnon = (r.isAnonymous === true || r.anon === true || (r.reporter && r.reporter.toLowerCase() === 'anonymous'));
                 const emp = allEmployees.find(e => (e.id && r.employeeId && e.id.toString() === r.employeeId.toString()) || (e.id && r.emp_no && e.id.toString() === r.emp_no.toString()));
-                const name = emp ? emp.name : (r.reporterName || r.emp_name || (r.reporter && r.reporter !== 'Anonymous' ? r.reporter : 'Identified User'));
+                const raw = emp ? emp.name : (r.reporterName || r.emp_name || r.reporter || '');
+                const name = (raw && raw.trim().toLowerCase() !== 'anonymous') ? raw : 'Identified Employee';
                 return `
                 <tr>
                     <td style="color:var(--turquoise); font-weight:800;">#${r.id.slice(-4)}</td>
@@ -1152,6 +1162,7 @@
             db.collection('employees').onSnapshot(snap => {
                 allEmployees = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderEmployees();
+                if(typeof applyFilters === 'function') applyFilters();
             });
         }
 
