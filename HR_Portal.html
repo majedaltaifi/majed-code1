@@ -981,8 +981,10 @@
                 const s = (r.status || 'OPEN').toUpperCase();
                 const p = (r.priority || 'Low').toUpperCase();
                 const c = (r.category || 'Other').toUpperCase();
-                const loc = (r.location || r.site || '').trim();
-                
+                let loc = (r.location || r.site || '').trim();
+                // Normalize for whitelist check
+                if(loc === 'HQ — Jeddah' || loc === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower';
+
                 // RBAC Permission Logic
                 if (!isAdmin) {
                     if (p === 'HIGH' && up.rep_high === false) return false;
