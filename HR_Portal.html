@@ -732,9 +732,9 @@
             const isAdmin = (user && user.email && user.email.toLowerCase() === SUPER_ADMIN.toLowerCase());
             const canUnmask = isAdmin || (up.unmask === true);
             
-            // Access Control Logic
-            const canSeeIdentity = canUnmask || (!isAnon); // Name is Admin with Unmask OR Public
-            const canSeeContact = isAdmin || (!isAnon);  // Contact Details are Super Admin OR Public
+            // Access Control Logic - Unmasked identity and contact info tied to the same permission
+            const canSeeIdentity = canUnmask || (!isAnon);
+            const canSeeContact = canUnmask || (!isAnon);
             
             const description = r.description || r.desc || 'No description provided.';
             const status = (r.status || 'OPEN').toUpperCase();
