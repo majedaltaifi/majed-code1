@@ -220,6 +220,16 @@
         #loading-rbac.hide { opacity: 0; pointer-events: none; }
         .rbac-spinner { width: 50px; height: 50px; border: 4px solid rgba(128,209,233,0.1); border-top-color: var(--turquoise); border-radius: 50%; animation: spin 1s linear infinite; }
         .rbac-text { font-weight: 800; color: var(--turquoise); letter-spacing: 2px; text-transform: uppercase; font-size: 0.8rem; }
+
+        /* USER ROLE STYLES */
+        .user-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 20px; padding: 20px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; transition: 0.3s; }
+        .user-card:hover { background: rgba(255,255,255,0.06); border-color: var(--turquoise); }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .user-avatar { width: 40px; height: 40px; background: var(--nit-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 800; }
+        .user-email { font-weight: 600; color: #fff; }
+        .user-role-badge { font-size: 0.7rem; font-weight: 900; padding: 4px 10px; border-radius: 8px; background: rgba(128,209,233,0.1); color: var(--turquoise); text-transform: uppercase; }
+        .btn-delete-user { background: none; border: none; color: var(--danger); cursor: pointer; opacity: 0.5; transition: 0.3s; }
+        .btn-delete-user:hover { opacity: 1; transform: scale(1.1); }
     </style>
 </head>
 <body>
@@ -480,18 +490,48 @@
                 </div>
         </div>
 
-        <!-- USER ROLE VIEW (Empty for now) -->
+        <!-- USER ROLE VIEW -->
         <div id="view-user-role" class="tab-content" style="display:none;">
             <div class="hero-card">
                 <div class="hero-content">
-                    <h1>User Role Management</h1>
-                    <p>Configuration panel for system permissions and roles.</p>
+                    <h1>User Access Management</h1>
+                    <p>Grant or revoke dashboard access for administrative personnel.</p>
                 </div>
+                <div class="hero-shield"><i class="fas fa-user-lock"></i></div>
             </div>
-            <div style="padding: 100px; text-align: center; opacity: 0.3;">
-                <i class="fas fa-tools" style="font-size: 4rem; margin-bottom: 20px;"></i>
-                <h2>Work in Progress</h2>
-                <p>This module is currently being initialized.</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px;">
+                <!-- CREATE USER PANEL -->
+                <div class="panel" style="height: fit-content; border: 1px solid var(--border); background: rgba(255,255,255,0.02);">
+                    <div style="font-size: 1.2rem; font-weight: 800; color: var(--turquoise); margin-bottom: 25px; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-user-plus"></i> Create Admin Account
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <div>
+                            <label class="filter-label">Login Email</label>
+                            <input type="email" id="new-user-email" class="filter-select" style="width:100%; margin-top:5px;" placeholder="example@gmail.com">
+                        </div>
+                        <div>
+                            <label class="filter-label">Access Password</label>
+                            <input type="password" id="new-user-pass" class="filter-select" style="width:100%; margin-top:5px;" placeholder="Min 6 characters">
+                        </div>
+                        <button class="action-btn" style="justify-content: center; padding: 18px;" onclick="createNewAdmin()">
+                            <i class="fas fa-shield-halved"></i> AUTHORIZE ACCESS
+                        </button>
+                        <div id="user-status-msg" style="font-size: 0.8rem; text-align: center; font-weight: 700;"></div>
+                    </div>
+                </div>
+
+                <!-- USERS LIST PANEL -->
+                <div class="panel" style="border: 1px solid var(--border); background: rgba(255,255,255,0.01);">
+                    <div style="font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 25px; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-users-gear"></i> Authorized Personnel
+                    </div>
+                    <div id="admin-users-list">
+                        <!-- Users will load here -->
+                        <div style="padding: 40px; text-align: center; opacity: 0.3;">Loading authorized users...</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -506,14 +546,24 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        auth.onAuthStateChanged(user => {
+        auth.onAuthStateChanged(async user => {
             if (!user) {
                 window.location.href = 'login.html';
-            } else if (user.email.toLowerCase() !== 'majedaltaifi1@gmail.com') {
-                alert("Unauthorized Access: This portal is restricted.");
-                auth.signOut();
             } else {
-                document.getElementById('loading-rbac').classList.add('hide');
+                const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
+                if (user.email.toLowerCase() === SUPER_ADMIN) {
+                    document.getElementById('loading-rbac').classList.add('hide');
+                    loadAdminUsers(); // Load users if on role view
+                } else {
+                    // Check Firestore for admin role
+                    const doc = await db.collection('users').doc(user.uid).get();
+                    if (doc.exists && doc.data().role === 'admin') {
+                        document.getElementById('loading-rbac').classList.add('hide');
+                    } else {
+                        alert("Unauthorized Access: You do not have dashboard permissions.");
+                        auth.signOut();
+                    }
+                }
             }
         });
 
@@ -1074,6 +1124,96 @@
 
 
         window.onload = () => { initCharts(); initRealMap(); initRealtimeSync(); syncBroadcasts(); syncSupportChats(); syncEmployees(); };
+        async function loadAdminUsers() {
+            const list = document.getElementById('admin-users-list');
+            if(!list) return;
+            
+            const snapshot = await db.collection('users').where('role', '==', 'admin').get();
+            if (snapshot.empty) {
+                list.innerHTML = `<div style="padding: 40px; text-align: center; opacity: 0.3;">No additional admins found.</div>`;
+                return;
+            }
+
+            list.innerHTML = snapshot.docs.map(doc => {
+                const u = doc.data();
+                const initial = (u.email || '?').charAt(0).toUpperCase();
+                return `
+                    <div class="user-card">
+                        <div class="user-info">
+                            <div class="user-avatar">${initial}</div>
+                            <div>
+                                <div class="user-email">${u.email}</div>
+                                <div class="user-role-badge">Dashboard Admin</div>
+                            </div>
+                        </div>
+                        <button class="btn-delete-user" onclick="deleteAdminUser('${doc.id}', '${u.email}')" title="Revoke Access">
+                            <i class="fas fa-user-minus"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function createNewAdmin() {
+            const email = document.getElementById('new-user-email').value.trim();
+            const pass = document.getElementById('new-user-pass').value;
+            const msg = document.getElementById('user-status-msg');
+
+            if (!email || pass.length < 6) {
+                msg.style.color = 'var(--danger)';
+                msg.innerText = "Error: Invalid email or password (min 6 chars)";
+                return;
+            }
+
+            msg.style.color = 'var(--turquoise)';
+            msg.innerText = "Authorizing User...";
+
+            try {
+                // To create a user WITHOUT logging out the current admin, we use a secondary firebase app or a cloud function.
+                // Since this is a simple setup, we will create the auth record and the Firestore record.
+                // Note: Standard Firebase Client SDK will try to log in the new user.
+                // I will use a trick: create a secondary app instance.
+                
+                const secondaryApp = firebase.initializeApp(firebaseConfig, "Secondary");
+                const result = await secondaryApp.auth().createUserWithEmailAndPassword(email, pass);
+                const uid = result.user.uid;
+
+                await db.collection('users').doc(uid).set({
+                    email: email,
+                    role: 'admin',
+                    created_at: firebase.firestore.Timestamp.now()
+                });
+
+                await secondaryApp.delete();
+                
+                msg.style.color = 'var(--success)';
+                msg.innerText = "Success: User authorized for Dashboard.";
+                document.getElementById('new-user-email').value = '';
+                document.getElementById('new-user-pass').value = '';
+                loadAdminUsers();
+            } catch (e) {
+                msg.style.color = 'var(--danger)';
+                msg.innerText = "Error: " + e.message;
+            }
+        }
+
+        async function deleteAdminUser(uid, email) {
+            if (!confirm(`Are you sure you want to revoke access for ${email}?`)) return;
+            try {
+                await db.collection('users').doc(uid).delete();
+                // Note: Auth account remains but Firestore role is gone, so they can't enter.
+                loadAdminUsers();
+            } catch (e) {
+                alert("Error deleting user: " + e.message);
+            }
+        }
+
+        // Initialize user load when switching to User Role view
+        const originalSwitchView = switchView;
+        switchView = (viewId, el) => {
+            originalSwitchView(viewId, el);
+            if (viewId === 'user-role') loadAdminUsers();
+        };
     </script>
 </body>
 </html>
