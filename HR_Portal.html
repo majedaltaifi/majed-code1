@@ -277,8 +277,22 @@
         <div style="margin-top: auto; background: rgba(128, 209, 233, 0.05); padding: 30px; border-radius: 24px; border: 1px solid var(--border-glow);">
             <div style="font-size: 0.75rem; color: var(--text-muted); font-weight: 900; margin-bottom: 10px; text-transform: uppercase;">System Status</div>
             <div style="display: flex; align-items: center; gap: 15px;"><div class="pulse-dot" style="width:12px;height:12px;background:var(--success);border-radius:50%;animation:pulse-turquoise 2s infinite;"></div><span style="font-weight:800;color:#fff;font-size:1.1rem;">LIVE LINK</span></div>
+
+        </div>
+
+        <!-- FORBIDDEN VIEW: ZERO ACCESS SCREEN -->
+        <div id="view-forbidden" class="tab-content" style="display:none;">
+            <div style="height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                <div style="font-size: 5rem; color: var(--danger); margin-bottom: 20px; opacity: 0.5;"><i class="fas fa-user-lock"></i></div>
+                <h1 style="color: #fff; margin-bottom: 10px;">Access Restricted</h1>
+                <p style="color: var(--text-muted); max-width: 450px; font-weight: 700; line-height: 1.6;">Your account is authenticated, but no dashboard permissions have been assigned yet. Please contact the Super Admin to authorize your access level.</p>
+                <button class="action-btn" style="margin-top: 30px; padding: 15px 30px; background: var(--danger); border: none;" onclick="firebase.auth().signOut()">
+                    <i class="fas fa-sign-out-alt"></i> LOGOUT FROM TERMINAL
+                </button>
+            </div>
         </div>
     </div>
+
 
     <div class="main">
         <div class="header">
@@ -286,7 +300,7 @@
             <p class="header-sub">Operational transparency and real-time field insights.</p>
         </div>
 
-        <div id="view-dashboard" class="tab-content active">
+        <div id="view-dashboard" class="tab-content">
             <div class="analytics-grid">
                 <div class="stat-card clickable" onclick="openFilteredList('TOTAL', 'Operational Overview', 'status')">
                     <div class="stat-label">Total Reports</div><div class="stat-value" id="main-total">0</div>
@@ -543,8 +557,22 @@
                     </div>
                 </div>
             </div>
+
+        </div>
+
+        <!-- FORBIDDEN VIEW: ZERO ACCESS SCREEN -->
+        <div id="view-forbidden" class="tab-content" style="display:none;">
+            <div style="height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;">
+                <div style="font-size: 5rem; color: var(--danger); margin-bottom: 20px; opacity: 0.5;"><i class="fas fa-user-lock"></i></div>
+                <h1 style="color: #fff; margin-bottom: 10px;">Access Restricted</h1>
+                <p style="color: var(--text-muted); max-width: 450px; font-weight: 700; line-height: 1.6;">Your account is authenticated, but no dashboard permissions have been assigned yet. Please contact the Super Admin to authorize your access level.</p>
+                <button class="action-btn" style="margin-top: 30px; padding: 15px 30px; background: var(--danger); border: none;" onclick="firebase.auth().signOut()">
+                    <i class="fas fa-sign-out-alt"></i> LOGOUT FROM TERMINAL
+                </button>
+            </div>
         </div>
     </div>
+
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -1264,21 +1292,44 @@
             } else {
                 const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
                 const navRole = document.getElementById('nav-user-role');
+                
+                // Reset all views
+                document.querySelectorAll('.tab-content').forEach(v => {
+                    v.classList.remove('active');
+                    v.style.display = 'none';
+                });
+
                 if (user.email.toLowerCase() === SUPER_ADMIN) {
                     currentUserData = { role: 'super_admin' };
                     if (navRole) navRole.style.display = 'flex';
                     document.getElementById('loading-rbac').classList.add('hide');
-                    if (activeView === 'user-role') loadAdminUsers();
+                    switchView(activeView); // Super admin gets what they want
                 } else {
                     if (navRole) navRole.style.display = 'none';
                     const q = await db.collection('users').where('email', '==', user.email.toLowerCase()).get();
                     if (!q.empty) {
                         currentUserData = q.docs[0].data();
                         document.getElementById('loading-rbac').classList.add('hide');
+                        
+                        const perms = currentUserData.permissions || {};
                         const map = { 'dashboard': 'dashboard', 'per-site': 'sites', 'all-reports': 'reports', 'employees': 'employees', 'chat': 'chat', 'hr-podcast': 'podcast' };
-                        const currentPerm = map[activeView];
-                        if (currentPerm && (!currentUserData.permissions || !currentUserData.permissions[currentPerm])) {
-                             switchView('dashboard'); 
+                        
+                        // Check if they have ANY permission
+                        const hasAny = Object.values(perms).some(v => v === true);
+                        if (!hasAny) {
+                            switchView('forbidden');
+                            return;
+                        }
+
+                        // Check current view
+                        const currentPermKey = map[activeView];
+                        if (currentPermKey && perms[currentPermKey]) {
+                            switchView(activeView);
+                        } else {
+                            // Find first available
+                            const available = Object.keys(map).find(viewId => perms[map[viewId]]);
+                            if (available) switchView(available);
+                            else switchView('forbidden');
                         }
                     } else {
                         alert("Unauthorized Access: Restricted Terminal.");
