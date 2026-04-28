@@ -829,7 +829,23 @@
         }
 
         function updateUnitMatrix(filter, btn) {
-            if(btn) { document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentUnitFilter = filter; }
+            if(btn) { document.querySelectorAll('#view-per-site .btn-tab').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentUnitFilter = filter; }
+            
+            const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
+            const user = firebase.auth().currentUser;
+            const isAdmin = (user && user.email === SUPER_ADMIN);
+            const up = currentUserData ? (currentUserData.permissions || {}) : {};
+            const hasSite = (isAdmin || up.sites_site === true);
+            const hasOff = (isAdmin || up.sites_office === true);
+            const hasHou = (isAdmin || up.sites_housing === true);
+
+            const tabBtns = document.querySelectorAll('#view-per-site .btn-tab');
+            if(tabBtns.length >= 4) {
+                tabBtns[1].style.display = hasSite ? 'flex' : 'none';
+                tabBtns[2].style.display = hasOff ? 'flex' : 'none';
+                tabBtns[3].style.display = hasHou ? 'flex' : 'none';
+            }
+
             const search = document.getElementById('site-search-input').value.toLowerCase();
             const grid = document.getElementById('unit-matrix-grid'); if(!grid) return; grid.innerHTML = '';
             const stats = {}; const discoveredUnits = new Set();
@@ -850,6 +866,9 @@
             Array.from(discoveredUnits).sort().forEach(name => {
                 const s = stats[name];
                 if (currentUnitFilter !== 'ALL' && s.category !== currentUnitFilter) return;
+                if (s.category === 'SITE' && !hasSite) return;
+                if (s.category === 'OFFICE' && !hasOff) return;
+                if (s.category === 'HOUSING' && !hasHou) return;
                 if (search && !name.toLowerCase().includes(search)) return;
                 const rate = s.total > 0 ? Math.round((s.done / s.total) * 100) : 0;
                 grid.innerHTML += `
@@ -1293,28 +1312,37 @@
                 dash_geo: 'GEO BREAKDOWN'
             };
 
+            const sitesSub = {
+                sites_site: 'SITES (السايت)',
+                sites_office: 'OFFICES (الأوفيس)',
+                sites_housing: 'HOUSING (السكن)'
+            };
+
             list.innerHTML = snapshot.docs.map(doc => {
                 const u = doc.data();
                 const uPerms = u.permissions || {};
                 const initial = (u.email || '?').charAt(0).toUpperCase();
                 
                 let permHTML = perms.map(p => {
-                    const hasSub = (p === 'dashboard');
+                    const hasSub = (p === 'dashboard' || p === 'sites');
+                    const subMap = (p === 'dashboard') ? dashSub : sitesSub;
+                    const subId = (p === 'dashboard') ? `sub-dash-${doc.id}` : `sub-sites-${doc.id}`;
+                    
                     return `
-                    <div class="perm-item ${uPerms[p]?'active':''}" onclick="${hasSub ? `toggleSubMenu('${doc.id}')` : `togglePermission('${doc.id}', '${p}', ${!uPerms[p]})`}">
+                    <div class="perm-item ${uPerms[p]?'active':''}" onclick="${hasSub ? `toggleSubMenu('${subId}')` : `togglePermission('${doc.id}', '${p}', ${!uPerms[p]})`}">
                         <span class="perm-label">${labels[p]} ${hasSub ? '<i class="fas fa-chevron-down" style="margin-left:8px; opacity:0.5;"></i>' : ''}</span>
                         <span class="perm-status">${uPerms[p]?'ON':'OFF'}</span>
                     </div>
                     ${hasSub ? `
-                    <div class="sub-perm-container" id="sub-dash-${doc.id}">
+                    <div class="sub-perm-container" id="${subId}">
                         <div style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
-                            <span style="font-size:0.6rem; font-weight:900; color:var(--turquoise);">DASHBOARD COMPONENTS</span>
-                            <button class="action-btn" style="padding:4px 8px; font-size:0.6rem;" onclick="togglePermission('${doc.id}', 'dashboard', ${!uPerms.dashboard})">${uPerms.dashboard?'DISABLE ALL':'ENABLE ALL'}</button>
+                            <span style="font-size:0.6rem; font-weight:900; color:var(--turquoise);">${p.toUpperCase()} COMPONENTS</span>
+                            <button class="action-btn" style="padding:4px 8px; font-size:0.6rem;" onclick="togglePermission('${doc.id}', '${p}', ${!uPerms[p]})">${uPerms[p]?'DISABLE ALL':'ENABLE ALL'}</button>
                         </div>
                         <div class="sub-perm-grid">
-                            ${Object.keys(dashSub).map(sk => `
+                            ${Object.keys(subMap).map(sk => `
                                 <div class="sub-perm-item ${uPerms[sk]?'active':''}" onclick="togglePermission('${doc.id}', '${sk}', ${!uPerms[sk]})">
-                                    <span class="sub-perm-label">${dashSub[sk]}</span>
+                                    <span class="sub-perm-label">${subMap[sk]}</span>
                                     <span class="sub-perm-status">${uPerms[sk]?'ON':'OFF'}</span>
                                 </div>
                             `).join('')}
@@ -1342,8 +1370,8 @@
             }).join('');
         }
 
-        function toggleSubMenu(uid) {
-            const el = document.getElementById('sub-dash-' + uid);
+        function toggleSubMenu(sid) {
+            const el = document.getElementById(sid);
             if(el) el.classList.toggle('active');
         }
         async function togglePermission(uid, permKey, state) {
@@ -1357,14 +1385,20 @@
             
             // Sync logic
             const dashSubKeys = ['dash_stats', 'dash_map', 'dash_categories', 'dash_priority', 'dash_distribution', 'dash_geo'];
+            const sitesSubKeys = ['sites_site', 'sites_office', 'sites_housing'];
             
             if (permKey.startsWith('dash_')) {
                 perms[permKey] = state;
                 const anyEnabled = dashSubKeys.some(k => perms[k] === true);
                 updateObj['permissions.dashboard'] = anyEnabled;
+            } else if (permKey.startsWith('sites_')) {
+                perms[permKey] = state;
+                const anyEnabled = sitesSubKeys.some(k => perms[k] === true);
+                updateObj['permissions.sites'] = anyEnabled;
             } else if (permKey === 'dashboard') {
-                // If main dashboard is toggled, apply state to all sub-items
                 dashSubKeys.forEach(k => { updateObj[`permissions.${k}`] = state; });
+            } else if (permKey === 'sites') {
+                sitesSubKeys.forEach(k => { updateObj[`permissions.${k}`] = state; });
             }
             
             await docRef.update(updateObj);
