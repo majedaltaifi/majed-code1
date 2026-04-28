@@ -1349,6 +1349,12 @@
         async function togglePermission(uid, permKey, state) {
             const updateObj = {};
             updateObj[`permissions.${permKey}`] = state;
+            
+            // Auto-enable main Dashboard if any sub-item is enabled
+            if(state === true && permKey.startsWith('dash_')) {
+                updateObj['permissions.dashboard'] = true;
+            }
+            
             await db.collection('users').doc(uid).update(updateObj);
             loadAdminUsers();
         }
