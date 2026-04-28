@@ -676,7 +676,7 @@
             
             const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
             const user = firebase.auth().currentUser;
-            const canUnmask = (user && user.email === SUPER_ADMIN) || (currentUserData && currentUserData.permissions && currentUserData.permissions.unmask === true);
+            const canUnmask = (user && user.email === SUPER_ADMIN); // Restricted to Super Admin only
             
             const isAnon = (r.isAnonymous === true || r.anon === true || (r.reporter && r.reporter.toLowerCase() === 'anonymous'));
             const emp = allEmployees.find(e => (e.id && r.employeeId && e.id.toString() === r.employeeId.toString()) || (e.id && r.emp_no && e.id.toString() === r.emp_no.toString()));
@@ -954,7 +954,7 @@
         const rbody = document.getElementById('reports-table-body');
         const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
         const user = firebase.auth().currentUser;
-        const canUnmask = (user && user.email === SUPER_ADMIN) || (currentUserData && currentUserData.permissions && currentUserData.permissions.unmask === true);
+        const canUnmask = (user && user.email === SUPER_ADMIN); // Restricted to Super Admin only
 
         if(rbody) {
             rbody.innerHTML = allReports.map(r => {
@@ -1248,11 +1248,10 @@
                 return;
             }
 
-            const perms = ['dashboard', 'sites', 'reports', 'employees', 'chat', 'podcast', 'unmask'];
+            const perms = ['dashboard', 'sites', 'reports', 'employees', 'chat', 'podcast'];
             const labels = { 
                 dashboard: 'DASHBOARD', sites: 'UNITS', reports: 'REPORTS', 
-                employees: 'DIRECTORY', chat: 'SUPPORT', podcast: 'PODCAST', 
-                unmask: 'UNMASK IDENTITY' 
+                employees: 'DIRECTORY', chat: 'SUPPORT', podcast: 'PODCAST' 
             };
 
             list.innerHTML = snapshot.docs.map(doc => {
