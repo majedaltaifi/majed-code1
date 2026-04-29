@@ -474,14 +474,6 @@
                         </select>
                     </div>
                     <div class="filter-group">
-                        <div class="filter-label">Status</div>
-                        <select id="filter-status" class="filter-select" onchange="applyFilters()">
-                            <option value="ALL">All Status</option>
-                            <option value="OPEN" selected>Active</option>
-                            <option value="DONE">Resolved</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
                         <div class="filter-label">Sort By</div>
                         <select id="filter-sort" class="filter-select" onchange="applyFilters()">
                             <option value="NEWEST">Newest First</option>
@@ -1007,9 +999,6 @@
                 let loc = (r.location || r.site || '').trim();
                 if(loc === 'HQ — Jeddah' || loc === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower';
 
-                // Status checks
-                if (s === 'OPEN' && up.rep_open === false) return false;
-                if (s === 'DONE' && up.rep_done === false) return false;
 
                 // Category checks - Whitelist Approach: Hide unless explicitly permitted
                 if (c === 'SAFETY' && up.rep_cat_safety !== true) return false;
@@ -1029,7 +1018,6 @@
             document.getElementById('report-search').value = '';
             document.getElementById('filter-priority').value = 'ALL';
             document.getElementById('filter-category').value = 'ALL';
-            document.getElementById('filter-status').value = 'ALL';
             document.getElementById('filter-sort').value = 'NEWEST';
             applyFilters();
         }
@@ -1059,7 +1047,6 @@
             const search = (document.getElementById('report-search') ? document.getElementById('report-search').value.toLowerCase() : ''); 
             const priFilter = document.getElementById('filter-priority').value;
             const catFilter = document.getElementById('filter-category').value;
-            const statFilter = document.getElementById('filter-status').value;
             const sortOrder = document.getElementById('filter-sort').value;
 
             let filtered = getAuthorizedReports().filter(r => {
@@ -1075,7 +1062,7 @@
                 
                 const matchesPri = priFilter === 'ALL' || p === priFilter;
                 const matchesCat = catFilter === 'ALL' || c === catFilter;
-                const matchesStat = statFilter === 'ALL' || s === statFilter;
+                const matchesStat = true;
                 
                 return matchesSearch && matchesPri && matchesCat && matchesStat;
             });
@@ -1428,16 +1415,12 @@
                 sites_office: 'OFFICES',
                 sites_housing: 'HOUSING'
             };
-
             const reportsSub = {
-                rep_open: 'ACTIVE (OPEN)',
-                rep_done: 'RESOLVED (DONE)',
                 rep_cat_safety: 'SAFETY REPORTS',
                 rep_cat_service: 'SERVICE REPORTS',
                 rep_cat_violation: 'VIOLATION REPORTS',
                 unmask: 'UNMASK REPORTERS'
             };
-
             list.innerHTML = snapshot.docs.map(doc => {
                 const u = doc.data();
                 const uPerms = u.permissions || {};
@@ -1564,7 +1547,7 @@
             // Sync logic
             const dashSubKeys = ['dash_stats', 'dash_map', 'dash_categories', 'dash_priority', 'dash_distribution', 'dash_geo'];
             const sitesSubKeys = ['sites_site', 'sites_office', 'sites_housing'];
-            const reportsSubKeys = ['rep_open', 'rep_done', 'rep_cat_safety', 'rep_cat_service', 'rep_cat_violation', 'unmask'];
+            const reportsSubKeys = ['rep_cat_safety', 'rep_cat_service', 'rep_cat_violation', 'unmask'];
             
             if (permKey.startsWith('dash_')) {
                 perms[permKey] = state;

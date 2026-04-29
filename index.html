@@ -2491,13 +2491,43 @@ let currentUser=null,employeesDb=null,empLookupDebounce=null;
 
 function loadUser(){try{return JSON.parse(localStorage.getItem(LS_USER)||'null')}catch(e){return null}}
 function saveUser(u){if(u)localStorage.setItem(LS_USER,JSON.stringify(u));else localStorage.removeItem(LS_USER);currentUser=u}
-function loadReports(){try{return JSON.parse(localStorage.getItem(LS_REPORTS)||'[]')}catch(e){return[]}}
-function saveReports(r){localStorage.setItem(LS_REPORTS,JSON.stringify(r))}
+function loadReports(){
+  try {
+    const user = loadUser();
+    const id = user ? (user.empNo || 'GUEST') : 'GUEST';
+    return JSON.parse(localStorage.getItem(LS_REPORTS + '_' + id) || '[]');
+  } catch(e) { return []; }
+}
+function saveReports(r){
+  const user = loadUser();
+  const id = user ? (user.empNo || 'GUEST') : 'GUEST';
+  localStorage.setItem(LS_REPORTS + '_' + id, JSON.stringify(r));
+}
 
-function loadNotifs(){try{return JSON.parse(localStorage.getItem(LS_NOTIFS)||'[]')}catch(e){return[]}}
-function saveNotifs(n){localStorage.setItem(LS_NOTIFS,JSON.stringify(n))}
-function loadSupport(){try{return JSON.parse(localStorage.getItem(LS_SUPPORT)||'[]')}catch(e){return[]}}
-function saveSupport(s){localStorage.setItem(LS_SUPPORT,JSON.stringify(s))}
+function loadNotifs(){
+  try {
+    const user = loadUser();
+    const id = user ? (user.empNo || 'GUEST') : 'GUEST';
+    return JSON.parse(localStorage.getItem(LS_NOTIFS + '_' + id) || '[]');
+  } catch(e) { return []; }
+}
+function saveNotifs(n){
+  const user = loadUser();
+  const id = user ? (user.empNo || 'GUEST') : 'GUEST';
+  localStorage.setItem(LS_NOTIFS + '_' + id, JSON.stringify(n));
+}
+function loadSupport(){
+  try {
+    const user = loadUser();
+    const id = user ? (user.empNo || 'GUEST') : 'GUEST';
+    return JSON.parse(localStorage.getItem(LS_SUPPORT + '_' + id) || '[]');
+  } catch(e) { return []; }
+}
+function saveSupport(s){
+  const user = loadUser();
+  const id = user ? (user.empNo || 'GUEST') : 'GUEST';
+  localStorage.setItem(LS_SUPPORT + '_' + id, JSON.stringify(s));
+}
 
 /* ══════════════════════════════════════════
    INIT & AUTH
@@ -2539,19 +2569,30 @@ function setLang(l){
 
 async function lookupEmployee(val){
   clearTimeout(empLookupDebounce);
+  const nameField=document.getElementById('login-name');
   empLookupDebounce=setTimeout(async()=>{
     const empNo=(val||'').trim();
-    if(!empNo){document.getElementById('login-name').value = '';return;}
+    if(!empNo){ nameField.value = ''; return; }
+    
+    // Show loading state
+    nameField.value = lang === 'ar' ? 'جاري التحقق...' : 'Checking...';
+    
     try {
       const doc = await db.collection('employees').doc(empNo).get();
-      const nameField=document.getElementById('login-name');
       if(doc.exists){
         const rec = doc.data();
-        nameField.value=rec.name || rec.name_en || rec['Employee Name - English'] || 'Unknown';
+        nameField.value = rec.name || rec.name_en || rec['Employee Name - English'] || 'Unknown';
       } else {
-        nameField.value='';
+        nameField.value = lang === 'ar' ? 'موظف غير موجود' : 'Employee not found';
       }
-    } catch(e) {}
+    } catch(e) {
+      console.error("Lookup error:", e);
+      if(e.message.includes('permission')) {
+        nameField.value = lang === 'ar' ? 'خطأ في الصلاحيات' : 'Permission Error';
+      } else {
+        nameField.value = '';
+      }
+    }
   },250);
 }
 
@@ -2563,27 +2604,29 @@ async function doLogin(){
   const t = T[lang], en = T.en;
   
   if(!empNo) return;
-  btn.disabled = true; btn.innerHTML = 'Signing in...'; errBox.classList.remove('show');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> ' + (lang === 'ar' ? 'جاري الدخول...' : 'Signing in...');
+  errBox.classList.remove('show');
   
   try {
     const doc = await db.collection('employees').doc(empNo).get();
     if(!doc.exists){
       errBox.textContent = t.loginInvalid || en.loginInvalid;
-      errBox.classList.add('show'); btn.disabled = false; btn.innerHTML = en.loginSubmit;
+      errBox.classList.add('show'); btn.disabled = false; btn.innerHTML = t.loginSubmit || en.loginSubmit;
       return;
     }
     const rec = doc.data();
     const email = rec.email;
     const dbPwd = rec.password || '';
     if(!email) {
-      errBox.textContent = "No email associated with this ID. Contact Admin.";
-      errBox.classList.add('show'); btn.disabled = false; btn.innerHTML = en.loginSubmit;
+      errBox.textContent = lang === 'ar' ? "لا يوجد بريد مسجل لهذا الرقم. تواصل مع الإدارة." : "No email associated with this ID. Contact Admin.";
+      errBox.classList.add('show'); btn.disabled = false; btn.innerHTML = t.loginSubmit || en.loginSubmit;
       return;
     }
     try {
       await firebase.auth().signInWithEmailAndPassword(email, pwd);
       handleSuccessLogin(rec, empNo);
     } catch(authErr) {
+      console.error("Auth Error:", authErr);
       if(authErr.code === 'auth/user-not-found' && pwd === dbPwd && pwd.length >= 4) {
         await firebase.auth().createUserWithEmailAndPassword(email, pwd);
         handleSuccessLogin(rec, empNo);
@@ -2593,7 +2636,13 @@ async function doLogin(){
       errBox.classList.add('show');
     }
   } catch(e) {
-    errBox.textContent = "Error: " + e.message; errBox.classList.add('show');
+    console.error("Login process error:", e);
+    if(e.message.includes('permission')) {
+       errBox.textContent = lang === 'ar' ? "خطأ: قواعد الحماية تمنع الوصول. يرجى تحديث Firestore Rules." : "Error: Security rules blocking access. Please update Firestore Rules.";
+    } else {
+       errBox.textContent = "Error: " + e.message;
+    }
+    errBox.classList.add('show');
   } finally {
     btn.disabled = false;
     btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> ${t.loginSubmit || en.loginSubmit}`;
