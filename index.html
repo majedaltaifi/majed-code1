@@ -1432,7 +1432,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
     <div class="sheet-title-wrap">
-      <div class="sheet-title" data-t="trackTitle"></div>
+      <div class="sheet-title" id="track-title-main" data-t="trackTitle"></div>
       <div class="sheet-subtitle" id="track-ref-sub">—</div>
     </div>
   </div>
@@ -3309,6 +3309,9 @@ function openTrackDetail(ref){
   const check='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
   const gear='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
 
+  const lastFour = ref.split('-').pop() || '';
+  const mainTitleEl = document.getElementById('track-title-main');
+  if(mainTitleEl) mainTitleEl.textContent = (lang === 'ar' ? 'بلاغ رقم #' : 'Report #') + lastFour;
   document.getElementById('track-ref-sub').textContent=ref;
   const meta=(svg,lbl,val)=>val?`<div class="meta-item">
     <div class="meta-icon">${svg}</div>
@@ -3403,7 +3406,7 @@ function openTrackDetail(ref){
       <div class="qr-label">${ref}</div>
     </div>
     <div style="display:flex; flex-direction:column; gap:10px; margin-top:15px">
-      <button class="btn btn-primary" onclick="openChatWith('${ref}', 'Report Support')" style="background:var(--turquoise); color:var(--nit-deep); font-weight:800; gap:8px">
+      <button class="btn btn-primary" onclick="closeSheet('sheet-track'); switchTab('chats'); openChatWith('${ref}', 'Report Support')" style="background:var(--turquoise); color:var(--nit-deep); font-weight:800; gap:8px">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         <span>Chat with Management regarding this report</span>
       </button>
