@@ -6,3 +6,4 @@ node_modules/
 .env
 .DS_Store
 firebase-config.js
+sync_to_auth.py
