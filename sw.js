@@ -1,8 +1,10 @@
-const CACHE_NAME = 'nit-cache-v10.9';
+const CACHE_NAME = 'nit-cache-v11.1';
 const ASSETS = [
   './',
   './index.html',
+  './HR_Portal.html',
   './manifest.json',
+  './manifest_hr.json',
   './assets/logo.png',
   './assets/employees.json',
   './assets/qrcode.min.js',
