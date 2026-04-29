@@ -2501,7 +2501,17 @@ function loadReports(){
 function saveReports(r){
   const user = loadUser();
   const id = user ? (user.empNo || 'GUEST') : 'GUEST';
-  localStorage.setItem(LS_REPORTS + '_' + id, JSON.stringify(r));
+  // Ensure uniqueness by 'ref' or 'id'
+  const unique = [];
+  const seen = new Set();
+  r.forEach(item => {
+    const key = item.ref || item.id;
+    if (key && !seen.has(key)) {
+       seen.add(key);
+       unique.push(item);
+    }
+  });
+  localStorage.setItem(LS_REPORTS + '_' + id, JSON.stringify(unique));
 }
 
 function loadNotifs(){
@@ -3931,7 +3941,7 @@ async function submitReport(){
 
   try {
     await db.collection('reports').doc(ref).set(rpt);
-    const rpts=loadReports(); rpts.push(rpt); saveReports(rpts);
+    // Removed manual local push to prevent duplication; syncReports will handle it automatically.
     document.getElementById('ref-number').textContent=ref;
     document.getElementById('next-steps').innerHTML=(T[lang].nextSteps||T.en.nextSteps).map(s=>`<li>${s}</li>`).join('');
     closeSheet('sheet-form');
