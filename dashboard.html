@@ -777,20 +777,12 @@
 
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
 
     <script>
         // --- Firebase Configuration ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyCWW5fJIYSw0p_LGuDJZA-4bOfQ92tdUPM",
-            authDomain: "majed-code1.firebaseapp.com",
-            projectId: "majed-code1",
-            storageBucket: "majed-code1.firebasestorage.app",
-            messagingSenderId: "668474846040",
-            appId: "1:668474846040:web:8ddd1c4818cda34e97d32d",
-            measurementId: "G-HJKQWYHMHZ"
-        };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
@@ -806,9 +798,26 @@
         let charts = {};
 
         // --- Initialization ---
+        let currentUserData = null;
         window.onload = () => {
-            initRealtimeSync();
-            initCharts();
+            firebase.auth().onAuthStateChanged(async user => {
+                if (!user) {
+                    window.location.href = 'login.html';
+                } else {
+                    const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
+                    if (user.email.toLowerCase() !== SUPER_ADMIN) {
+                        const snap = await db.collection('users').where('email', '==', user.email.toLowerCase()).get();
+                        if (snap.empty) {
+                            alert("Unauthorized Access.");
+                            firebase.auth().signOut();
+                            return;
+                        }
+                        currentUserData = snap.docs[0].data();
+                    }
+                    initRealtimeSync();
+                    initCharts();
+                }
+            });
         };
 
         function switchView(viewId, el) {
@@ -855,8 +864,9 @@
         }
 
         function updateDashboards() {
-            const total = allReports.length;
-            const open = allReports.filter(r => (r.status || '').toUpperCase() !== 'DONE' && (r.status || '').toUpperCase() !== 'CLOSED').length;
+            const reports = getAuthorizedReports();
+            const total = reports.length;
+            const open = reports.filter(r => (r.status || '').toUpperCase() !== 'DONE' && (r.status || '').toUpperCase() !== 'CLOSED').length;
             const closed = total - open;
             const rate = total > 0 ? Math.round((closed / total) * 100) : 0;
 
@@ -866,6 +876,39 @@
             document.getElementById('main-rate').innerText = rate + '%';
 
             updateCharts();
+        }
+
+        function getAuthorizedReports() {
+            const user = firebase.auth().currentUser;
+            const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
+            if (!user) return [];
+            const isAdmin = (user.email.toLowerCase() === SUPER_ADMIN);
+            if (isAdmin) return allReports;
+
+            if (!currentUserData) return []; // Prevent data leak during load
+
+            const up = currentUserData.permissions || {};
+            const allowedSites = currentUserData.allowed_sites || [];
+            const hasWhitelist = allowedSites.length > 0;
+
+            return allReports.filter(r => {
+                const s = (r.status || 'OPEN').toUpperCase();
+                const c = (r.category || 'Other').toUpperCase();
+                let loc = (r.location || r.site || '').trim();
+                
+                // Permission checks
+                if (s === 'OPEN' && up.rep_open === false) return false;
+                if (s === 'DONE' && up.rep_done === false) return false;
+
+                // Category checks - Whitelist Approach: Hide unless explicitly permitted
+                if (c === 'SAFETY' && up.rep_cat_safety !== true) return false;
+                if (c === 'SERVICE' && up.rep_cat_service !== true) return false;
+                if (c === 'VIOLATION' && up.rep_cat_violation !== true) return false;
+
+                if (hasWhitelist && !allowedSites.includes(loc)) return false;
+                
+                return true;
+            });
         }
 
         function initCharts() {
@@ -989,8 +1032,9 @@
         }
 
         function updateCharts() {
+            const reports = getAuthorizedReports();
             const cats = { Safety: 0, Service: 0, Other: 0 };
-            allReports.forEach(r => { 
+            reports.forEach(r => { 
                 const c = r.category || 'Other';
                 if(cats[c] !== undefined) cats[c]++; else cats.Other++;
             });
@@ -998,7 +1042,7 @@
             charts.category.update();
 
             const pris = { Critical: 0, High: 0, Medium: 0, Low: 0 };
-            allReports.forEach(r => { 
+            reports.forEach(r => { 
                 const p = r.priority || 'Low';
                 if(pris[p] !== undefined) pris[p]++; 
             });
@@ -1007,7 +1051,10 @@
 
             // Map location counts by actual names for Geo breakdown
             const locMap = {};
-            allReports.forEach(r => { const l = r.location || 'Unknown'; locMap[l] = (locMap[l]||0)+1; });
+            reports.forEach(r => {
+                const l = (r.location || r.site || 'Unknown').trim();
+                locMap[l] = (locMap[l] || 0) + 1;
+            });
             const topLocs = Object.entries(locMap).sort((a,b)=>b[1]-a[1]).slice(0, 8);
             charts.location.data.labels = topLocs.map(x => x[0]);
             charts.location.data.datasets[0].data = topLocs.map(x => x[1]);
@@ -1475,9 +1522,10 @@
         }
 
         function updateHRReports() {
-            const safety = allReports.filter(r => r.category === 'Safety').length;
-            const service = allReports.filter(r => r.category === 'Service').length;
-            const critical = allReports.filter(r => r.priority === 'Critical').length;
+            const reports = getAuthorizedReports();
+            const safety = reports.filter(r => r.category === 'Safety').length;
+            const service = reports.filter(r => r.category === 'Service').length;
+            const critical = reports.filter(r => r.priority === 'Critical').length;
             document.getElementById('hr-safety').innerText = safety;
             document.getElementById('hr-service').innerText = service;
             document.getElementById('hr-critical').innerText = critical;
@@ -1488,7 +1536,7 @@
                 date.setDate(date.getDate() - i);
                 days[date.toLocaleDateString()] = 0;
             }
-            allReports.forEach(r => {
+            reports.forEach(r => {
                 const d = new Date(r.created_at).toLocaleDateString();
                 if(days[d] !== undefined) days[d]++;
             });

@@ -601,9 +601,9 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
 
     <script>
-        const firebaseConfig = { apiKey: "AIzaSyCWW5fJIYSw0p_LGuDJZA-4bOfQ92tdUPM", authDomain: "majed-code1.firebaseapp.com", projectId: "majed-code1", storageBucket: "majed-code1.firebasestorage.app", messagingSenderId: "668474846040", appId: "1:668474846040:web:8ddd1c4818cda34e97d32d", measurementId: "G-HJKQWYHMHZ" };
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
@@ -834,7 +834,20 @@
 
         function openFilteredList(value, title, type) {
             const content = document.getElementById('side-panel-content');
-            const filtered = allReports.filter(r => { const s = (r.status || 'OPEN').toUpperCase(); const p = (r.priority || 'Low').toLowerCase(); const c = (r.category || 'Other').toLowerCase(); const loc = (r.location || r.site || 'Unknown').trim(); const val = (value || '').toLowerCase().trim(); if(type === 'status' && value === 'TOTAL') return true; if(type === 'status') return s === value; if(type === 'priority') return p === val; if(type === 'category') return c === val; if(type === 'location') return loc.toLowerCase() === val || (loc === 'HQ — Jeddah' && val === 'jeddah main office - randa tower') || (loc === 'Jeddah - New Office' && val === 'jeddah main office - randa tower'); return true; });
+            const reports = getAuthorizedReports();
+            const filtered = reports.filter(r => { 
+                const s = (r.status || 'OPEN').toUpperCase(); 
+                const p = (r.priority || 'Low').toLowerCase(); 
+                const c = (r.category || 'Other').toLowerCase(); 
+                const loc = (r.location || r.site || 'Unknown').trim(); 
+                const val = (value || '').toLowerCase().trim(); 
+                if(type === 'status' && value === 'TOTAL') return true; 
+                if(type === 'status') return s === value; 
+                if(type === 'priority') return p === val; 
+                if(type === 'category') return c === val; 
+                if(type === 'location') return loc.toLowerCase() === val || (loc === 'HQ — Jeddah' && val === 'jeddah main office - randa tower') || (loc === 'Jeddah - New Office' && val === 'jeddah main office - randa tower'); 
+                return true; 
+            });
             let color = 'var(--turquoise)'; if(value === 'Critical' || value === 'Safety' || value === 'OPEN') color = 'var(--danger)'; if(value === 'High' || value === 'warning') color = 'var(--warning)'; if(value === 'DONE') color = 'var(--success)';
             let html = `<div class="filter-badge" style="color:${color}; margin-bottom:15px;"><i class="fas fa-filter"></i> ${type}: ${value}</div><h2 style="font-size:2.8rem; font-weight:950; margin-bottom:30px; color:#fff;">${title}</h2>`;
             if(filtered.length === 0) { html += `<div style="text-align:center; padding:80px; color:var(--text-dim); font-size:1.2rem;">No records found.</div>`; }
@@ -874,27 +887,26 @@
             const search = document.getElementById('site-search-input').value.toLowerCase();
             const grid = document.getElementById('unit-matrix-grid'); if(!grid) return; grid.innerHTML = '';
             const stats = {}; const discoveredUnits = new Set();
-            allReports.forEach(r => {
+            
+            // Use authorized reports for matrix calculations
+            const reports = getAuthorizedReports();
+            
+            reports.forEach(r => {
                 let name = (r.location || r.site || 'Unknown').trim();
                 if(name === 'HQ — Jeddah' || name === 'Jeddah - New Office') name = 'Jeddah Main Office - Randa Tower';
                 let category = 'SITE';
                 if (STATIC_OFFICES.some(o => o.toLowerCase() === name.toLowerCase())) category = 'OFFICE';
                 else if (STATIC_HOUSINGS.some(h => h.toLowerCase() === name.toLowerCase())) category = 'HOUSING';
                 
-                // Whitelist Filter
-                if (hasWhitelist && !allowedSites.includes(name)) return;
-                if (!hasWhitelist) {
-                    if (category === 'SITE' && !hasSite) return;
-                    if (category === 'OFFICE' && !hasOff) return;
-                    if (category === 'HOUSING' && !hasHou) return;
-                }
+                // Whitelist Filter already handled by getAuthorizedReports for reports, 
+                // but we still need to filter discovered units later
 
                 if(!stats[name]) stats[name] = { total: 0, open: 0, done: 0, category: category };
                 stats[name].total++; if((r.status || 'OPEN').toUpperCase() === 'DONE') stats[name].done++; else stats[name].open++;
                 discoveredUnits.add(name);
             });
 
-            // Add static units to matrix if permitted
+            // Add static units to matrix if permitted and they match the whitelist
             [...STATIC_OFFICES, ...STATIC_HOUSINGS, ...STATIC_SITES].forEach(name => {
                 if (hasWhitelist && !allowedSites.includes(name)) return;
                 let category = 'SITE';
@@ -941,16 +953,76 @@
         }
 
         function syncAllData() {
-            const total = allReports.length; const openReports = allReports.filter(r => (r.status || 'OPEN').toUpperCase() !== 'DONE'); const openCount = openReports.length; const closedCount = total - openCount; const rate = total > 0 ? Math.round((closedCount / total) * 100) : 0;
-            document.getElementById('main-total').innerText = total; document.getElementById('main-open').innerText = openCount; document.getElementById('main-closed').innerText = closedCount; document.getElementById('main-rate').innerText = rate + '%';
-            const cats = { safety: 0, service: 0, other: 0 }; const pris = { critical: 0, high: 0, medium: 0, low: 0 }; const openPris = { critical: 0, high: 0, medium: 0, low: 0 }; const locs = {};
-            allReports.forEach(r => { cats[(r.category || 'Other').toLowerCase()]++; pris[(r.priority || 'Low').toLowerCase()]++; let l = (r.location || r.site || 'Unknown').trim(); if(l === 'HQ — Jeddah' || l === 'Jeddah - New Office') l = 'Jeddah Main Office - Randa Tower'; locs[l] = (locs[l] || 0) + 1; });
+            const reports = getAuthorizedReports();
+            const total = reports.length; 
+            const openReports = reports.filter(r => (r.status || 'OPEN').toUpperCase() !== 'DONE'); 
+            const openCount = openReports.length; 
+            const closedCount = total - openCount; 
+            const rate = total > 0 ? Math.round((closedCount / total) * 100) : 0;
+            
+            document.getElementById('main-total').innerText = total; 
+            document.getElementById('main-open').innerText = openCount; 
+            document.getElementById('main-closed').innerText = closedCount; 
+            document.getElementById('main-rate').innerText = rate + '%';
+            
+            const cats = { safety: 0, service: 0, other: 0 }; 
+            const pris = { critical: 0, high: 0, medium: 0, low: 0 }; 
+            const openPris = { critical: 0, high: 0, medium: 0, low: 0 }; 
+            const locs = {};
+            
+            reports.forEach(r => { 
+                cats[(r.category || 'Other').toLowerCase()]++; 
+                pris[(r.priority || 'Low').toLowerCase()]++; 
+                let l = (r.location || r.site || 'Unknown').trim(); 
+                if(l === 'HQ — Jeddah' || l === 'Jeddah - New Office') l = 'Jeddah Main Office - Randa Tower'; 
+                locs[l] = (locs[l] || 0) + 1; 
+            });
             openReports.forEach(r => { openPris[(r.priority || 'Low').toLowerCase()]++; });
+            
             if(charts.category) { charts.category.data.datasets[0].data = [cats.safety, cats.service, cats.other]; charts.category.update(); }
             if(charts.openPriority) { charts.openPriority.data.datasets[0].data = [openPris.critical, openPris.high, openPris.medium, openPris.low]; charts.openPriority.update(); }
             if(charts.priority) { charts.priority.data.datasets[0].data = [pris.critical, pris.high, pris.medium, pris.low]; charts.priority.update(); }
             if(charts.location) { const sortedLocs = Object.entries(locs).sort((a,b) => b[1] - a[1]).slice(0, 10); charts.location.data.labels = sortedLocs.map(l => l[0]); charts.location.data.datasets[0].data = sortedLocs.map(l => l[1]); charts.location.update(); }
             updateMarkers(); updateUnitMatrix(currentUnitFilter); applyFilters();
+        }
+
+        function getAuthorizedReports() {
+            const user = firebase.auth().currentUser;
+            const SUPER_ADMIN = 'majedaltaifi1@gmail.com';
+            if (!user) return [];
+            
+            const isAdmin = (user.email.toLowerCase() === SUPER_ADMIN);
+            if (isAdmin) return allReports;
+
+            // If permissions not yet loaded, return empty to prevent data leak
+            if (!currentUserData) return [];
+
+            const up = currentUserData.permissions || {};
+            const allowedSites = currentUserData.allowed_sites || [];
+            const hasWhitelist = allowedSites.length > 0;
+
+            return allReports.filter(r => {
+                const s = (r.status || 'OPEN').toUpperCase();
+                const c = (r.category || 'Other').toUpperCase();
+                let loc = (r.location || r.site || '').trim();
+                if(loc === 'HQ — Jeddah' || loc === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower';
+
+                // Status checks
+                if (s === 'OPEN' && up.rep_open === false) return false;
+                if (s === 'DONE' && up.rep_done === false) return false;
+
+                // Category checks - Whitelist Approach: Hide unless explicitly permitted
+                if (c === 'SAFETY' && up.rep_cat_safety !== true) return false;
+                if (c === 'SERVICE' && up.rep_cat_service !== true) return false;
+                if (c === 'VIOLATION' && up.rep_cat_violation !== true) return false;
+
+                // Whitelist checks
+                if (hasWhitelist) {
+                    const isAuthorized = allowedSites.some(sn => sn && loc && sn.trim().toLowerCase() === loc.toLowerCase());
+                    if (!isAuthorized) return false;
+                }
+                return true;
+            });
         }
 
         function resetFilters() {
@@ -990,30 +1062,10 @@
             const statFilter = document.getElementById('filter-status').value;
             const sortOrder = document.getElementById('filter-sort').value;
 
-            let filtered = allReports.filter(r => {
+            let filtered = getAuthorizedReports().filter(r => {
                 const s = (r.status || 'OPEN').toUpperCase();
                 const p = (r.priority || 'Low').toUpperCase();
                 const c = (r.category || 'Other').toUpperCase();
-                let loc = (r.location || r.site || '').trim();
-                // Normalize for whitelist check
-                if(loc === 'HQ — Jeddah' || loc === 'Jeddah - New Office') loc = 'Jeddah Main Office - Randa Tower';
-
-                // RBAC Permission Logic - BYPASS FOR SUPER ADMIN
-                if (isAdmin) {
-                    // Admin sees all, skip RBAC/Whitelist checks
-                } else {
-                    if (s === 'OPEN' && up.rep_open === false) return false;
-                    if (s === 'DONE' && up.rep_done === false) return false;
-                    if (c === 'SAFETY' && up.rep_cat_safety === false) return false;
-                    if (c === 'SERVICE' && up.rep_cat_service === false) return false;
-                    if (c === 'VIOLATION' && up.rep_cat_violation === false) return false;
-                    
-                    // Whitelist Filter (Case-Insensitive & Normalized)
-                    if (hasWhitelist) {
-                        const isAuthorized = allowedSites.some(sn => sn && loc && sn.trim().toLowerCase() === loc.toLowerCase());
-                        if (!isAuthorized) return false;
-                    }
-                }
                 
                 const matchesSearch = search === '' || 
                                      (r.id || '').toLowerCase().includes(search) || 
@@ -1632,6 +1684,7 @@
                     currentUserData = { role: 'super_admin' };
                     if (navRole) navRole.style.display = 'flex';
                     document.getElementById('loading-rbac').classList.add('hide');
+                    syncAllData();
                     switchView(activeView); // Super admin gets what they want
                 } else {
                     if (navRole) navRole.style.display = 'none';
@@ -1639,6 +1692,7 @@
                     if (!q.empty) {
                         currentUserData = q.docs[0].data();
                         document.getElementById('loading-rbac').classList.add('hide');
+                        syncAllData();
                         
                         const perms = currentUserData.permissions || {};
                         const map = { 'dashboard': 'dashboard', 'per-site': 'sites', 'all-reports': 'reports', 'employees': 'employees', 'chat': 'chat', 'hr-podcast': 'podcast' };
