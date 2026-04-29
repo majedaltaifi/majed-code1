@@ -7,3 +7,14 @@ node_modules/
 .DS_Store
 firebase-config.js
 sync_to_auth.py
+index_backup_pre_chat_rebuild.html
+index_old.html
+index_old_temp.html
+index_old_utf8.html
+login.html
+manifest.json
+sw.js
+sync_to_auth.py
+upload_employees.py
+vercel.json
+verify_firestore_data.py
