@@ -951,7 +951,7 @@
 
         function initCharts() {
             const opt = (type) => ({ responsive: true, maintainAspectRatio: false, onClick: (e, els, chart) => { if(els.length > 0) { const idx = els[0].index; const label = chart.data.labels[idx]; openFilteredList(label, `${label} Analysis`, type); } }, plugins: { legend: { position: 'bottom', labels: { color: '#fff', font: { size: 12, weight: '700' }, padding: 15 } } } });
-            charts.category = new Chart(document.getElementById('categoryChart'), { type: 'doughnut', data: { labels: ['Safety', 'Service', 'Other'], datasets: [{ data: [0,0,0], backgroundColor: ['#ff5252', '#80d1e9', '#2e3192'], borderWidth: 0 }] }, options: { ...opt('category'), cutout: '78%' } });
+            charts.category = new Chart(document.getElementById('categoryChart'), { type: 'doughnut', data: { labels: ['Safety', 'Service', 'Violation'], datasets: [{ data: [0,0,0], backgroundColor: ['#ff5252', '#80d1e9', '#6366f1'], borderWidth: 0 }] }, options: { ...opt('category'), cutout: '78%' } });
             charts.openPriority = new Chart(document.getElementById('openPriorityChart'), { type: 'doughnut', data: { labels: ['Critical', 'High', 'Medium', 'Low'], datasets: [{ data: [0,0,0,0], backgroundColor: ['#ff5252', '#ffab00', '#80d1e9', '#00e676'], borderWidth: 0 }] }, options: { ...opt('priority'), cutout: '78%' } });
             charts.priority = new Chart(document.getElementById('priorityChart'), { type: 'bar', data: { labels: ['Critical', 'High', 'Medium', 'Low'], datasets: [{ data: [0,0,0,0], backgroundColor: ['#ff5252', '#ffab00', '#80d1e9', '#00e676'], borderRadius: 12 }] }, options: { ...opt('priority'), plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#fff' } }, x: { ticks: { color: '#fff' } } } } });
             charts.location = new Chart(document.getElementById('locationChart'), { type: 'bar', data: { labels: [], datasets: [{ data: [], backgroundColor: '#80d1e9', borderRadius: 8 }] }, options: { ...opt('location'), indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#fff' } }, y: { ticks: { color: '#fff' } } } } });
@@ -970,7 +970,7 @@
             document.getElementById('main-closed').innerText = closedCount; 
             document.getElementById('main-rate').innerText = rate + '%';
             
-            const cats = { safety: 0, service: 0, other: 0 }; 
+            const cats = { safety: 0, service: 0, violation: 0 }; 
             const pris = { critical: 0, high: 0, medium: 0, low: 0 }; 
             const openPris = { critical: 0, high: 0, medium: 0, low: 0 }; 
             const locs = {};
@@ -984,7 +984,7 @@
             });
             openReports.forEach(r => { openPris[(r.priority || 'Low').toLowerCase()]++; });
             
-            if(charts.category) { charts.category.data.datasets[0].data = [cats.safety, cats.service, cats.other]; charts.category.update(); }
+            if(charts.category) { charts.category.data.datasets[0].data = [cats.safety, cats.service, cats.violation]; charts.category.update(); }
             if(charts.openPriority) { charts.openPriority.data.datasets[0].data = [openPris.critical, openPris.high, openPris.medium, openPris.low]; charts.openPriority.update(); }
             if(charts.priority) { charts.priority.data.datasets[0].data = [pris.critical, pris.high, pris.medium, pris.low]; charts.priority.update(); }
             if(charts.location) { const sortedLocs = Object.entries(locs).sort((a,b) => b[1] - a[1]).slice(0, 10); charts.location.data.labels = sortedLocs.map(l => l[0]); charts.location.data.datasets[0].data = sortedLocs.map(l => l[1]); charts.location.update(); }
