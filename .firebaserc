@@ -1,5 +1,17 @@
 {
   "projects": {
     "default": "majed-code1"
+  },
+  "targets": {
+    "majed-code1": {
+      "hosting": {
+        "hr-portal": [
+          "nit-hr-portal"
+        ],
+        "employee-app": [
+          "nit-employee-app"
+        ]
+      }
+    }
   }
 }
