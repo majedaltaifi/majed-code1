@@ -4,6 +4,8 @@
       "site": "nit-hr-portal",
       "public": ".",
       "ignore": [
+        "index.html",
+        "manifest.json",
         "firebase.json",
         "**/.*",
         "**/node_modules/**",
@@ -13,6 +15,10 @@
       "rewrites": [
         {
           "source": "/",
+          "destination": "/HR_Portal.html"
+        },
+        {
+          "source": "/**",
           "destination": "/HR_Portal.html"
         }
       ],
@@ -32,6 +38,8 @@
       "site": "nit-employee-app",
       "public": ".",
       "ignore": [
+        "HR_Portal.html",
+        "manifest_hr.json",
         "firebase.json",
         "**/.*",
         "**/node_modules/**",
