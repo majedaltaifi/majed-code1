@@ -1,7 +1,7 @@
 {
   "hosting": [
     {
-      "target": "hr-portal",
+      "site": "nit-hr-portal",
       "public": ".",
       "ignore": [
         "firebase.json",
@@ -29,7 +29,7 @@
       ]
     },
     {
-      "target": "employee-app",
+      "site": "nit-employee-app",
       "public": ".",
       "ignore": [
         "firebase.json",
