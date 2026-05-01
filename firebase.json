@@ -1,6 +1,7 @@
 {
   "hosting": [
     {
+      "target": "hr-portal",
       "site": "nit-hr-portal",
       "public": ".",
       "ignore": [
@@ -29,6 +30,7 @@
       ]
     },
     {
+      "target": "employee-app",
       "site": "nit-employee-app",
       "public": ".",
       "ignore": [
