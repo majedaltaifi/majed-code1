@@ -4,19 +4,14 @@ name: Deploy to Firebase Hosting on merge
     branches:
       - main
 jobs:
-  build_and_deploy:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Install Firebase CLI
-        run: npm install -g firebase-tools
-      - name: Deploy to Firebase Hosting
-        run: firebase deploy --only hosting --project majed-code1
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+      - name: Deploy to Firebase
+        uses: w9jds/firebase-action@master
+        with:
+          args: deploy --only hosting
         env:
-          GOOGLE_APPLICATION_CREDENTIALS_JSON: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_MAJED_CODE1 }}'
-          # We need to create a temporary key file because firebase-tools expects a path
-      - name: Authenticate and Deploy
-        run: |
-          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_MAJED_CODE1 }}' > service-account.json
-          export GOOGLE_APPLICATION_CREDENTIALS=service-account.json
-          firebase deploy --only hosting --project majed-code1
+          GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_MAJED_CODE1 }}
