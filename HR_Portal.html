@@ -1266,10 +1266,19 @@
                                                .sort((a, b) => new Date(b.lastAt) - new Date(a.lastAt));
                   renderSupportConversations();
                   
-                  // Update sidebar global dot
-                  const totalUnread = allSupportConversations.reduce((acc, c) => acc + ((c.unread && c.unread['Support']) || 0), 0);
+                  // Update sidebar global dot - Only count unread from non-placeholder chats
+                  const totalUnread = allSupportConversations.reduce((acc, c) => {
+                      const isPlaceholder = !c.last_msg || 
+                                           c.last_msg === 'Admin started a conversation' || 
+                                           c.last_msg === 'Chat initiated by Admin';
+                      if (isPlaceholder) return acc;
+                      return acc + ((c.unread && c.unread['Support']) || 0);
+                  }, 0);
+                  
                   const dot = document.getElementById('sidebar-chat-dot');
-                  if(dot) dot.style.display = totalUnread > 0 ? 'block' : 'none';
+                  if(dot) {
+                      dot.style.display = totalUnread > 0 ? 'block' : 'none';
+                  }
               }, err => {
                   console.error("Support Sync Error:", err);
                   document.getElementById('support-conv-list').innerHTML = '<div style="color:red; padding:20px;">Sync Error. Check console.</div>';
