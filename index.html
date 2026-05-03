@@ -2680,8 +2680,14 @@ function openForgotPass(){
 async function submitForgotPassword(){
   const empNo = document.getElementById('forgot-emp-no').value.trim();
   const status = document.getElementById('forgot-status');
+  const btn = document.querySelector('#sheet-forgot-pass .btn-primary');
   const t = T[lang], en = T.en;
   if(!empNo) return;
+  
+  if (btn) {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+  }
   
   status.innerHTML = '<div style="text-align:center;padding:10px"><span class="spinner"></span> ' + (lang==='ar'?'جاري التحقق...':'Searching...') + '</div>';
   
@@ -2740,6 +2746,13 @@ async function submitForgotPassword(){
   } catch(e) { 
     console.error("Reset Pass Error:", e);
     status.innerHTML = '<div style="color:var(--danger)">Error: ' + e.message + '</div>'; 
+  } finally {
+    if (btn) {
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+      }, 30000); // 30 second cooldown
+    }
   }
 }
 
