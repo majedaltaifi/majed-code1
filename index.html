@@ -2682,24 +2682,50 @@ async function submitForgotPassword(){
   const status = document.getElementById('forgot-status');
   const t = T[lang], en = T.en;
   if(!empNo) return;
-  status.innerHTML = 'Searching...';
+  
+  status.innerHTML = '<div style="text-align:center;padding:10px"><span class="spinner"></span> ' + (lang==='ar'?'جاري التحقق...':'Searching...') + '</div>';
+  
   try {
     const doc = await db.collection('employees').doc(empNo).get();
-    if(doc.exists && doc.data().email) {
-      const email = doc.data().email;
-      await firebase.auth().sendPasswordResetEmail(email);
-      const parts = email.split('@');
-      const masked = parts[0].substring(0, 1) + '***@' + parts[1];
-      status.innerHTML = `<div style="color:var(--success);background:rgba(0,230,118,0.1);padding:12px;border-radius:10px;border:1px solid rgba(0,230,118,0.2)">
-        ${t.forgotPassSent || en.forgotPassSent}:<br>
-        <strong style="margin-top:5px;display:block">${masked}</strong>
-      </div>`;
+    if(doc.exists) {
+      const data = doc.data();
+      const email = data.email;
+      
+      if(!email) {
+        status.innerHTML = `<div style="color:var(--danger);background:rgba(255,82,82,0.1);padding:12px;border-radius:10px;border:1px solid rgba(255,82,82,0.2)">
+          ${lang==='ar'?'لا يوجد بريد مسجل لهذا الرقم. تواصل مع الإدارة.':'No email found for this ID. Contact Admin.'}
+        </div>`;
+        return;
+      }
+
+      try {
+        await firebase.auth().sendPasswordResetEmail(email);
+        const parts = email.split('@');
+        const masked = parts[0].substring(0, 1) + '***@' + parts[1];
+        status.innerHTML = `<div style="color:var(--success);background:rgba(0,230,118,0.1);padding:12px;border-radius:10px;border:1px solid rgba(0,230,118,0.2)">
+          ${t.forgotPassSent || en.forgotPassSent}:<br>
+          <strong style="margin-top:5px;display:block">${masked}</strong>
+        </div>`;
+      } catch(authErr) {
+        if(authErr.code === 'auth/user-not-found') {
+          // If not in Auth, they can just use the default password
+          status.innerHTML = `<div style="color:var(--turquoise);background:rgba(128,209,233,0.1);padding:15px;border-radius:12px;border:1px solid rgba(128,209,233,0.2);line-height:1.5">
+            ${lang==='ar'?'حسابك لم يتم تفعيله بعد. يمكنك تسجيل الدخول بكلمة السر الافتراضية:':'Your account is not activated yet. Use the default password:'}<br>
+            <strong style="font-size:1.2rem; display:block; margin-top:10px; color:#fff">123456</strong>
+          </div>`;
+        } else {
+          throw authErr;
+        }
+      }
     } else {
       status.innerHTML = `<div style="color:var(--danger);background:rgba(255,82,82,0.1);padding:12px;border-radius:10px;border:1px solid rgba(255,82,82,0.2)">
         ${t.forgotPassNotFound || en.forgotPassNotFound}
       </div>`;
     }
-  } catch(e) { status.innerHTML = 'Error: ' + e.message; }
+  } catch(e) { 
+    console.error("Reset Pass Error:", e);
+    status.innerHTML = '<div style="color:var(--danger)">Error: ' + e.message + '</div>'; 
+  }
 }
 
 function goBackToLang(){
