@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nit-cache-v13.0'; // Updated version to force refresh
+const CACHE_NAME = 'nit-cache-v14.0'; // Updated version to force refresh
 const ASSETS = [
   './',
   './index.html',
