@@ -11,6 +11,7 @@
     <link rel="manifest" href="manifest_hr.json">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     
     <style>
         :root {
@@ -387,9 +388,17 @@
             <div class="panel">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
                     <h2 style="font-size:2rem; font-weight:900;">Employee Directory</h2>
-                    <div style="position:relative;">
-                        <i class="fas fa-search" style="position:absolute; left:15px; top:13px; opacity:0.4;"></i>
-                        <input type="text" id="emp-search" placeholder="Search employees..." style="background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:12px; padding:10px 15px 10px 40px; color:#fff;" oninput="renderEmployees()">
+                    <div style="display:flex; gap:15px; align-items:center;">
+                        <!-- Bulk Upload Button -->
+                        <button class="action-btn" style="background:rgba(128,209,233,0.1); color:var(--turquoise); border:1px solid var(--border-glow);" onclick="document.getElementById('excel-upload').click()">
+                            <i class="fas fa-file-excel"></i> Bulk Upload Excel
+                        </button>
+                        <input type="file" id="excel-upload" style="display:none;" accept=".xlsx, .xls" onchange="handleExcelUpload(this)">
+                        
+                        <div style="position:relative;">
+                            <i class="fas fa-search" style="position:absolute; left:15px; top:13px; opacity:0.4;"></i>
+                            <input type="text" id="emp-search" placeholder="Search employees..." style="background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:12px; padding:10px 15px 10px 40px; color:#fff;" oninput="renderEmployees()">
+                        </div>
                     </div>
                 </div>
                 <div style="overflow-x: auto;">
@@ -1406,6 +1415,72 @@
                     </td>
                 </tr>
             `).join('');
+        }
+
+        async function handleExcelUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    if (json.length === 0) {
+                        alert("The Excel file is empty!");
+                        return;
+                    }
+
+                    if(!confirm(`Found ${json.length} employees in Excel. Start bulk uploading?`)) return;
+
+                    let successCount = 0;
+                    let batch = db.batch();
+                    let counter = 0;
+
+                    for (const row of json) {
+                        const empNo = String(row['Employee Code'] || '').trim();
+                        if (!empNo || empNo === 'undefined' || empNo === '') continue;
+
+                        const docRef = db.collection('employees').doc(empNo);
+                        const payload = {
+                            emp_no: empNo,
+                            name: String(row['Employee Name - English'] || '').trim(),
+                            email: row['E-Mail'] ? String(row['E-Mail']).trim().toLowerCase() : null,
+                            role: String(row['Position - English'] || '').trim(),
+                            department: String(row['Departments - English'] || '').trim(),
+                            division: String(row['Division - English'] || '').trim(),
+                            site: String(row['Site - English'] || '').trim(),
+                            project: String(row['Project - English'] || '').trim(),
+                            phone: String(row['Mobile'] || '').trim(),
+                            grade: String(row['Grade - English'] || '').trim(),
+                            activated: false,
+                            updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+
+                        batch.set(docRef, payload, { merge: true });
+                        counter++;
+                        successCount++;
+
+                        if (counter >= 400) {
+                            await batch.commit();
+                            batch = db.batch();
+                            counter = 0;
+                        }
+                    }
+
+                    if (counter > 0) await batch.commit();
+                    alert(`✅ Done! Successfully uploaded ${successCount} employees to the system.`);
+                    input.value = '';
+                } catch (err) {
+                    console.error("Excel Processing Error:", err);
+                    alert("⚠️ Error processing Excel file: " + err.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
         }
 
 
