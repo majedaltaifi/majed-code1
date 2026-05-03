@@ -2551,29 +2551,13 @@ function setLang(l){
   applyT();
   buildTypeGrid();buildSevOpts();buildLocOpts();
   document.getElementById('screen-lang').classList.remove('show');
-  
-  // Safety Timeout: Hide splash screen if it hangs for more than 5 seconds
-  setTimeout(() => {
-    const splash = document.getElementById('splash-screen');
-    if(splash && !splash.classList.contains('hide')) {
-       console.warn("Safety Timeout: Hiding splash screen manually.");
-       splash.classList.add('hide');
-    }
-  }, 5000);
-
-  firebase.auth().onAuthStateChanged(user => {
-    // Hide splash screen as soon as we have an auth state
-    const splash = document.getElementById('splash-screen');
-    if(splash) splash.classList.add('hide');
-
-    currentUser = loadUser();
-    if(!user || !currentUser){
-      applyT(); 
-      document.getElementById('screen-login').classList.add('show');
-    } else {
-      enterMainApp();
-    }
-  });
+  currentUser=loadUser();
+  if(!currentUser){
+    applyT(); // Force re-apply before showing login
+    document.getElementById('screen-login').classList.add('show');
+    return;
+  }
+  enterMainApp();
 }
 
   function enterMainApp(){
