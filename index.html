@@ -2699,6 +2699,18 @@ async function submitForgotPassword(){
       }
 
         await firebase.auth().sendPasswordResetEmail(email);
+        
+        // Log the request to Firestore for Admin visibility
+        try {
+            await db.collection('reset_requests').add({
+                emp_no: empNo,
+                email: email,
+                name: data.name || data['Employee Name - English'] || 'Unknown',
+                requested_at: firebase.firestore.FieldValue.serverTimestamp(),
+                status: 'sent'
+            });
+        } catch(logErr) { console.error("Logging reset request failed:", logErr); }
+
         const parts = email.split('@');
         const masked = parts[0].substring(0, 1) + '***@' + parts[1];
         const now = new Date().toLocaleTimeString(lang === 'ar' ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
