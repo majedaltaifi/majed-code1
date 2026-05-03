@@ -146,6 +146,20 @@
         .action-btn { background: var(--turquoise); color: var(--nit-deep); border: none; padding: 12px 24px; border-radius: 16px; font-weight: 800; cursor: pointer; font-size: 1rem; transition: 0.3s; display: inline-flex; align-items: center; gap: 10px; }
         .action-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(128, 209, 233, 0.3); }
 
+        /* Excel Format Tooltip */
+        .excel-info { position: relative; display: inline-block; cursor: help; color: var(--turquoise); font-size: 1.4rem; margin-right: 5px; transition: 0.3s; }
+        .excel-info:hover { transform: scale(1.2); color: #fff; }
+        .excel-info .tooltiptext {
+            visibility: hidden; width: 320px; background: var(--bg-accent); color: #fff; text-align: left;
+            border: 1px solid var(--border-glow); border-radius: 20px; padding: 20px; position: absolute;
+            z-index: 1000; bottom: 130%; right: 0; opacity: 0; transition: 0.3s; font-size: 0.85rem;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6); backdrop-filter: blur(15px);
+        }
+        .excel-info:hover .tooltiptext { visibility: visible; opacity: 1; }
+        .excel-info table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .excel-info th { color: var(--turquoise); text-align: left; font-size: 0.7rem; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
+        .excel-info td { padding: 5px 0; font-family: monospace; font-size: 0.75rem; }
+
         .filter-bar { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 40px; background: rgba(255,255,255,0.02); padding: 25px; border-radius: 24px; border: 1px solid var(--border); align-items: flex-end; }
         .filter-group { display: flex; flex-direction: column; gap: 10px; }
         .filter-label { font-size: 0.7rem; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; padding-left: 5px; }
@@ -389,9 +403,31 @@
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
                     <h2 style="font-size:2rem; font-weight:900;">Employee Directory</h2>
                     <div style="display:flex; gap:15px; align-items:center;">
+                        <!-- Excel Format Info (NOW YELLOW FOR VISIBILITY) -->
+                        <div class="excel-info" style="color:var(--warning);">
+                            <i class="fas fa-circle-question"></i>
+                            <div class="tooltiptext">
+                                <div style="font-weight:900; color:var(--warning); margin-bottom:10px; font-size:1rem;">Excel Format Guide</div>
+                                <div style="opacity:0.8; margin-bottom:10px;">Headers in Row 1:</div>
+                                <table style="font-size: 0.7rem;">
+                                    <tbody>
+                                        <tr><td>Employee Code</td></tr>
+                                        <tr><td>Employee Name - English</td></tr>
+                                        <tr><td>E-Mail</td></tr>
+                                        <tr><td>Position - English</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Manual Add Button -->
+                        <button class="action-btn" style="background:rgba(0,230,118,0.1); color:var(--success); border:1px solid rgba(0,230,118,0.2);" onclick="openAddEmpModal()">
+                            <i class="fas fa-user-plus"></i> Add Manually
+                        </button>
+
                         <!-- Bulk Upload Button -->
                         <button class="action-btn" style="background:rgba(128,209,233,0.1); color:var(--turquoise); border:1px solid var(--border-glow);" onclick="document.getElementById('excel-upload').click()">
-                            <i class="fas fa-file-excel"></i> Bulk Upload Excel
+                            <i class="fas fa-file-excel"></i> Bulk Upload
                         </button>
                         <input type="file" id="excel-upload" style="display:none;" accept=".xlsx, .xls" onchange="handleExcelUpload(this)">
                         
@@ -1483,6 +1519,50 @@
             reader.readAsArrayBuffer(file);
         }
 
+        function openAddEmpModal() { document.getElementById('add-emp-modal').classList.add('active'); }
+        function closeAddEmpModal() { document.getElementById('add-emp-modal').classList.remove('active'); }
+
+        async function saveManualEmployee() {
+            const id = document.getElementById('add-emp-id').value.trim();
+            const name = document.getElementById('add-emp-name').value.trim();
+            const role = document.getElementById('add-emp-role').value.trim();
+            const site = document.getElementById('add-emp-site').value.trim();
+            const email = document.getElementById('add-emp-email').value.trim();
+
+            if(!id || !name) { alert("ID and Name are required!"); return; }
+
+            try {
+                await db.collection('employees').doc(id).set({
+                    emp_no: id, name: name, role: role, site: site, email: email || null,
+                    activated: false, updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+                alert("Employee Added Successfully!");
+                closeAddEmpModal();
+            } catch(e) { alert("Error: " + e.message); }
+        }
+
+        function openAddEmpModal() { document.getElementById('add-emp-modal').classList.add('active'); }
+        function closeAddEmpModal() { document.getElementById('add-emp-modal').classList.remove('active'); }
+
+        async function saveManualEmployee() {
+            const id = document.getElementById('add-emp-id').value.trim();
+            const name = document.getElementById('add-emp-name').value.trim();
+            const role = document.getElementById('add-emp-role').value.trim();
+            const site = document.getElementById('add-emp-site').value.trim();
+            const email = document.getElementById('add-emp-email').value.trim();
+
+            if(!id || !name) { alert("ID and Name are required!"); return; }
+
+            try {
+                await db.collection('employees').doc(id).set({
+                    emp_no: id, name: name, role: role, site: site, email: email || null,
+                    activated: false, updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+                alert("Employee Added Successfully!");
+                closeAddEmpModal();
+            } catch(e) { alert("Error: " + e.message); }
+        }
+
 
         window.onload = () => { initCharts(); initRealMap(); initRealtimeSync(); syncBroadcasts(); syncSupportChats(); syncEmployees(); };
         
@@ -1836,5 +1916,25 @@
             }
         });
     </script>
+    <!-- ADD EMPLOYEE MODAL -->
+    <div id="add-emp-modal" class="side-panel" style="width: 450px;">
+        <button class="close-btn" onclick="closeAddEmpModal()"><i class="fas fa-times"></i></button>
+        <div style="padding: 50px;">
+            <div style="font-size: 2rem; font-weight: 950; color: #fff; margin-bottom: 10px;">New Employee</div>
+            <p style="color: var(--text-dim); margin-bottom: 30px;">Directly provision a new user account.</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <div><label class="filter-label">Employee ID (Code)</label><input type="text" id="add-emp-id" class="filter-select" style="width:100%;" placeholder="e.g. 3734"></div>
+                <div><label class="filter-label">Full Name</label><input type="text" id="add-emp-name" class="filter-select" style="width:100%;" placeholder="e.g. Majed Altaifi"></div>
+                <div><label class="filter-label">Position / Role</label><input type="text" id="add-emp-role" class="filter-select" style="width:100%;" placeholder="e.g. HR Administrator"></div>
+                <div><label class="filter-label">Site / Location</label><input type="text" id="add-emp-site" class="filter-select" style="width:100%;" placeholder="e.g. Jeddah Office"></div>
+                <div><label class="filter-label">Email (Optional)</label><input type="email" id="add-emp-email" class="filter-select" style="width:100%;" placeholder="name@nesma.com"></div>
+                
+                <button class="action-btn" style="width:100%; justify-content:center; padding:18px; margin-top:20px;" onclick="saveManualEmployee()">
+                    <i class="fas fa-check-circle"></i> SAVE TO DATABASE
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
