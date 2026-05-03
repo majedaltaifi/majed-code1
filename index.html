@@ -2698,6 +2698,7 @@ async function submitForgotPassword(){
         return;
       }
 
+      try {
         await firebase.auth().sendPasswordResetEmail(email);
         
         // Log the request to Firestore for Admin visibility
