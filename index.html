@@ -2698,13 +2698,15 @@ async function submitForgotPassword(){
         return;
       }
 
-      try {
         await firebase.auth().sendPasswordResetEmail(email);
         const parts = email.split('@');
         const masked = parts[0].substring(0, 1) + '***@' + parts[1];
+        const now = new Date().toLocaleTimeString(lang === 'ar' ? 'ar-SA' : 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        
         status.innerHTML = `<div style="color:var(--success);background:rgba(0,230,118,0.1);padding:12px;border-radius:10px;border:1px solid rgba(0,230,118,0.2)">
-          ${t.forgotPassSent || en.forgotPassSent}:<br>
-          <strong style="margin-top:5px;display:block">${masked}</strong>
+          <div style="font-weight:800; margin-bottom:5px;">${t.forgotPassSent || en.forgotPassSent}</div>
+          <div style="font-size:0.85rem; opacity:0.8; margin-bottom:8px;">${lang==='ar'?'تم إرسال رابط جديد في:':'New link sent at:'} ${now}</div>
+          <strong style="display:block; border-top:1px solid rgba(0,230,118,0.1); padding-top:8px;">${masked}</strong>
         </div>`;
       } catch(authErr) {
         if(authErr.code === 'auth/user-not-found') {
