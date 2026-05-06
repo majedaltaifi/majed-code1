@@ -1191,8 +1191,19 @@
             const emp = allEmployees.find(e => (e.id && r.employeeId && e.id.toString() === r.employeeId.toString()) || (e.id && r.emp_no && e.id.toString() === r.emp_no.toString()));
             
             const reporterName = isAnon ? 'Anonymous (Identity Protected)' : (emp ? emp.name : (r.reporterName || r.emp_name || r.reporter || 'Identified Employee'));
-            const evidence = (r.imageDatas && r.imageDatas.length > 0) ? "Multiple images attached (View in Dashboard)" : (r.imageUrl || r.image || 'No images provided');
-            const imageUrl = evidence.startsWith('data:') ? "Image data (Base64) - Please view in Dashboard for full quality." : evidence;
+            
+            let evidenceText = "";
+            const images = r.imageDatas || ( (r.imageUrl || r.image) ? [r.imageUrl || r.image] : [] );
+            
+            if (images.length > 0) {
+                evidenceText = images.map((img, i) => {
+                    if (img.startsWith('data:')) return `[Image ${i+1}]: Photo captured directly in app (Base64). Character limit prevents direct display. Please view in Dashboard.`;
+                    return `[Image ${i+1} Link]: ${img}`;
+                }).join('\n');
+            } else {
+                evidenceText = "No images provided.";
+            }
+
             const ongoing = r.isViolationOngoing || (r.ongoing ? 'Yes' : 'No');
             const freq = r.frequency || 'N/A';
             const time = r.approxTime || r.time || 'N/A';
@@ -1235,7 +1246,7 @@ ${r.description || r.desc || 'No description provided.'}
 ===============================================
 EVIDENCE / IMAGES:
 ------------------------------
-${imageUrl}
+${evidenceText}
 ===============================================
 This is an automated forward from the NIT Field Strategic Command.
             `.trim());
