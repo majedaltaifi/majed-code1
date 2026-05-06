@@ -3716,6 +3716,15 @@ function resetForm(){
   const togAn=document.getElementById('tog-anon');if(togAn)togAn.classList.remove('on');
   const togOn=document.getElementById('tog-ongoing');if(togOn)togOn.classList.remove('on');
   const cf=document.getElementById('contact-fields');if(cf)cf.classList.add('show');
+  
+  // Auto-populate employee data from the start
+  if(currentUser){
+    const emailField = document.getElementById('f-email');
+    const phoneField = document.getElementById('f-phone');
+    if(emailField) emailField.value = currentUser.email || '';
+    if(phoneField) phoneField.value = currentUser.phone || '';
+  }
+
   const fp=document.getElementById('file-previews');if(fp)fp.innerHTML='';
   const sw=document.getElementById('sub-issue-wrap');if(sw)sw.style.display='none';
   const dw=document.getElementById('detail-wrap');if(dw)dw.style.display='none';
