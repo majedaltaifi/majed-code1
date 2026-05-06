@@ -1147,7 +1147,10 @@
         }
 
         function showEmailSuggestions(input, listId) {
-            const query = input.value.toLowerCase().trim();
+            const rawValue = input.value;
+            const lastComma = Math.max(rawValue.lastIndexOf(','), rawValue.lastIndexOf(';'));
+            const query = rawValue.substring(lastComma + 1).toLowerCase().trim();
+            
             const list = document.getElementById(listId);
             if (!query || query.length < 1) { list.style.display = 'none'; return; }
             
@@ -1169,17 +1172,29 @@
         }
 
         function selectSuggestion(listId, inputId, email) {
-            document.getElementById(inputId).value = email;
+            const input = document.getElementById(inputId);
+            const rawValue = input.value;
+            const lastComma = Math.max(rawValue.lastIndexOf(','), rawValue.lastIndexOf(';'));
+            
+            const base = lastComma >= 0 ? rawValue.substring(0, lastComma + 1) : '';
+            input.value = (base + ' ' + email + ', ').trim();
+            
             document.getElementById(listId).style.display = 'none';
+            input.focus();
         }
 
         function sendForwardEmail(reportId) {
             const r = allReports.find(x => x.id === reportId);
             if(!r) return;
-            const to = document.getElementById(`fwd-to-${reportId}`).value;
-            const cc = document.getElementById(`fwd-cc-${reportId}`).value;
             
-            if (!to) return alert("Please specify a recipient email address.");
+            let to = document.getElementById(`fwd-to-${reportId}`).value.trim();
+            let cc = document.getElementById(`fwd-cc-${reportId}`).value.trim();
+            
+            // Clean up trailing commas
+            if(to.endsWith(',')) to = to.slice(0, -1);
+            if(cc.endsWith(',')) cc = cc.slice(0, -1);
+            
+            if (!to) return alert("Please specify at least one recipient email address.");
             
             const subject = encodeURIComponent(`NIT Incident Report FORWARD: #${reportId.slice(-4)} - ${r.category}`);
             const body = encodeURIComponent(`
