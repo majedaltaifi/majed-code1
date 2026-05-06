@@ -530,6 +530,14 @@
                         </select>
                     </div>
                     <div class="filter-group">
+                        <div class="filter-label">Status</div>
+                        <select id="filter-status" class="filter-select" onchange="applyFilters()">
+                            <option value="ALL">All Status</option>
+                            <option value="OPEN">Active Only</option>
+                            <option value="DONE">Resolved Only</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
                         <div class="filter-label">Sort By</div>
                         <select id="filter-sort" class="filter-select" onchange="applyFilters()">
                             <option value="NEWEST">Newest First</option>
@@ -873,9 +881,13 @@
                     </div>
                 </div>
 
-                <div style="margin-top:40px; display:flex; gap:15px;">
-                    <button class="action-btn" onclick="openReportChat('${r.id}', '${isAnon ? 'Anonymous Reporter' : reporterName}')" style="background:var(--turquoise); color:var(--nit-deep); flex:1; height:60px; font-size:1.1rem;">
+                <div style="margin-top:40px; display:flex; flex-direction:column; gap:15px;">
+                    <button class="action-btn" onclick="openReportChat('${r.id}', '${isAnon ? 'Anonymous Reporter' : reporterName}')" style="background:var(--turquoise); color:var(--nit-deep); height:60px; font-size:1.1rem; justify-content:center;">
                         <i class="fas fa-comment-dots"></i> Chat with Reporter
+                    </button>
+                    
+                    <button class="action-btn" onclick="deleteReport('${r.id}')" style="background:rgba(255,52,52,0.1); color:var(--danger); border:1px solid rgba(255,52,52,0.2); height:60px; font-size:1.1rem; justify-content:center;">
+                        <i class="fas fa-trash-alt"></i> Delete This Report
                     </button>
                 </div>
             `;
@@ -1076,8 +1088,20 @@
             document.getElementById('report-search').value = '';
             document.getElementById('filter-priority').value = 'ALL';
             document.getElementById('filter-category').value = 'ALL';
+            document.getElementById('filter-status').value = 'ALL';
             document.getElementById('filter-sort').value = 'NEWEST';
             applyFilters();
+        }
+
+        async function deleteReport(id) {
+            if(!confirm("Are you sure you want to permanently delete this report? This action cannot be undone.")) return;
+            try {
+                await db.collection('reports').doc(id).delete();
+                closeSidePanel();
+                alert("Report deleted successfully.");
+            } catch(e) {
+                alert("Error deleting report: " + e.message);
+            }
         }
 
         function getUnixTime(x) {
@@ -1105,6 +1129,7 @@
             const search = (document.getElementById('report-search') ? document.getElementById('report-search').value.toLowerCase() : ''); 
             const priFilter = document.getElementById('filter-priority').value;
             const catFilter = document.getElementById('filter-category').value;
+            const statFilter = document.getElementById('filter-status').value;
             const sortOrder = document.getElementById('filter-sort').value;
 
             let filtered = getAuthorizedReports().filter(r => {
@@ -1120,7 +1145,7 @@
                 
                 const matchesPri = priFilter === 'ALL' || p === priFilter;
                 const matchesCat = catFilter === 'ALL' || c === catFilter;
-                const matchesStat = true;
+                const matchesStat = statFilter === 'ALL' || s === statFilter;
                 
                 return matchesSearch && matchesPri && matchesCat && matchesStat;
             });
