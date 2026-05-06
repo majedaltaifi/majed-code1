@@ -1187,6 +1187,16 @@
             const r = allReports.find(x => x.id === reportId);
             if(!r) return;
             
+            const isAnon = (r.isAnonymous === true || r.anon === true || (r.reporter && r.reporter.toLowerCase() === 'anonymous') || !r.reporter);
+            const emp = allEmployees.find(e => (e.id && r.employeeId && e.id.toString() === r.employeeId.toString()) || (e.id && r.emp_no && e.id.toString() === r.emp_no.toString()));
+            
+            const reporterName = isAnon ? 'Anonymous (Identity Protected)' : (emp ? emp.name : (r.reporterName || r.emp_name || r.reporter || 'Identified Employee'));
+            const evidence = (r.imageDatas && r.imageDatas.length > 0) ? "Multiple images attached (View in Dashboard)" : (r.imageUrl || r.image || 'No images provided');
+            const imageUrl = evidence.startsWith('data:') ? "Image data (Base64) - Please view in Dashboard for full quality." : evidence;
+            const ongoing = r.isViolationOngoing || (r.ongoing ? 'Yes' : 'No');
+            const freq = r.frequency || 'N/A';
+            const time = r.approxTime || r.time || 'N/A';
+            
             let to = document.getElementById(`fwd-to-${reportId}`).value.trim();
             let cc = document.getElementById(`fwd-cc-${reportId}`).value.trim();
             
@@ -1200,23 +1210,32 @@
             const body = encodeURIComponent(`
 NIT STRATEGIC COMMAND - INCIDENT REPORT FORWARD
 ===============================================
-Report Status: ${(r.status || 'ACTIVE')}
 Reference ID: ${r.id}
-Priority: ${r.priority || 'Medium'}
-Category: ${r.category}
-Location: ${r.location || r.site}
-Environment: ${r.env || 'N/A'}
-Date Reported: ${r.date}
+Status: ${(r.status || 'ACTIVE')}
+Privacy: ${isAnon ? 'ANONYMOUS REPORT' : 'IDENTIFIED REPORTER'}
+Reporter Name: ${reporterName}
 ===============================================
-
-DESCRIPTION / WRITTEN CONTENT:
+CORE METADATA:
+- Category: ${r.category}
+- Priority/Severity: ${r.priority || 'Medium'}
+- Location: ${r.location || r.site}
+- Environment: ${r.env || 'N/A'}
+- Date Reported: ${r.date}
+- Time Reported: ${time}
+- Frequency: ${freq}
+- Ongoing Issue: ${ongoing}
+===============================================
+CLASSIFICATION:
+- Type: ${r.subIssue || 'N/A'}
+- Detail: ${r.detail || 'N/A'}
+===============================================
+WRITTEN CONTENT:
 ------------------------------
 ${r.description || r.desc || 'No description provided.'}
-
-SUB-CLASSIFICATION:
--------------------
-${r.subIssue || 'N/A'} -> ${r.detail || 'N/A'}
-
+===============================================
+EVIDENCE / IMAGES:
+------------------------------
+${imageUrl}
 ===============================================
 This is an automated forward from the NIT Field Strategic Command.
             `.trim());
