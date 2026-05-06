@@ -282,6 +282,19 @@
         
         .btn-delete-user { background: none; border: none; color: var(--danger); cursor: pointer; opacity: 0.6; transition: 0.3s; font-size: 1.1rem; }
         .btn-delete-user:hover { opacity: 1; transform: scale(1.1); }
+
+        .email-suggestions {
+            position: absolute; top: 100%; left: 0; right: 0; background: #0d0e3d; 
+            border: 1px solid var(--border-glow); border-radius: 12px; z-index: 1000; 
+            max-height: 200px; overflow-y: auto; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            backdrop-filter: blur(20px);
+        }
+        .suggestion-item {
+            padding: 12px 20px; cursor: pointer; transition: 0.2s; border-bottom: 1px solid var(--border);
+            text-align: left;
+        }
+        .suggestion-item:hover { background: rgba(128,209,233,0.1); color: var(--turquoise); }
+        .suggestion-item:last-child { border-bottom: none; }
     </style>
 </head>
 <body>
@@ -885,6 +898,30 @@
                     <button class="action-btn" onclick="openReportChat('${r.id}', '${isAnon ? 'Anonymous Reporter' : reporterName}')" style="background:var(--turquoise); color:var(--nit-deep); height:60px; font-size:1.1rem; justify-content:center;">
                         <i class="fas fa-comment-dots"></i> Chat with Reporter
                     </button>
+
+                    <button class="action-btn" onclick="toggleForwardSection('${r.id}')" style="background:rgba(128,209,233,0.1); color:var(--turquoise); border:1px solid var(--border-glow); height:60px; font-size:1.1rem; justify-content:center;">
+                        <i class="fas fa-share-square"></i> Forward via Email
+                    </button>
+
+                    <div id="forward-section-${r.id}" style="display:none; background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:24px; padding:25px; margin-top:5px; animation: slideDown 0.4s ease-out;">
+                        <div style="margin-bottom:20px;">
+                            <label class="filter-label">Forward To (Search Email)</label>
+                            <div style="position:relative;">
+                                <input type="text" id="fwd-to-${r.id}" class="filter-select" style="width:100%; margin-top:5px;" placeholder="Type name or email..." oninput="showEmailSuggestions(this, 'suggestions-to-${r.id}')" autocomplete="off">
+                                <div id="suggestions-to-${r.id}" class="email-suggestions"></div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom:25px;">
+                            <label class="filter-label">CC Recipient (Optional)</label>
+                            <div style="position:relative;">
+                                <input type="text" id="fwd-cc-${r.id}" class="filter-select" style="width:100%; margin-top:5px;" placeholder="Type name or email..." oninput="showEmailSuggestions(this, 'suggestions-cc-${r.id}')" autocomplete="off">
+                                <div id="suggestions-cc-${r.id}" class="email-suggestions"></div>
+                            </div>
+                        </div>
+                        <button class="action-btn" onclick="sendForwardEmail('${r.id}')" style="width:100%; justify-content:center; background:var(--turquoise); color:var(--nit-deep); padding:20px;">
+                            <i class="fas fa-paper-plane"></i> OPEN IN MAIL CLIENT
+                        </button>
+                    </div>
                     
                     <button class="action-btn" onclick="deleteReport('${r.id}')" style="background:rgba(255,52,52,0.1); color:var(--danger); border:1px solid rgba(255,52,52,0.2); height:60px; font-size:1.1rem; justify-content:center;">
                         <i class="fas fa-trash-alt"></i> Delete This Report
@@ -1102,6 +1139,75 @@
             } catch(e) {
                 alert("Error deleting report: " + e.message);
             }
+        }
+
+        function toggleForwardSection(id) {
+            const sec = document.getElementById(`forward-section-${id}`);
+            if(sec) sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function showEmailSuggestions(input, listId) {
+            const query = input.value.toLowerCase().trim();
+            const list = document.getElementById(listId);
+            if (!query || query.length < 1) { list.style.display = 'none'; return; }
+            
+            // Filter unique emails from directory
+            const matches = allEmployees.filter(e => 
+                (e.email && e.email.toLowerCase().includes(query)) || 
+                (e.name && e.name.toLowerCase().includes(query))
+            ).slice(0, 6);
+            
+            if (matches.length === 0) { list.style.display = 'none'; return; }
+            
+            list.innerHTML = matches.map(e => `
+                <div class="suggestion-item" onclick="selectSuggestion('${listId}', '${input.id}', '${e.email}')">
+                    <div style="font-weight:800; font-size:0.95rem; color:#fff;">${e.name}</div>
+                    <div style="font-size:0.75rem; color:var(--turquoise); font-weight:600;">${e.email}</div>
+                </div>
+            `).join('');
+            list.style.display = 'block';
+        }
+
+        function selectSuggestion(listId, inputId, email) {
+            document.getElementById(inputId).value = email;
+            document.getElementById(listId).style.display = 'none';
+        }
+
+        function sendForwardEmail(reportId) {
+            const r = allReports.find(x => x.id === reportId);
+            if(!r) return;
+            const to = document.getElementById(`fwd-to-${reportId}`).value;
+            const cc = document.getElementById(`fwd-cc-${reportId}`).value;
+            
+            if (!to) return alert("Please specify a recipient email address.");
+            
+            const subject = encodeURIComponent(`NIT Incident Report FORWARD: #${reportId.slice(-4)} - ${r.category}`);
+            const body = encodeURIComponent(`
+NIT STRATEGIC COMMAND - INCIDENT REPORT FORWARD
+===============================================
+Report Status: ${(r.status || 'ACTIVE')}
+Reference ID: ${r.id}
+Priority: ${r.priority || 'Medium'}
+Category: ${r.category}
+Location: ${r.location || r.site}
+Environment: ${r.env || 'N/A'}
+Date Reported: ${r.date}
+===============================================
+
+DESCRIPTION / WRITTEN CONTENT:
+------------------------------
+${r.description || r.desc || 'No description provided.'}
+
+SUB-CLASSIFICATION:
+-------------------
+${r.subIssue || 'N/A'} -> ${r.detail || 'N/A'}
+
+===============================================
+This is an automated forward from the NIT Field Strategic Command.
+            `.trim());
+            
+            const mailtoUrl = `mailto:${to}?cc=${cc}&subject=${subject}&body=${body}`;
+            window.open(mailtoUrl, '_blank');
         }
 
         function getUnixTime(x) {
