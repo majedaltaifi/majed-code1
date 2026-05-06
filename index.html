@@ -1383,7 +1383,7 @@ input[type="date"]:focus,input[type="time"]:focus{border-color:var(--turquoise)}
           <div class="toggle-text" data-t="anonLabel"></div>
           <div class="toggle-sub" data-t="anonSub"></div>
         </div>
-        <div class="toggle on" id="tog-anon" onclick="togAnon(this)"><div class="knob"></div></div>
+        <div class="toggle" id="tog-anon" onclick="togAnon(this)"><div class="knob"></div></div>
       </div>
       <div class="contact-fields" id="contact-fields">
         <div class="field"><label class="field-label" data-t="emailLabel"></label><input type="email" class="text-input" id="f-email" placeholder="name@example.com" dir="ltr"></div>
@@ -1663,7 +1663,7 @@ ar:{dir:'rtl',ff:'var(--font-ar)',name:'العربية',
   step4Title:'الأهمية والتواصل',step4Desc:'حدد مستوى الخطورة وطريقة التواصل',
   descLabel:'وصف الحادثة',locationLabel:'الموقع / المشروع',dateLabel:'التاريخ',timeLabel:'الوقت التقريبي',
   ongoingLabel:'هل المخالفة مستمرة؟',ongoingSub:'فعّل إذا كانت لا تزال تحدث',
-  severityLabel:'مستوى الخطورة',anonLabel:'بلاغ مجهول الهوية',anonSub:'هويتك لن تُكشف — مفعّل تلقائياً',
+  severityLabel:'مستوى الخطورة',anonLabel:'بلاغ مجهول الهوية',anonSub:'هويتك لن تُكشف — اضغط للتفعيل',
   emailLabel:'البريد الإلكتروني',phoneLabel:'رقم الجوال',
   uploadText:'اسحب الملفات هنا أو اضغط للاختيار',uploadHint:'صور، PDF، أو مستندات — حد أقصى 10 ميجا',
   selectPH:'اختر الموقع...',btnSubmit:'إرسال البلاغ',btnPrint:'طباعة / حفظ نسخة',
@@ -1743,7 +1743,7 @@ en:{dir:'ltr',ff:'var(--font-en)',name:'English',
   step4Title:'Severity & Contact',step4Desc:'Set the severity level and choose your contact preference',
   descLabel:'Incident Description',locationLabel:'Location / Project',dateLabel:'Date',timeLabel:'Approximate Time',
   ongoingLabel:'Is this violation ongoing?',ongoingSub:"Enable if it's still happening",
-  severityLabel:'Severity Level',anonLabel:'Anonymous Report',anonSub:'Your identity will not be revealed — on by default',
+  severityLabel:'Severity Level',anonLabel:'Anonymous Report',anonSub:'Your identity will not be revealed — tap to enable',
   emailLabel:'Email',phoneLabel:'Phone Number',
   uploadText:'Drag files here or tap to browse',uploadHint:'Images, PDF, or documents — max 10MB per file',
   selectPH:'Select location...',btnSubmit:'Submit Report',btnPrint:'Print / Save Copy',
@@ -3709,13 +3709,13 @@ function openForm(){
 
 function resetForm(){
   selectedType='';selectedSeverity='';selectedEnv='';selectedSubIssue='';selectedDetail='';selectedFrequency='';
-  isAnonymous=true;isOngoing=false;uploadedFiles=[];
+  isAnonymous=false;isOngoing=false;uploadedFiles=[];
   ['f-desc','f-date','f-time','f-email','f-phone'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
   const loc=document.getElementById('f-location');if(loc)loc.selectedIndex=0;
   const cc=document.getElementById('cc');if(cc)cc.textContent='0';
-  const togAn=document.getElementById('tog-anon');if(togAn)togAn.classList.add('on');
+  const togAn=document.getElementById('tog-anon');if(togAn)togAn.classList.remove('on');
   const togOn=document.getElementById('tog-ongoing');if(togOn)togOn.classList.remove('on');
-  const cf=document.getElementById('contact-fields');if(cf)cf.classList.remove('show');
+  const cf=document.getElementById('contact-fields');if(cf)cf.classList.add('show');
   const fp=document.getElementById('file-previews');if(fp)fp.innerHTML='';
   const sw=document.getElementById('sub-issue-wrap');if(sw)sw.style.display='none';
   const dw=document.getElementById('detail-wrap');if(dw)dw.style.display='none';
